@@ -1,0 +1,142 @@
+{% load static %}
+
+<div class="flex flex-col h-full">
+    <div class="space-y-4 mb-auto">
+        <div class="text-center mb-6 border-b border-pink-50 pb-4">
+            <h3 class="acg-font text-xl text-pink-600">控制面板</h3>
+            <p class="text-[10px] text-gray-400 tracking-widest uppercase font-bold italic">Sakura Station</p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+            <button class="glass-card p-3 text-xs flex flex-col items-center hover:bg-pink-500 hover:text-white transition group border-none shadow-sm">
+                <i class="fa-solid fa-wand-sparkles mb-2 text-pink-500 group-hover:text-white"></i>查看说明
+            </button>
+            <button class="glass-card p-3 text-xs flex flex-col items-center hover:bg-pink-500 hover:text-white transition group border-none shadow-sm">
+                <i class="fa-solid fa-face-smile-beam mb-2 text-pink-500 group-hover:text-white"></i>助手设置
+            </button>
+        </div>
+
+        <div class="glass-card p-6 mt-2 space-y-4 bg-white/60 border-none shadow-inner">
+            <p class="text-[17px] text-pink-500 font-bold acg-font tracking-widest">和小柚聊聊天吧</p>
+            <div class="relative">
+                <input type="text" id="chat-input" placeholder="输入你想说的话..."
+                       class="w-full bg-white/80 border border-pink-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300 transition shadow-sm">
+                <button id="chat-send" class="absolute right-3 top-3 text-pink-400 hover:text-pink-600 transition text-lg">
+                    <i class="fa-solid fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+
+        <div id="user-bubble-container" class="glass-card p-4 mt-2 bg-white/60 border-none shadow-inner hidden">
+            <div class="flex justify-between text-[10px] font-bold mb-1 text-pink-400">
+                <span>MASTER SAYS:</span>
+            </div>
+            <div id="user-last-question" class="text-xs text-gray-500 italic leading-relaxed text-gray-600"></div>
+        </div>
+    </div>
+
+    <div class="flex flex-col items-center mt-auto waifu-visual-footer">
+        <div id="waifu-tips" class="glass-card p-4 mb-3 w-full text-sm border-l-4 border-pink-500 shadow-md leading-relaxed text-gray-700 min-h-[65px]">
+            小柚正在准备中...
+        </div>
+        <div class="cursor-pointer group waifu-container" id="waifu-container">
+            <img id="waifu-img" src="{% static 'images/waifu.png' %}" class="waifu-img-obj waifu-floating drop-shadow-2xl group-hover:scale-105 transition-transform duration-300">
+        </div>
+    </div>
+</div>
+
+<script>
+    const waifuElement = document.getElementById('waifu-img');
+    const tipsElement = document.getElementById('waifu-tips');
+    const chatInput = document.getElementById('chat-input');
+    const chatSend = document.getElementById('chat-send');
+    const userBubble = document.getElementById('user-bubble-container');
+    const userText = document.getElementById('user-last-question');
+
+    const emotions = {
+        'normal': "{% static 'images/waifu.png' %}",
+        '1': "{% static 'images/waifu_happy.png' %}",
+        '2': "{% static 'images/waifu_shy.png' %}",
+        '3': "{% static 'images/waifu_sad.png' %}",
+        '4': "{% static 'images/waifu_sweat.png' %}",
+        '5': "{% static 'images/waifu_serious.png' %}",
+        '6': "{% static 'images/waifu_fortunate.png' %}",
+    };
+
+    let isThinking = false;
+    let emotionTimer = null;
+
+    async function askXiaoYou(type, content = '') {
+        if (isThinking) return;
+
+        // 1. 气泡显示逻辑
+        if (type === 'CHAT' && content.trim() !== '') {
+            userText.innerText = content;
+            userBubble.classList.remove('hidden');
+        } else if (type === 'CLICK') {
+            userText.innerText = "(触碰了小柚)";
+            userBubble.classList.remove('hidden');
+            // 关键：如果类型是点击，我们要给后端一个明确的 content 引导 AI 害羞
+            content = "主人摸了摸你的头，你觉得很害羞～";
+        } else {
+            userBubble.classList.add('hidden');
+        }
+
+        isThinking = true;
+        tipsElement.innerHTML = "......";
+        waifuElement.classList.add('animate__animated', 'animate__pulse');
+
+        try {
+            const response = await fetch("{% url 'kanban_chat' %}", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+                body: JSON.stringify({ type: type, content: content })
+            });
+            const data = await response.json();
+
+            let rawReply = data.reply;
+            let emotionCode = rawReply.charAt(0);
+            let displayText = rawReply.slice(1);
+
+            waifuElement.src = emotions[emotionCode] || emotions['normal'];
+            tipsElement.innerHTML = displayText;
+
+            if (emotionTimer) clearTimeout(emotionTimer);
+            emotionTimer = setTimeout(() => {
+                if (!isThinking) waifuElement.src = emotions['normal'];
+            }, 6000);
+
+        } catch (error) {
+            tipsElement.innerHTML = "呜...好像和服务器断开连接了QwQ";
+        } finally {
+            isThinking = false;
+            waifuElement.classList.remove('animate__pulse');
+        }
+    }
+
+    function handleSend() {
+        const text = chatInput.value.trim();
+        if (text) { askXiaoYou('CHAT', text); chatInput.value = ''; }
+    }
+
+    chatSend.onclick = handleSend;
+    chatInput.onkeypress = (e) => { if(e.key === 'Enter') handleSend(); };
+
+    // 触碰小柚的事件
+    document.getElementById('waifu-container').onclick = () => askXiaoYou('CLICK');
+
+    window.addEventListener('load', () => {
+        const path = window.location.pathname;
+        let ctx = 'GENERAL';
+        if (path === '/login/') ctx = 'LOGIN';
+        else if (path === '/register/') ctx = 'REGISTER';
+        setTimeout(() => askXiaoYou(ctx), 600);
+    });
+</script>
+
+<style>
+    .waifu-visual-footer { transform: translateY(20px); width: 100%; }
+    .waifu-container { position: relative; width: 100%; max-width: 320px; height: 380px; display: flex; align-items: flex-end; justify-content: center; }
+    .waifu-img-obj { max-width: 100%; max-height: 100%; object-fit: contain; }
+    .acg-font { font-family: 'ZCOOL KuaiLe', cursive; }
+</style>

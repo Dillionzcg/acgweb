@@ -1,0 +1,111 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}次元壁 - 智能二次元资讯枢纽{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.0.0/css/all.min.css">
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Noto+Sans+SC:wght@400;700&display=swap');
+
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: linear-gradient(135deg, #ffffff 0%, #fffafa 35%, #fff0f5 70%, #fff5f7 100%);
+            background-size: 200% 200%;
+            animation: softPinkBreath 15s ease-in-out infinite;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        @keyframes softPinkBreath {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* 核心：保持原汁原味的 Flex 布局 */
+        .app-container { display: flex; height: 100vh; width: 100vw; position: relative; z-index: 1; }
+        .content-area { flex: 1; height: 100%; overflow-y: auto; scrollbar-width: none; }
+        .content-area::-webkit-scrollbar { display: none; }
+
+        /* 侧边栏：这里保留了你原来那个“不透明栏”的所有样式 */
+        .waifu-sidebar {
+            width: 350px;
+            min-width: 350px; /* 锁定宽度，防止被内容撑大 */
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            background: rgba(255, 255, 255, 0.4); /* 你说的不透明背景 */
+            backdrop-filter: blur(20px);
+            border-left: 1px solid rgba(255, 182, 193, 0.2);
+            padding: 20px;
+        }
+
+        /* 全局通用样式 */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(255, 182, 193, 0.15);
+        }
+        .acg-font { font-family: 'ZCOOL KuaiLe', cursive; }
+
+        @media (max-width: 1024px) { .waifu-sidebar { display: none; } }
+    </style>
+</head>
+<body>
+
+    {% include 'sakura.html' %}
+
+    <div class="app-container">
+        <div class="content-area">
+            <nav class="sticky top-0 z-50 px-6 py-3 glass-card m-4 flex items-center justify-between shadow-sm">
+                <div class="flex items-center space-x-8">
+                    <h1 class="text-3xl acg-font text-pink-500 tracking-wider"><a href="/">柚子次元壁!</a></h1>
+                    <div class="hidden lg:flex space-x-5 font-bold text-sm text-gray-600">
+                        <a href="/" class="hover:text-pink-600 transition">首页推荐</a>
+                        <a href="#" class="hover:text-pink-600 transition">虚拟助手</a>
+                        <a href="#" class="hover:text-pink-600 transition">关系图谱</a>
+                        <a href="#" class="hover:text-pink-600 transition">安利领航</a>
+                        <a href="#" class="hover:text-pink-600 transition">属性看板</a>
+                        <a href="#" class="hover:text-pink-600 transition">社区</a>
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-3">
+                    {% if user.is_authenticated %}
+                        <div class="flex items-center space-x-3">
+                            <span class="text-xs font-bold text-pink-500 px-2">ID: {{ user.username }}</span>
+                            <a href="#" class="text-xs font-bold px-4 py-2 bg-pink-500 text-white rounded-full shadow-md hover:bg-pink-600 transition">个人空间</a>
+                            <form action="{% url 'logout' %}" method="post" class="inline">
+                                {% csrf_token %}
+                                <button type="submit" class="text-[10px] text-gray-400 hover:text-pink-500">退出</button>
+                            </form>
+                        </div>
+                    {% else %}
+                        <div class="flex items-center space-x-2">
+                            <a href="/login/" class="text-xs font-bold px-4 py-2 bg-white/70 rounded-full border border-pink-200 hover:bg-pink-100 transition">登录</a>
+                            <a href="/register/" class="text-xs font-bold px-4 py-2 bg-pink-500 text-white rounded-full shadow-md hover:bg-pink-600 transition">注册</a>
+                        </div>
+                    {% endif %}
+                </div>
+            </nav>
+
+            <main class="container mx-auto px-4 py-2">
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+
+        <aside class="waifu-sidebar">
+            {% include 'waifu.html' %}
+        </aside>
+
+    </div>
+</body>
+</html>
