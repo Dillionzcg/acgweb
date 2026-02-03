@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% block title %}注册 - 同步档案{% endblock %}
+
+{% block content %}
+<div class="flex justify-center items-center min-h-[85vh] py-12 relative">
+    <div class="absolute top-0 right-0 mt-4 mr-4 animate__animated animate__fadeIn">
+        <a href="{% url 'index' %}" class="flex items-center space-x-2 bg-white/60 hover:bg-white text-pink-500 px-5 py-2 rounded-full shadow-sm transition-all hover:scale-105 border border-pink-100 backdrop-blur-md">
+            <span>🏠</span>
+            <span class="font-bold">返回首页</span>
+        </a>
+    </div>
+
+    <div class="glass-card p-10 w-full max-w-2xl animate__animated animate__zoomIn"
+         style="border-radius: 40px; background: rgba(255, 255, 255, 0.5); border: 2px dashed rgba(255, 182, 193, 0.6);">
+
+        <div class="text-center mb-10">
+            <h2 class="text-3xl font-bold text-pink-500 mb-2">新成员档案同步</h2>
+            <p class="text-pink-300 text-sm">加入次元空间，开启你的 ACG 之旅</p>
+        </div>
+
+        <form method="post" class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+            {% csrf_token %}
+
+            {% for field in form %}
+            <div class="flex flex-col space-y-1">
+                <label class="text-pink-400 font-bold text-sm ml-4">{{ field.label }}</label>
+                <div class="custom-input-wrap">
+                    {{ field }}
+                </div>
+                {% if field.errors %}
+                    <span class="text-red-400 text-[10px] mt-1 ml-4 italic">{{ field.errors.0 }}</span>
+                {% endif %}
+            </div>
+            {% endfor %}
+
+            <div class="md:col-span-2 mt-6">
+                <button type="submit"
+                        class="w-full py-4 bg-gradient-to-r from-pink-400 to-pink-500 text-white rounded-full font-bold text-lg shadow-lg hover:shadow-pink-200 transition-all active:scale-95">
+                    立即开启二次元新世界
+                </button>
+            </div>
+        </form>
+
+        <p class="md:col-span-2 mt-8 text-center text-gray-400 text-[10px]">
+            点击注册即表示同意《次元壁萌约》和《数据同步守则》
+        </p>
+    </div>
+</div>
+
+<style>
+    /* 核心美化：强制修改 Django Form 生成的 input */
+    .custom-input-wrap input {
+        width: 100%;
+        padding: 0.75rem 1.5rem;
+        border-radius: 9999px;
+        border: 2px solid white;
+        background: rgba(255, 255, 255, 0.6);
+        transition: all 0.3s ease;
+        outline: none;
+    }
+    .custom-input-wrap input:focus {
+        border-color: #ffb6c1;
+        background: white;
+        box-shadow: 0 0 15px rgba(255, 182, 193, 0.2);
+    }
+    /* 针对必填项的微调 */
+    .custom-input-wrap input::placeholder {
+        color: #fbcfe8;
+        font-size: 0.875rem;
+    }
+</style>
+{% endblock %}

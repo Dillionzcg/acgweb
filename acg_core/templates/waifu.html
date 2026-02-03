@@ -1,0 +1,144 @@
+{% load static %}
+<aside class="waifu-sidebar">
+    <div class="space-y-4 mb-auto">
+        <div class="text-center mb-6 border-b border-pink-50 pb-4">
+            <h3 class="acg-font text-xl text-pink-600">控制面板</h3>
+            <p class="text-[10px] text-gray-400 tracking-widest uppercase font-bold italic">Sakura Station</p>
+        </div>
+
+        <div class="glass-card p-6 mt-2 space-y-4 bg-white/60 border-none shadow-inner">
+            <p class="text-[17px] text-pink-500 font-bold acg-font tracking-widest">和小柚聊聊天吧</p>
+            <div class="relative">
+                <input type="text" id="chat-input" placeholder="输入你想说的话..."
+                       class="w-full bg-white/80 border border-pink-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300 transition shadow-sm">
+                <button id="chat-send" class="absolute right-3 top-3 text-pink-400 hover:text-pink-600 transition text-lg">
+                    <i class="fa-solid fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+
+        <div id="user-bubble-container" class="glass-card p-4 mt-2 bg-white/60 border-none shadow-inner hidden">
+            <div class="flex justify-between text-[10px] font-bold mb-1 text-pink-400">
+                <span>MASTER SAYS:</span>
+            </div>
+            <div id="user-last-question" class="text-xs text-gray-500 italic leading-relaxed"></div>
+        </div>
+    </div>
+
+    <div class="flex flex-col items-center mt-auto">
+        <div id="waifu-tips" class="glass-card p-4 mb-4 w-full text-sm border-l-4 border-pink-500 shadow-md leading-relaxed text-gray-700 min-h-[60px]">
+            小柚正在准备中...
+        </div>
+        <div class="cursor-pointer group waifu-container" id="waifu-container">
+            <img id="waifu-img" src="{% static 'images/waifu.png' %}" class="waifu-img-obj waifu-floating drop-shadow-2xl group-hover:scale-105">
+        </div>
+    </div>
+</aside>
+
+<script>
+    // --- 小柚核心逻辑 ---
+    const waifuElement = document.getElementById('waifu-img');
+    const tipsElement = document.getElementById('waifu-tips');
+    const chatInput = document.getElementById('chat-input');
+    const chatSend = document.getElementById('chat-send');
+    const userBubble = document.getElementById('user-bubble-container');
+    const userText = document.getElementById('user-last-question');
+
+    // 图片路径配置
+    const imgNormal = "{% static 'images/waifu.png' %}";
+    const imgHappy = "{% static 'images/waifu_happy.png' %}";
+    const imgShy = "{% static 'images/waifu_shy.png' %}";
+    const imgSad = "{% static 'images/waifu_sad.png' %}";
+    const imgSweat = "{% static 'images/waifu_sweat.png' %}";
+    const imgSerious = "{% static 'images/waifu_serious.png' %}";
+
+    let isThinking = false;
+    let emotionTimer = null;
+
+    async function askXiaoYou(type, mode = 'DEFAULT', content = '') {
+        if (isThinking) return;
+
+        // 1. 更新用户对话气泡显示
+        if (content) {
+            userText.innerText = content;
+            userBubble.classList.remove('hidden');
+        } else if (type === 'CLICK') {
+            userText.innerText = "(触碰了小柚)";
+            userBubble.classList.remove('hidden');
+        } else {
+            userBubble.classList.add('hidden');
+        }
+
+        isThinking = true;
+        if (mode !== 'WELCOME') waifuElement.src = imgNormal;
+
+        tipsElement.innerHTML = "......";
+        waifuElement.classList.add('animate__animated', 'animate__pulse');
+
+        try {
+            const response = await fetch("{% url 'kanban_chat' %}", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type: type, content: content })
+            });
+            const data = await response.json();
+
+            let rawReply = data.reply;
+            let emotionCode = rawReply.charAt(0); // 提取数字表情代码
+            let displayText = rawReply.slice(1);   // 提取回复文本
+
+            tipsElement.innerHTML = displayText;
+
+            // 2. 匹配表情
+            const emotions = {
+                '1': imgHappy,
+                '2': imgShy,
+                '3': imgSad,
+                '4': imgSweat,
+                '5': imgSerious
+            };
+            waifuElement.src = emotions[emotionCode] || imgNormal;
+
+            // 3. 6秒回归初始状态
+            if (emotionTimer) clearTimeout(emotionTimer);
+            emotionTimer = setTimeout(() => {
+                if (!isThinking) waifuElement.src = imgNormal;
+            }, 6000);
+
+        } catch (error) {
+            tipsElement.innerHTML = "唔...脑袋稍微有点晕乎乎的...（对手指）";
+            waifuElement.src = imgNormal;
+        } finally {
+            isThinking = false;
+            waifuElement.classList.remove('animate__pulse');
+        }
+    }
+
+    // 发送逻辑
+    function sendChat() {
+        const text = chatInput.value.trim();
+        if (text) {
+            askXiaoYou('CHAT', 'CHAT', text);
+            chatInput.value = '';
+        }
+    }
+
+    chatSend.onclick = sendChat;
+    chatInput.onkeypress = (e) => { if(e.key === 'Enter') sendChat(); };
+
+    // 初始化场景识别
+    window.addEventListener('load', () => {
+        const path = window.location.pathname;
+        const referrer = document.referrer;
+        let ctx = 'GENERAL';
+
+        if (path === '/login/') ctx = 'LOGIN';
+        else if (path === '/register/') ctx = 'REGISTER';
+        else if (path === '/' && referrer.includes('/login/')) ctx = 'LOGIN_SUCCESS';
+        else if (path === '/' && referrer.includes('/register/')) ctx = 'REGISTER_SUCCESS';
+
+        askXiaoYou(ctx, 'WELCOME');
+    });
+
+    document.getElementById('waifu-container').onclick = () => askXiaoYou('CLICK', 'CLICK');
+</script>
