@@ -1,0 +1,20 @@
+# 虚拟环境
+.venv/
+venv/
+ENV/
+
+# Python 缓存
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Django 本地数据库
+db.sqlite3
+
+# PyCharm 配置文件
+.idea/
+.vscode/
+
+# 静态文件收集目录 (如果你后期用了 collectstatic)
+/static/
