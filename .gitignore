@@ -16,5 +16,3 @@ db.sqlite3
 .idea/
 .vscode/
 
-# 静态文件收集目录 (如果你后期用了 collectstatic)
-/static/
