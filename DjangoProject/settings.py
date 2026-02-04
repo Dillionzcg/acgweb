@@ -13,12 +13,15 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
+    'daphne',
+    'chat',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'channels',
     'acg_core',
 ]
 
@@ -50,6 +53,13 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'DjangoProject.wsgi.application'
+ASGI_APPLICATION = 'DjangoProject.asgi.application'
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer"
+    }
+}
 
 DATABASES = {
     'default': {
@@ -84,3 +94,6 @@ AUTHENTICATION_BACKENDS = [
     'acg_core.backends.MultiLoginBackend',
     'django.contrib.auth.backends.ModelBackend',
 ]
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'
+

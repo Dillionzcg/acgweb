@@ -1,0 +1,307 @@
+<style>
+    /* Chat Widget Styles */
+    #chat-fab {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%);
+        border-radius: 50%;
+        box-shadow: 0 4px 15px rgba(255, 105, 180, 0.4);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        z-index: 1000;
+        transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    #chat-fab:hover {
+        transform: scale(1.1) rotate(10deg);
+    }
+    #chat-fab i {
+        color: white;
+        font-size: 24px;
+    }
+
+    #chat-window {
+        position: fixed;
+        bottom: 100px;
+        right: 30px;
+        width: 350px;
+        height: 450px;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        display: none; /* Hidden by default */
+        flex-direction: column;
+        z-index: 1000;
+        border: 1px solid rgba(255, 182, 193, 0.3);
+        overflow: hidden;
+        animation: slideUp 0.3s ease-out;
+    }
+
+    @keyframes slideUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .chat-header {
+        padding: 15px 20px;
+        background: linear-gradient(to right, #ff9a9e, #fad0c4);
+        color: white;
+        font-weight: bold;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .chat-close { cursor: pointer; opacity: 0.8; }
+    .chat-close:hover { opacity: 1; }
+
+    #chat-messages {
+        flex: 1;
+        padding: 15px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .message-bubble {
+        max-width: 80%;
+        padding: 10px 15px;
+        border-radius: 15px;
+        font-size: 14px;
+        line-height: 1.4;
+        word-wrap: break-word;
+    }
+    .message-bubble.received {
+        align-self: flex-start;
+        background: #f0f2f5;
+        color: #333;
+        border-bottom-left-radius: 2px;
+    }
+    .message-bubble.sent {
+        align-self: flex-end;
+        background: #ff9a9e;
+        color: white;
+        border-bottom-right-radius: 2px;
+    }
+
+    .chat-input-area {
+        padding: 15px;
+        border-top: 1px solid #eee;
+        display: flex;
+        gap: 10px;
+        background: white;
+    }
+    #chat-widget-input {
+        flex: 1;
+        border: 1px solid #ddd;
+        border-radius: 20px;
+        padding: 8px 15px;
+        outline: none;
+        transition: border-color 0.3s;
+    }
+    #chat-widget-input:focus { border-color: #ff9a9e; }
+    #chat-widget-send {
+        background: #ff9a9e;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 35px;
+        height: 35px;
+        cursor: pointer;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        transition: background 0.3s;
+    }
+    #chat-widget-send:hover { background: #ff758c; }
+
+    /* Video Call Overlay Styles */
+    #video-modal {
+        position: fixed;
+        top: 0; left: 0; width: 100vw; height: 100vh;
+        background: rgba(0,0,0,0.8);
+        z-index: 2000;
+        display: none;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+    }
+    #video-container {
+        position: relative;
+        width: 80%;
+        max-width: 800px;
+        aspect-ratio: 16/9;
+        background: black;
+        border-radius: 15px;
+        overflow: hidden;
+    }
+    video { width: 100%; height: 100%; object-fit: cover; }
+    .video-controls {
+        margin-top: 20px;
+        display: flex;
+        gap: 20px;
+    }
+    .v-btn {
+        width: 50px; height: 50px;
+        border-radius: 50%;
+        border: none;
+        color: white;
+        font-size: 20px;
+        cursor: pointer;
+        display: flex; justify-content: center; align-items: center;
+    }
+    .btn-hangup { background: #ff4757; }
+    .btn-mic { background: #2ed573; }
+</style>
+
+<!-- Floating Action Button -->
+<div id="chat-fab" title="Chat with us!">
+    <i class="fas fa-comment-dots"></i>
+</div>
+
+<!-- Chat Window -->
+<div id="chat-window">
+    <div class="chat-header">
+        <span>ACG 聊天室</span>
+        <div style="display: flex; gap: 10px;">
+             <!-- Video Call Button (Future) -->
+            <i class="fas fa-video chat-close" id="start-video-btn" title="Start Video Call"></i>
+            <i class="fas fa-times chat-close" id="close-chat"></i>
+        </div>
+    </div>
+    <div id="chat-messages">
+        <!-- Messages will appear here -->
+        <div class="message-bubble received">你好！欢迎来到 ACG 聊天室~ (｡♥‿♥｡)</div>
+    </div>
+    <div class="chat-input-area">
+        <input type="text" id="chat-widget-input" placeholder="说点什么..." autocomplete="off">
+        <button id="chat-widget-send"><i class="fas fa-paper-plane"></i></button>
+    </div>
+</div>
+
+<!-- Video Call Modal (Hidden by default) -->
+<div id="video-modal">
+    <div id="video-container">
+        <!-- Local Video -->
+        <video id="local-video" autoplay muted playsinline></video>
+        <!-- Remote Video (overlay or split) -->
+        <!-- For simplicity, let's just show local for now -->
+    </div>
+    <div class="video-controls">
+        <button class="v-btn btn-mic"><i class="fas fa-microphone"></i></button>
+        <button class="v-btn btn-hangup" id="end-video-btn"><i class="fas fa-phone-slash"></i></button>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const fab = document.getElementById('chat-fab');
+        const chatWindow = document.getElementById('chat-window');
+        const closeBtn = document.getElementById('close-chat');
+        const msgInput = document.getElementById('chat-widget-input');
+        const sendBtn = document.getElementById('chat-widget-send');
+        const msgContainer = document.getElementById('chat-messages');
+
+        // --- Toggle UI ---
+        fab.addEventListener('click', () => {
+            chatWindow.style.display = 'flex';
+            fab.style.display = 'none';
+            connectWebSocket(); // Connect when opened
+        });
+
+        closeBtn.addEventListener('click', () => {
+            chatWindow.style.display = 'none';
+            fab.style.display = 'flex';
+        });
+
+        // --- WebSocket Logic ---
+        let chatSocket = null;
+        const roomName = 'lobby'; // Default global room
+
+        function connectWebSocket() {
+            if (chatSocket) return; // Already connected
+
+            const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+            chatSocket = new WebSocket(
+                protocol + window.location.host + '/ws/chat/' + roomName + '/'
+            );
+
+            chatSocket.onmessage = function(e) {
+                const data = JSON.parse(e.data);
+                addMessage(data.message, 'received');
+            };
+
+            chatSocket.onclose = function(e) {
+                console.error('Chat socket closed unexpectedly');
+                chatSocket = null;
+            };
+        }
+
+        // --- Send Message ---
+        function sendMessage() {
+            const message = msgInput.value.trim();
+            if (message && chatSocket) {
+                chatSocket.send(JSON.stringify({
+                    'message': message
+                }));
+                // Optimistically add my own message
+                // addMessage(message, 'sent'); // Depending on server logic, server might echo it back.
+                // In our current consumer, server broadcasts to everyone including sender.
+                // So let's rely on the echo to avoid duplicates, OR handle 'sent' class based on user ID later.
+                // For now, let's assume all messages coming from socket are 'received' style,
+                // or we can just add it as 'sent' here and ignore the echo if we implemented an ID check.
+                // Simplified: All messages look like 'received' unless we store user info.
+                msgInput.value = '';
+            }
+        }
+
+        sendBtn.addEventListener('click', sendMessage);
+        msgInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        function addMessage(text, type) {
+            const div = document.createElement('div');
+            div.classList.add('message-bubble');
+            // Check if it's my message? (Simple hack: if text matches last input? No, unreliable)
+            // For now, let's style all as 'received' except hardcoded welcome.
+            // Or better: In a real app, message payload should have 'sender_id'.
+            div.classList.add('received'); // Default
+            div.textContent = text;
+            msgContainer.appendChild(div);
+            msgContainer.scrollTop = msgContainer.scrollHeight;
+        }
+
+        // --- Video Call Logic (Placeholder) ---
+        const startVideoBtn = document.getElementById('start-video-btn');
+        const videoModal = document.getElementById('video-modal');
+        const endVideoBtn = document.getElementById('end-video-btn');
+        const localVideo = document.getElementById('local-video');
+
+        startVideoBtn.addEventListener('click', async () => {
+            videoModal.style.display = 'flex';
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                localVideo.srcObject = stream;
+            } catch (err) {
+                console.error("Error accessing media devices:", err);
+                alert("无法访问摄像头或麦克风");
+                videoModal.style.display = 'none';
+            }
+        });
+
+        endVideoBtn.addEventListener('click', () => {
+            videoModal.style.display = 'none';
+            const stream = localVideo.srcObject;
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                localVideo.srcObject = null;
+            }
+        });
+    });
+</script>
