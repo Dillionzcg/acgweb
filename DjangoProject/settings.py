@@ -13,21 +13,15 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
-<<<<<<< HEAD
     'daphne',
     'chat',
-=======
->>>>>>> 4d04697ac3bdaf0b50168b1a496a436f7cff8b65
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-<<<<<<< HEAD
     'channels',
-=======
->>>>>>> 4d04697ac3bdaf0b50168b1a496a436f7cff8b65
     'acg_core',
 ]
 
@@ -59,7 +53,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'DjangoProject.wsgi.application'
-<<<<<<< HEAD
 ASGI_APPLICATION = 'DjangoProject.asgi.application'
 
 CHANNEL_LAYERS = {
@@ -67,8 +60,6 @@ CHANNEL_LAYERS = {
         "BACKEND": "channels.layers.InMemoryChannelLayer"
     }
 }
-=======
->>>>>>> 4d04697ac3bdaf0b50168b1a496a436f7cff8b65
 
 DATABASES = {
     'default': {
@@ -103,13 +94,9 @@ AUTHENTICATION_BACKENDS = [
     'acg_core.backends.MultiLoginBackend',
     'django.contrib.auth.backends.ModelBackend',
 ]
-<<<<<<< HEAD
+
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
-=======
-import os
-
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
->>>>>>> 4d04697ac3bdaf0b50168b1a496a436f7cff8b65
