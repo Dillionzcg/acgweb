@@ -78,6 +78,8 @@ def kanban_chat(request):
             prompts = {
                 'LOGIN': "用户在登录页面，请温柔地欢迎他。",
                 'REGISTER': "有新主人正在注册，请表示欢迎",
+                'USER_CENTER': "主人正在修改个人资料，请表达你的好奇或期待，并温柔地陪伴他。",
+                'USER_ACTION': f"主人刚才做了这个动作：{user_input}，请根据这个进行互动。",
                 'FORM_ERROR': f"主人信息填写有问题：{user_input}。请温柔安慰并提醒检查。",
                 'LOGIN_ERROR': f"登录失败：{user_input}。请温柔地鼓励主人再试一次。",
                 'CLICK': f"{user_input}"
@@ -143,3 +145,41 @@ def login_view(request):
 
 
 def logout_view(request): logout(request); return redirect('/')
+
+# 在 views.py 中添加以下内容
+from django.contrib.auth.decorators import login_required
+
+import json
+from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_exempt  # 如果你在JS里处理了CSRF Token，可以不加这个
+
+import json
+from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
+
+
+@login_required
+def user_center(request):
+    user = request.user
+    if request.method == 'POST':
+        # 处理头像文件
+        if request.FILES.get('avatar'):
+            user.avatar = request.FILES['avatar']
+            user.save()
+            return JsonResponse({'status': 'success'})
+
+        # 处理 JSON 资料
+        try:
+            data = json.loads(request.body)
+            user.gender = data.get('gender', user.gender)
+            user.birthday = data.get('birthday') or None
+            user.bio = data.get('bio', '')
+            # 如果有标签字段可以加上：user.tags = data.get('tags', [])
+            user.save()
+            return JsonResponse({'status': 'success'})
+        except:
+            return JsonResponse({'status': 'error'}, status=400)
+
+    return render(request, 'user_center.html')

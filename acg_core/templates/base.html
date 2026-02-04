@@ -80,14 +80,20 @@
 
                 <div class="flex items-center space-x-3">
                     {% if user.is_authenticated %}
-                        <div class="flex items-center space-x-3">
-                            <span class="text-xs font-bold text-pink-500 px-2">ID: {{ user.username }}</span>
-                            <a href="#" class="text-xs font-bold px-4 py-2 bg-pink-500 text-white rounded-full shadow-md hover:bg-pink-600 transition">个人空间</a>
-                            <form action="{% url 'logout' %}" method="post" class="inline">
-                                {% csrf_token %}
-                                <button type="submit" class="text-[10px] text-gray-400 hover:text-pink-500">退出</button>
-                            </form>
-                        </div>
+                        <a href="{% url 'user_center' %}" title="用户中心"
+                           class="w-10 h-10 flex items-center justify-center bg-pink-100 text-pink-500 rounded-full hover:bg-pink-500 hover:text-white transition-all shadow-sm">
+                            <i class="fa-solid fa-user"></i>
+                        </a>
+
+                        <button title="设置"
+                           class="w-10 h-10 flex items-center justify-center bg-pink-100 text-pink-500 rounded-full hover:bg-pink-500 hover:text-white transition-all shadow-sm">
+                            <i class="fa-solid fa-gear"></i>
+                        </button>
+
+                        <a href="{% url 'logout' %}"
+                           class="text-[12px] text-red-400 hover:text-red-600 font-medium ml-2 transition-colors">
+                            退出登录
+                        </a>
                     {% else %}
                         <div class="flex items-center space-x-2">
                             <a href="/login/" class="text-xs font-bold px-4 py-2 bg-white/70 rounded-full border border-pink-200 hover:bg-pink-100 transition">登录</a>

@@ -84,3 +84,7 @@ AUTHENTICATION_BACKENDS = [
     'acg_core.backends.MultiLoginBackend',
     'django.contrib.auth.backends.ModelBackend',
 ]
+import os
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

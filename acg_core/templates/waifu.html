@@ -45,6 +45,7 @@
 </div>
 
 <script>
+    let currentAbortController = null;
     const waifuElement = document.getElementById('waifu-img');
     const tipsElement = document.getElementById('waifu-tips');
     const chatInput = document.getElementById('chat-input');
@@ -52,7 +53,6 @@
     const userBubble = document.getElementById('user-bubble-container');
     const userText = document.getElementById('user-last-question');
 
-    // 检测是否为会话首次加载
     if (!sessionStorage.getItem('waifu_initialized')) {
         tipsElement.innerHTML = "小柚正在准备中...";
     } else {
@@ -74,7 +74,15 @@
     let emotionTimer = null;
 
     async function askXiaoYou(type, content = '') {
-        if (isThinking) return;
+        // 修改点1：如果当前正在“思考”，且不是强制动作，则跳过，避免重复触发
+        if (isThinking && type === 'GENERAL') return;
+
+        // 中断旧请求
+        if (currentAbortController) {
+            currentAbortController.abort();
+        }
+        currentAbortController = new AbortController();
+        const signal = currentAbortController.signal;
 
         if (type === 'CHAT' && content.trim() !== '') {
             userText.innerText = content;
@@ -82,16 +90,16 @@
         } else if (type === 'CLICK') {
             userText.innerText = "(触碰了小柚)";
             userBubble.classList.remove('hidden');
-            // 随机指令池，解决同质化
             const clickPrompts = [
                 "主人温柔地摸了摸你的头，你感到脸红心跳～（害羞）",
                 "主人突然摸了你的呆毛，你有些不好意思但很开心主人喜欢自己～（开心）",
                 "主人在摸你的头呢，快撒个娇或者害羞地回应一下吧～（害羞）",
                 "主人温柔地摸着你的头，你觉得被治愈了，超级喜欢主人！（喜欢）",
-                "主人拍了一下你的头，你感到晕乎乎的（晕乎乎）（注意台词不能出现温暖一类，一定要和晕乎乎的状态对应）",
+                "主人拍了一下你的头，你感到晕乎乎的（晕乎乎）",
             ];
             content = clickPrompts[Math.floor(Math.random() * clickPrompts.length)];
-        } else {
+        } else if (type !== 'USER_CENTER' && type !== 'USER_ACTION') {
+            // 如果是自动触发且没有内容，隐藏气泡
             userBubble.classList.add('hidden');
         }
 
@@ -103,7 +111,8 @@
             const response = await fetch("{% url 'kanban_chat' %}", {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
-                body: JSON.stringify({ type: type, content: content })
+                body: JSON.stringify({ type: type, content: content }),
+                signal: signal
             });
             const data = await response.json();
 
@@ -114,7 +123,6 @@
             waifuElement.src = emotions[emotionCode] || emotions['normal'];
             tipsElement.innerHTML = displayText;
 
-            // 只要成功说话一次，就标记为已初始化
             sessionStorage.setItem('waifu_initialized', 'true');
 
             if (emotionTimer) clearTimeout(emotionTimer);
@@ -123,7 +131,12 @@
             }, 6000);
 
         } catch (error) {
-            tipsElement.innerHTML = "呜...好像和服务器断开连接了QwQ";
+            // 修改点2：识别中断错误，不显示“断开连接”
+            if (error.name === 'AbortError') {
+                console.log('请求被新指令覆盖：', type);
+            } else {
+                tipsElement.innerHTML = "呜...好像和服务器断开连接了QwQ";
+            }
         } finally {
             isThinking = false;
             waifuElement.classList.remove('animate__pulse');
@@ -144,7 +157,10 @@
         let ctx = 'GENERAL';
         if (path === '/login/') ctx = 'LOGIN';
         else if (path === '/register/') ctx = 'REGISTER';
-        setTimeout(() => askXiaoYou(ctx), 600);
+        // 如果是在个人中心，由于 user_center.html 会自己触发，这里可以稍微延后或跳过
+        if (path !== '/user_center/') {
+            setTimeout(() => askXiaoYou(ctx), 600);
+        }
     });
 </script>
 
