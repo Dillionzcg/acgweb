@@ -1,8 +1,15 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, authenticate, logout, get_user_model
+from django.http import JsonResponse # Added
 from .forms import RegisterForm, LoginForm
 
 User = get_user_model()
+
+def user_list_api(request):
+    if not request.user.is_authenticated:
+        return JsonResponse([], safe=False)
+    users = User.objects.exclude(id=request.user.id).values('id', 'username')
+    return JsonResponse(list(users), safe=False)
 
 def register_view(request):
     if request.method == 'POST':
