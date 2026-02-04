@@ -34,7 +34,6 @@ class RegisterForm(forms.Form):
             raise ValidationError("两次输入的密码不一致")
         return cleaned_data
 
-# --- 补充 LoginForm ---
 class LoginForm(forms.Form):
     username = forms.CharField(label="账号")
     password = forms.CharField(widget=forms.PasswordInput, label="密码")

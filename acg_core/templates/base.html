@@ -119,8 +119,8 @@
                         </div>
                     {% else %}
                         <div class="flex items-center space-x-2">
-                            <a href="/login/" class="text-xs font-bold px-4 py-2 bg-white/70 rounded-full border border-pink-200 hover:bg-pink-100 transition">登录</a>
-                            <a href="/register/" class="text-xs font-bold px-4 py-2 bg-pink-500 text-white rounded-full shadow-md hover:bg-pink-600 transition">注册</a>
+                            <a href="{% url 'login' %}" class="text-xs font-bold px-4 py-2 bg-white/70 rounded-full border border-pink-200 hover:bg-pink-100 transition">登录</a>
+                            <a href="{% url 'register' %}" class="text-xs font-bold px-4 py-2 bg-pink-500 text-white rounded-full shadow-md hover:bg-pink-600 transition">注册</a>
                         </div>
                     {% endif %}
                 </div>

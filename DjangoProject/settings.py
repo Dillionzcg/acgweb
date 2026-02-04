@@ -15,6 +15,7 @@ ALLOWED_HOSTS = []
 INSTALLED_APPS = [
     'daphne',
     'chat',
+    'authentication',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -89,9 +90,9 @@ DEEPSEEK_API_KEY = "sk-e9d4ab9b51d24a0486baef6928eb7d5f"
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # --- 认证配置 ---
-AUTH_USER_MODEL = 'acg_core.User'
+AUTH_USER_MODEL = 'authentication.User'
 AUTHENTICATION_BACKENDS = [
-    'acg_core.backends.MultiLoginBackend',
+    'authentication.backends.MultiLoginBackend',
     'django.contrib.auth.backends.ModelBackend',
 ]
 
