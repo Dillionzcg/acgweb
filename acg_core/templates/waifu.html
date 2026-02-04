@@ -37,8 +37,7 @@
 
     <div class="flex flex-col items-center mt-auto waifu-visual-footer">
         <div id="waifu-tips" class="glass-card p-4 mb-3 w-full text-sm border-l-4 border-pink-500 shadow-md leading-relaxed text-gray-700 min-h-[65px]">
-            小柚正在准备中...
-        </div>
+            </div>
         <div class="cursor-pointer group waifu-container" id="waifu-container">
             <img id="waifu-img" src="{% static 'images/waifu.png' %}" class="waifu-img-obj waifu-floating drop-shadow-2xl group-hover:scale-105 transition-transform duration-300">
         </div>
@@ -53,6 +52,13 @@
     const userBubble = document.getElementById('user-bubble-container');
     const userText = document.getElementById('user-last-question');
 
+    // 检测是否为会话首次加载
+    if (!sessionStorage.getItem('waifu_initialized')) {
+        tipsElement.innerHTML = "小柚正在准备中...";
+    } else {
+        tipsElement.innerHTML = "......";
+    }
+
     const emotions = {
         'normal': "{% static 'images/waifu.png' %}",
         '1': "{% static 'images/waifu_happy.png' %}",
@@ -61,6 +67,7 @@
         '4': "{% static 'images/waifu_sweat.png' %}",
         '5': "{% static 'images/waifu_serious.png' %}",
         '6': "{% static 'images/waifu_fortunate.png' %}",
+        '7': "{% static 'images/waifu_dizzy.png' %}",
     };
 
     let isThinking = false;
@@ -69,15 +76,21 @@
     async function askXiaoYou(type, content = '') {
         if (isThinking) return;
 
-        // 1. 气泡显示逻辑
         if (type === 'CHAT' && content.trim() !== '') {
             userText.innerText = content;
             userBubble.classList.remove('hidden');
         } else if (type === 'CLICK') {
             userText.innerText = "(触碰了小柚)";
             userBubble.classList.remove('hidden');
-            // 关键：如果类型是点击，我们要给后端一个明确的 content 引导 AI 害羞
-            content = "主人摸了摸你的头，你觉得很害羞～";
+            // 随机指令池，解决同质化
+            const clickPrompts = [
+                "主人温柔地摸了摸你的头，你感到脸红心跳～（害羞）",
+                "主人突然摸了你的呆毛，你有些不好意思但很开心主人喜欢自己～（开心）",
+                "主人在摸你的头呢，快撒个娇或者害羞地回应一下吧～（害羞）",
+                "主人温柔地摸着你的头，你觉得被治愈了，超级喜欢主人！（喜欢）",
+                "主人拍了一下你的头，你感到晕乎乎的（晕乎乎）（注意台词不能出现温暖一类，一定要和晕乎乎的状态对应）",
+            ];
+            content = clickPrompts[Math.floor(Math.random() * clickPrompts.length)];
         } else {
             userBubble.classList.add('hidden');
         }
@@ -101,6 +114,9 @@
             waifuElement.src = emotions[emotionCode] || emotions['normal'];
             tipsElement.innerHTML = displayText;
 
+            // 只要成功说话一次，就标记为已初始化
+            sessionStorage.setItem('waifu_initialized', 'true');
+
             if (emotionTimer) clearTimeout(emotionTimer);
             emotionTimer = setTimeout(() => {
                 if (!isThinking) waifuElement.src = emotions['normal'];
@@ -121,8 +137,6 @@
 
     chatSend.onclick = handleSend;
     chatInput.onkeypress = (e) => { if(e.key === 'Enter') handleSend(); };
-
-    // 触碰小柚的事件
     document.getElementById('waifu-container').onclick = () => askXiaoYou('CLICK');
 
     window.addEventListener('load', () => {
