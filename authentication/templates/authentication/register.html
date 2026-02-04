@@ -25,12 +25,17 @@
                 <div class="custom-input-wrap">
                     {{ field }}
                 </div>
-                </div>
+                {# 新增：显示字段错误信息 #}
+                {% if field.errors %}
+                    <p class="text-red-400 text-xs ml-4 italic">{{ field.errors.0 }}</p>
+                {% endif %}
+            </div>
             {% endfor %}
 
-            {% if error %}
-            <div class="md:col-span-2 bg-red-100/80 border border-red-200 text-red-600 px-6 py-3 rounded-2xl text-sm text-center animate__animated animate__shakeX">
-                ⚠️ {{ error }}
+            {# 新增：显示全局错误（如密码不一致） #}
+            {% if form.non_field_errors %}
+            <div class="md:col-span-2 bg-red-100/80 border border-red-200 text-red-600 px-6 py-3 rounded-2xl text-sm text-center">
+                {{ form.non_field_errors.0 }}
             </div>
             {% endif %}
 
@@ -45,20 +50,22 @@
 
 <script>
     window.addEventListener('load', () => {
-        let hasError = false;
+        let errorFromDjango = "";
         {% if messages %}
             {% for message in messages %}
-                let msg = "{{ message }}";
-                if (msg.indexOf("FORM_INVALID") !== -1 || msg === "USER_ALREADY_EXISTS") {
-                    hasError = true;
-                    // 提取冒号后的内容（例如：两次输入的密码不一致哦～）
-                    let detail = msg.split(':')[1] || "填写的信息好像有点问题";
-                    // 传给小柚，让她知道发生了什么
-                    setTimeout(() => askXiaoYou('FORM_ERROR', detail), 600);
+                if ("{{ message }}".indexOf("FORM_INVALID") !== -1) {
+                    errorFromDjango = "{{ message }}".split(':')[1];
                 }
             {% endfor %}
         {% endif %}
-        if (!hasError) setTimeout(() => askXiaoYou('REGISTER'), 600);
+
+        if (errorFromDjango) {
+            // 如果有错，小柚表现出担心/流汗，并安慰主人
+            setTimeout(() => askXiaoYou('FORM_ERROR', errorFromDjango), 600);
+        } else {
+            // 只有完全没错（第一次进入页面）才欢迎
+            setTimeout(() => askXiaoYou('REGISTER'), 600);
+        }
     });
 </script>
 

@@ -12,6 +12,12 @@ class RegisterForm(forms.Form):
     password = forms.CharField(min_length=6, widget=forms.PasswordInput, label="密码")
     confirm_password = forms.CharField(min_length=6, widget=forms.PasswordInput, label="确认密码")
 
+    def clean_username(self):
+        username = self.cleaned_data.get('username')
+        if User.objects.filter(username=username).exists():
+            raise ValidationError("这个名字已经被别的漫友占领啦！")
+        return username
+
     def clean_phone(self):
         phone = self.cleaned_data.get('phone')
         if not re.match(r'^1[3-9]\d{9}$', phone):
