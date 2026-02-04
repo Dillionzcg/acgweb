@@ -1,0 +1,292 @@
+{% extends 'base.html' %}
+{% block title %}个人中心{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 py-10 animate__animated animate__fadeIn">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+
+        <div class="lg:col-span-1">
+            <div class="glass-card p-8 text-center relative border-2 border-pink-100">
+                <a href="{% url 'index' %}" class="absolute top-5 left-5 w-10 h-10 flex items-center justify-center bg-pink-500 text-white rounded-full shadow-lg hover:bg-pink-600 hover:scale-110 transition-all z-10">
+                    <i class="fa-solid fa-arrow-left text-lg"></i>
+                </a>
+
+                <div class="relative w-36 h-36 mx-auto mb-6 mt-4">
+                    <div id="avatar-preview-container" class="w-full h-full rounded-3xl border-4 border-white shadow-xl bg-pink-50 overflow-hidden">
+                        {% if user.avatar %}
+                            <img src="{{ user.avatar.url }}" class="w-full h-full object-cover">
+                        {% else %}
+                            <i class="fa-solid fa-user-astronaut text-6xl text-pink-200 mt-8 flex items-center justify-center"></i>
+                        {% endif %}
+                    </div>
+                    <label for="avatar-input" class="absolute bottom-0 right-0 w-10 h-10 bg-pink-500 text-white rounded-2xl border-4 border-white flex items-center justify-center cursor-pointer hover:scale-110 transition-all shadow-lg">
+                        <i class="fa-solid fa-camera-retro"></i>
+                    </label>
+                    <input type="file" id="avatar-input" class="hidden" accept="image/*">
+                </div>
+
+                <h2 class="text-2xl font-bold text-gray-800">{{ user.username }}</h2>
+                <p id="side-bio" class="text-sm text-pink-400 mt-2 italic">“ {{ user.bio|default:"Master还没写简介呢～" }} ”</p>
+
+                <div class="mt-8 flex justify-center space-x-4">
+                    <div class="text-center">
+                        <div class="text-xl font-bold text-pink-500">233</div>
+                        <div class="text-[10px] text-gray-400 uppercase tracking-widest">收藏</div>
+                    </div>
+                    <div class="w-px h-8 bg-pink-100 self-center"></div>
+                    <div class="text-center">
+                        <div class="text-xl font-bold text-pink-500">12k</div>
+                        <div class="text-[10px] text-gray-400 uppercase tracking-widest">人气</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="lg:col-span-2 space-y-8">
+            <div class="glass-card p-10">
+                <div class="flex items-center justify-between mb-10">
+                    <div>
+                        <h3 class="text-2xl font-bold text-gray-800">档案编辑</h3>
+                        <p class="text-xs text-pink-300 mt-1">完善你的次元通行证信息</p>
+                    </div>
+                    <div id="save-hint" class="opacity-0 transition-opacity bg-green-100 text-green-600 px-4 py-2 rounded-full text-xs font-bold">
+                        <i class="fa-solid fa-circle-check mr-1"></i> 同步成功
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="space-y-3">
+                        <label class="block text-sm font-bold text-gray-600 ml-2">次元性别</label>
+                        <div class="relative bg-pink-50/50 p-1.5 rounded-full flex items-center border border-pink-100 shadow-inner">
+                            <div id="gender-slider" class="absolute h-10 bg-white rounded-full shadow-md transition-all duration-300 ease-out z-0" style="width: calc(25% - 2px);"></div>
+                            <button onclick="switchGender(0, 'male')" class="flex-1 py-2 text-xs font-bold z-10 transition-colors">少年</button>
+                            <button onclick="switchGender(1, 'female')" class="flex-1 py-2 text-xs font-bold z-10 transition-colors">少女</button>
+                            <button onclick="switchGender(2, 'cat')" class="flex-1 py-2 text-xs font-bold z-10 transition-colors">喵星人</button>
+                            <button onclick="switchGender(3, 'alien')" class="flex-1 py-2 text-xs font-bold z-10 transition-colors">外星生命</button>
+                            <input type="hidden" id="gender-val" value="{{ user.gender|default:'female' }}">
+                        </div>
+                    </div>
+
+                    <div class="space-y-3">
+                        <label class="block text-sm font-bold text-gray-600 ml-2">诞生纪念日</label>
+                        <div class="flex space-x-2">
+                            <select id="birth-year" class="flex-1 px-3 py-3 bg-white/70 border-2 border-pink-50 rounded-2xl focus:border-pink-300 outline-none transition-all shadow-sm text-sm text-gray-600 appearance-none text-center cursor-pointer"></select>
+                            <select id="birth-month" class="w-20 px-1 py-3 bg-white/70 border-2 border-pink-50 rounded-2xl focus:border-pink-300 outline-none transition-all shadow-sm text-sm text-gray-600 appearance-none text-center cursor-pointer"></select>
+                            <select id="birth-day" class="w-20 px-1 py-3 bg-white/70 border-2 border-pink-50 rounded-2xl focus:border-pink-300 outline-none transition-all shadow-sm text-sm text-gray-600 appearance-none text-center cursor-pointer"></select>
+                        </div>
+                        <input type="hidden" id="birthday-val" value="{{ user.birthday|date:'Y-m-d' }}">
+                    </div>
+
+                    <div class="md:col-span-2 space-y-3">
+                        <label class="block text-sm font-bold text-gray-600 ml-2">次元格言 (Bio)</label>
+                        <textarea id="bio-val" rows="3"
+                                  class="w-full px-6 py-4 bg-white/70 border-2 border-pink-50 rounded-3xl focus:border-pink-300 outline-none transition-all shadow-sm resize-none"
+                                  placeholder="写点什么让大家记住你吧...">{{ user.bio }}</textarea>
+                    </div>
+
+                    <div class="md:col-span-2 space-y-3">
+                        <label class="block text-sm font-bold text-gray-600 ml-2">兴趣标签 (Tags)</label>
+                        <div id="tag-container" class="flex flex-wrap gap-3 p-4 bg-pink-50/30 rounded-3xl border-2 border-dashed border-pink-100 min-h-[80px]">
+                            {% for tag in user.tags %}
+                            <div class="group px-4 py-2 bg-white text-pink-500 rounded-full text-xs font-bold border border-pink-100 shadow-sm flex items-center animate__animated animate__zoomIn">
+                                <span># {{ tag }}</span>
+                                <button onclick="removeTag(this)" class="ml-2 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <i class="fa-solid fa-circle-xmark"></i>
+                                </button>
+                            </div>
+                            {% endfor %}
+                            <button onclick="showTagInput()" class="px-4 py-2 bg-pink-500/10 text-pink-500 rounded-full text-xs font-bold border border-pink-200 border-dashed hover:bg-pink-500 hover:text-white transition-all">
+                                <i class="fa-solid fa-plus mr-1"></i> 新增标签
+                            </button>
+                        </div>
+                        <div id="tag-input-box" class="hidden animate__animated animate__fadeInUp mt-4">
+                            <div class="flex space-x-2">
+                                <input type="text" id="new-tag-input" class="flex-1 px-5 py-2 rounded-full border border-pink-200 outline-none focus:ring-2 focus:ring-pink-300" placeholder="输入标签名...">
+                                <button onclick="addTag()" class="bg-pink-500 text-white px-6 py-2 rounded-full font-bold hover:bg-pink-600 transition-all">确认</button>
+                                <button onclick="hideTagInput()" class="bg-gray-100 text-gray-500 px-4 py-2 rounded-full font-bold hover:bg-gray-200 transition-all">取消</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-12">
+                    <button onclick="saveProfile(this)"
+                            class="w-full py-5 bg-gradient-to-r from-pink-400 to-pink-500 text-white rounded-full font-bold text-lg shadow-lg hover:shadow-pink-200 hover:scale-[1.01] active:scale-95 transition-all">
+                        确认同步到次元档案
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 初始化日期选择框
+    function initDateSelects() {
+        const yearSelect = document.getElementById('birth-year');
+        const monthSelect = document.getElementById('birth-month');
+        const daySelect = document.getElementById('birth-day');
+        const currentVal = document.getElementById('birthday-val').value;
+
+        let dateObj = currentVal ? new Date(currentVal) : new Date();
+
+        // 年份：1970 - 今年
+        const currentYear = new Date().getFullYear();
+        for (let i = currentYear; i >= 1970; i--) {
+            yearSelect.add(new Option(`${i} 年`, i));
+        }
+
+        // 月份
+        for (let i = 1; i <= 12; i++) {
+            monthSelect.add(new Option(`${i} 月`, i));
+        }
+
+        function updateDays() {
+            const y = yearSelect.value;
+            const m = monthSelect.value;
+            const d = new Date(y, m, 0).getDate();
+            const selectedDay = daySelect.value;
+            daySelect.innerHTML = '';
+            for (let i = 1; i <= d; i++) {
+                daySelect.add(new Option(`${i} 日`, i));
+            }
+            if (selectedDay <= d) daySelect.value = selectedDay;
+        }
+
+        yearSelect.onchange = updateDays;
+        monthSelect.onchange = updateDays;
+
+        if (currentVal) {
+            yearSelect.value = dateObj.getFullYear();
+            monthSelect.value = dateObj.getMonth() + 1;
+            updateDays();
+            daySelect.value = dateObj.getDate();
+        } else {
+            updateDays();
+        }
+    }
+
+    function switchGender(index, val, isManual=true) {
+        const slider = document.getElementById('gender-slider');
+        const buttons = slider.parentElement.querySelectorAll('button');
+
+        // 修改点：width 增加，left 偏移缩小
+        // 25% 是由于总共4个按钮。减去 2px 可以让白色块几乎贴近外框边缘，看起来更长。
+        slider.style.width = `calc(25% `;
+        slider.style.left = `calc(${index * 25}% + 1px)`;
+
+        buttons.forEach((btn, i) => {
+            btn.classList.remove('text-pink-600');
+            if (i === index) btn.classList.add('text-pink-600');
+        });
+        document.getElementById('gender-val').value = val;
+    }
+
+    function showTagInput() { document.getElementById('tag-input-box').classList.remove('hidden'); }
+    function hideTagInput() { document.getElementById('tag-input-box').classList.add('hidden'); }
+
+    function addTag() {
+        const input = document.getElementById('new-tag-input');
+        const tag = input.value.trim();
+        if(tag) {
+            const container = document.getElementById('tag-container');
+            const btn = container.querySelector('button[onclick="showTagInput()"]');
+            const newTag = document.createElement('div');
+            newTag.className = "group px-4 py-2 bg-white text-pink-500 rounded-full text-xs font-bold border border-pink-100 shadow-sm flex items-center animate__animated animate__zoomIn";
+            newTag.innerHTML = `<span># ${tag}</span><button onclick="removeTag(this)" class="ml-2 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"><i class="fa-solid fa-circle-xmark"></i></button>`;
+            container.insertBefore(newTag, btn);
+            input.value = '';
+            hideTagInput();
+
+            if(window.askXiaoYou) window.askXiaoYou('USER_ACTION', `用户在个人资料添加了新标签：${tag},请作出不少于60字的恰当回复，注意请不要改变”主人“的称呼`);
+        }
+    }
+
+    function removeTag(el) { el.parentElement.remove(); }
+
+    async function saveProfile(btn) {
+        const originalText = btn.innerText;
+        btn.innerText = "同步中...";
+
+        // 整合日期
+        const y = document.getElementById('birth-year').value;
+        const m = document.getElementById('birth-month').value.padStart(2, '0');
+        const d = document.getElementById('birth-day').value.padStart(2, '0');
+        const finalBirthday = `${y}-${m}-${d}`;
+
+        const tags = Array.from(document.querySelectorAll('#tag-container span')).map(s => s.innerText.replace('# ', ''));
+        const payload = {
+            gender: document.getElementById('gender-val').value,
+            birthday: finalBirthday,
+            bio: document.getElementById('bio-val').value,
+            tags: tags
+        };
+
+        try {
+            const res = await fetch('/user_center/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+                body: JSON.stringify(payload)
+            });
+            const d_res = await res.json();
+            if(d_res.status === 'success') {
+                document.getElementById('side-bio').innerText = payload.bio || "Master还没写简介呢～";
+                document.getElementById('save-hint').style.opacity = '1';
+                if(window.askXiaoYou) window.askXiaoYou('USER_ACTION', '用户修改并保存了档案资料');
+                setTimeout(() => document.getElementById('save-hint').style.opacity = '0', 2000);
+            }
+        } catch (e) {
+            console.error(e);
+        } finally {
+            btn.innerText = originalText;
+        }
+    }
+
+    function safeAskXiaoYou(type, content = '') {
+        let attempts = 0;
+        const interval = setInterval(() => {
+            attempts++;
+            if (window.askXiaoYou) {
+                window.askXiaoYou(type, content);
+                clearInterval(interval);
+            }
+            if (attempts > 50) clearInterval(interval);
+        }, 100);
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+        // 初始化日期下拉
+        initDateSelects();
+
+        const currentGender = document.getElementById('gender-val').value;
+        const indexMap = { 'male': 0, 'female': 1, 'cat': 2, 'alien': 3 };
+        switchGender(indexMap[currentGender] || 1, currentGender, false);
+
+        setTimeout(() => {
+            safeAskXiaoYou('USER_CENTER');
+        }, 1200);
+    });
+
+    document.getElementById('avatar-input').onchange = function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                document.getElementById('avatar-preview-container').innerHTML = `<img src="${ev.target.result}" class="w-full h-full object-cover">`;
+            };
+            reader.readAsDataURL(file);
+            const fd = new FormData();
+            fd.append('avatar', file);
+            fetch('/user_center/', {
+                method: 'POST',
+                headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+                body: fd
+            }).then(r => r.json()).then(d => {
+                if(d.status==='success') {
+                   if(window.askXiaoYou) window.askXiaoYou('USER_ACTION', '用户更换了头像');
+                }
+            });
+        }
+    };
+</script>
+{% endblock %}
