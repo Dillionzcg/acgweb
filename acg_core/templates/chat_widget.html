@@ -55,6 +55,7 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
+        cursor: move; /* Indicate draggable */
     }
     .chat-close { cursor: pointer; opacity: 0.8; }
     .chat-close:hover { opacity: 1; }
@@ -210,8 +211,23 @@
         // --- Toggle UI ---
         fab.addEventListener('click', () => {
             chatWindow.style.display = 'flex';
+            // When opening, we might want to keep FAB hidden or visible.
+            // If dragging FAB was fun, maybe keep it? But design says hide it.
+            // Let's reset window position if it was never moved? No, keep memory.
+            
+            // If window was never moved, it has default bottom/right.
+            // If moved, it has top/left.
+            if (!chatWindow.style.top) {
+                // Initialize position based on current CSS to prevent jumping
+                const rect = chatWindow.getBoundingClientRect();
+                chatWindow.style.bottom = 'auto';
+                chatWindow.style.right = 'auto';
+                chatWindow.style.top = rect.top + 'px';
+                chatWindow.style.left = rect.left + 'px';
+            }
+            
             fab.style.display = 'none';
-            connectWebSocket(); // Connect when opened
+            connectWebSocket();
         });
 
         closeBtn.addEventListener('click', () => {
@@ -221,10 +237,10 @@
 
         // --- WebSocket Logic ---
         let chatSocket = null;
-        const roomName = 'lobby'; // Default global room
+        const roomName = 'lobby'; 
 
         function connectWebSocket() {
-            if (chatSocket) return; // Already connected
+            if (chatSocket) return; 
 
             const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
             chatSocket = new WebSocket(
@@ -242,20 +258,12 @@
             };
         }
 
-        // --- Send Message ---
         function sendMessage() {
             const message = msgInput.value.trim();
             if (message && chatSocket) {
                 chatSocket.send(JSON.stringify({
                     'message': message
                 }));
-                // Optimistically add my own message
-                // addMessage(message, 'sent'); // Depending on server logic, server might echo it back.
-                // In our current consumer, server broadcasts to everyone including sender.
-                // So let's rely on the echo to avoid duplicates, OR handle 'sent' class based on user ID later.
-                // For now, let's assume all messages coming from socket are 'received' style,
-                // or we can just add it as 'sent' here and ignore the echo if we implemented an ID check.
-                // Simplified: All messages look like 'received' unless we store user info.
                 msgInput.value = '';
             }
         }
@@ -268,16 +276,13 @@
         function addMessage(text, type) {
             const div = document.createElement('div');
             div.classList.add('message-bubble');
-            // Check if it's my message? (Simple hack: if text matches last input? No, unreliable)
-            // For now, let's style all as 'received' except hardcoded welcome.
-            // Or better: In a real app, message payload should have 'sender_id'.
-            div.classList.add('received'); // Default
+            div.classList.add('received'); 
             div.textContent = text;
             msgContainer.appendChild(div);
             msgContainer.scrollTop = msgContainer.scrollHeight;
         }
 
-        // --- Video Call Logic (Placeholder) ---
+        // --- Video Call Logic ---
         const startVideoBtn = document.getElementById('start-video-btn');
         const videoModal = document.getElementById('video-modal');
         const endVideoBtn = document.getElementById('end-video-btn');
@@ -303,5 +308,50 @@
                 localVideo.srcObject = null;
             }
         });
+
+        // --- Draggable Logic ---
+        function makeDraggable(element, handle) {
+            let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+            const dragHandle = handle || element;
+            
+            dragHandle.onmousedown = dragMouseDown;
+
+            function dragMouseDown(e) {
+                e = e || window.event;
+                // Avoid dragging when clicking buttons in header
+                if (e.target.closest('.chat-close')) return;
+
+                e.preventDefault();
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                document.onmouseup = closeDragElement;
+                document.onmousemove = elementDrag;
+            }
+
+            function elementDrag(e) {
+                e = e || window.event;
+                e.preventDefault();
+                pos1 = pos3 - e.clientX;
+                pos2 = pos4 - e.clientY;
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+
+                // Switch to absolute positioning on first drag
+                element.style.bottom = 'auto';
+                element.style.right = 'auto';
+                
+                // Use offsetTop/Left to calculate new position
+                element.style.top = (element.offsetTop - pos2) + "px";
+                element.style.left = (element.offsetLeft - pos1) + "px";
+            }
+
+            function closeDragElement() {
+                document.onmouseup = null;
+                document.onmousemove = null;
+            }
+        }
+
+        makeDraggable(fab);
+        makeDraggable(chatWindow, document.querySelector('.chat-header'));
     });
 </script>
