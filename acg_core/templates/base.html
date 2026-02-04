@@ -28,6 +28,7 @@
             100% { background-position: 0% 50%; }
         }
 
+        /* 新增：樱花Canvas样式 */
         #sakura-canvas {
             position: fixed;
             top: 0;
@@ -38,22 +39,25 @@
             pointer-events: none;
         }
 
+        /* 核心：保持原汁原味的 Flex 布局 */
         .app-container { display: flex; height: 100vh; width: 100vw; position: relative; z-index: 1; }
         .content-area { flex: 1; height: 100%; overflow-y: auto; scrollbar-width: none; }
         .content-area::-webkit-scrollbar { display: none; }
 
-        /* 侧边栏布局基础样式保持不变 */
+        /* 侧边栏：这里保留了你原来那个“不透明栏”的所有样式 */
         .waifu-sidebar {
             width: 350px;
+            min-width: 350px; /* 锁定宽度，防止被内容撑大 */
             height: 100%;
             display: flex;
             flex-direction: column;
-            background: rgba(255, 255, 255, 0.4);
+            background: rgba(255, 255, 255, 0.4); /* 你说的不透明背景 */
             backdrop-filter: blur(20px);
             border-left: 1px solid rgba(255, 182, 193, 0.2);
             padding: 20px;
         }
 
+        /* 全局通用样式 */
         .glass-card {
             background: rgba(255, 255, 255, 0.9);
             backdrop-filter: blur(10px);
@@ -61,9 +65,9 @@
             border-radius: 20px;
             box-shadow: 0 8px 32px rgba(255, 182, 193, 0.15);
         }
-
         .acg-font { font-family: 'ZCOOL KuaiLe', cursive; }
 
+        /* 新增：Waifu容器样式 */
         .waifu-container {
             position: relative;
             width: 320px;
@@ -83,6 +87,7 @@
         .waifu-floating { animation: floating 6s ease-in-out infinite; }
         @keyframes floating { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-15px); } }
 
+        /* 新增：聊天输入框占位符样式 */
         #chat-input::placeholder { font-size: 14px; color: #f9a8d4; }
 
         @media (max-width: 1024px) { .waifu-sidebar { display: none; } }
@@ -90,6 +95,8 @@
 </head>
 <body>
 
+    {% include 'sakura.html' %}
+    <!-- 新增：樱花Canvas元素 -->
     <canvas id="sakura-canvas"></canvas>
 
     <div class="app-container">
@@ -109,18 +116,30 @@
 
                 <div class="flex items-center space-x-3">
                     {% if user.is_authenticated %}
-                        <div class="flex items-center space-x-3">
-                            <span class="text-xs font-bold text-pink-500 px-2">ID: {{ user.username }}</span>
-                            <a href="#" class="text-xs font-bold px-4 py-2 bg-pink-500 text-white rounded-full shadow-md hover:bg-pink-600 transition">个人空间</a>
-                            <form action="{% url 'logout' %}" method="post" class="inline">
-                                {% csrf_token %}
-                                <button type="submit" class="text-[10px] text-gray-400 hover:text-pink-500">退出</button>
-                            </form>
-                        </div>
+                        <a href="{% url 'user_center' %}" title="用户中心"
+                           class="w-10 h-10 flex items-center justify-center bg-pink-100 text-pink-500 rounded-full hover:bg-pink-500 hover:text-white transition-all shadow-sm">
+                            <i class="fa-solid fa-user"></i>
+                        </a>
+
+                        <button title="设置"
+                           class="w-10 h-10 flex items-center justify-center bg-pink-100 text-pink-500 rounded-full hover:bg-pink-500 hover:text-white transition-all shadow-sm">
+                            <i class="fa-solid fa-gear"></i>
+                        </button>
+
+                        <a href="{% url 'logout' %}"
+                           class="text-[12px] text-red-400 hover:text-red-600 font-medium ml-2 transition-colors">
+                            退出登录
+                        </a>
                     {% else %}
-                        <div class="flex items-center space-x-2">
-                            <a href="{% url 'login' %}" class="text-xs font-bold px-4 py-2 bg-white/70 rounded-full border border-pink-200 hover:bg-pink-100 transition">登录</a>
-                            <a href="{% url 'register' %}" class="text-xs font-bold px-4 py-2 bg-pink-500 text-white rounded-full shadow-md hover:bg-pink-600 transition">注册</a>
+                        <div class="flex items-center space-x-3">
+                            <a href="{% url 'login' %}"
+                               class="px-5 py-1.5 rounded-full border-2 border-pink-400 text-pink-500 acg-font text-sm hover:bg-pink-400 hover:text-white transition-all duration-300 shadow-sm active:scale-90">
+                                登录
+                            </a>
+                            <a href="{% url 'register' %}"
+                               class="px-5 py-1.5 rounded-full border-2 border-pink-400 text-pink-500 acg-font text-sm hover:bg-pink-400 hover:text-white transition-all duration-300 shadow-sm active:scale-90">
+                                注册
+                            </a>
                         </div>
                     {% endif %}
                 </div>
@@ -131,11 +150,13 @@
             </main>
         </div>
 
-        {% include 'waifu.html' %}
-    {% include 'chat_widget.html' %}
+        <aside class="waifu-sidebar">
+            {% include 'waifu.html' %}
+        </aside>
 
     </div>
 
+    <!-- 新增：樱花动画脚本 -->
     <script>
     const canvas = document.getElementById('sakura-canvas');
     const ctx = canvas.getContext('2d');

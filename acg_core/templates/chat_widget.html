@@ -214,7 +214,7 @@
             // When opening, we might want to keep FAB hidden or visible.
             // If dragging FAB was fun, maybe keep it? But design says hide it.
             // Let's reset window position if it was never moved? No, keep memory.
-            
+
             // If window was never moved, it has default bottom/right.
             // If moved, it has top/left.
             if (!chatWindow.style.top) {
@@ -225,7 +225,7 @@
                 chatWindow.style.top = rect.top + 'px';
                 chatWindow.style.left = rect.left + 'px';
             }
-            
+
             fab.style.display = 'none';
             connectWebSocket();
         });
@@ -237,10 +237,10 @@
 
         // --- WebSocket Logic ---
         let chatSocket = null;
-        const roomName = 'lobby'; 
+        const roomName = 'lobby';
 
         function connectWebSocket() {
-            if (chatSocket) return; 
+            if (chatSocket) return;
 
             const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
             chatSocket = new WebSocket(
@@ -276,7 +276,7 @@
         function addMessage(text, type) {
             const div = document.createElement('div');
             div.classList.add('message-bubble');
-            div.classList.add('received'); 
+            div.classList.add('received');
             div.textContent = text;
             msgContainer.appendChild(div);
             msgContainer.scrollTop = msgContainer.scrollHeight;
@@ -313,7 +313,7 @@
         function makeDraggable(element, handle) {
             let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
             const dragHandle = handle || element;
-            
+
             dragHandle.onmousedown = dragMouseDown;
 
             function dragMouseDown(e) {
@@ -339,7 +339,7 @@
                 // Switch to absolute positioning on first drag
                 element.style.bottom = 'auto';
                 element.style.right = 'auto';
-                
+
                 // Use offsetTop/Left to calculate new position
                 element.style.top = (element.offsetTop - pos2) + "px";
                 element.style.left = (element.offsetLeft - pos1) + "px";

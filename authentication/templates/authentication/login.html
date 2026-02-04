@@ -46,11 +46,25 @@
                 开启同步
             </button>
         </form>
-
-        <div class="mt-8 text-center">
-            <span class="text-gray-400 text-sm">还未同步数据？</span>
-            <a href="{% url 'register' %}" class="text-pink-400 font-bold hover:text-pink-600 transition ml-1">建立新契约</a>
-        </div>
     </div>
 </div>
+
+<script>
+    window.addEventListener('load', () => {
+        let hasError = false;
+        {% if messages %}
+            {% for message in messages %}
+                let msg = "{{ message }}";
+                if (["USER_NOT_FOUND", "WRONG_PASSWORD", "LOGIN_EMPTY"].includes(msg)) {
+                    hasError = true;
+                    setTimeout(() => askXiaoYou('LOGIN_ERROR', msg === "WRONG_PASSWORD" ? "口令错误" : "账号不存在"), 600);
+                }
+            {% endfor %}
+        {% endif %}
+
+        if (!hasError) {
+            setTimeout(() => askXiaoYou('LOGIN'), 600);
+        }
+    });
+</script>
 {% endblock %}
