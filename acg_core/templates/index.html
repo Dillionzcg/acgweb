@@ -2,77 +2,136 @@
 {% load static %}
 
 {% block content %}
-<div class="grid grid-cols-12 gap-6">
+<div class="grid grid-cols-12 gap-6 pb-8">
 
     <aside class="col-span-12 lg:col-span-3 space-y-6 animate__animated animate__fadeInLeft">
-        <div class="glass-card p-6 shadow-xl">
-            <h2 class="text-2xl acg-font text-pink-600 mb-4 flex items-center">
-                <span class="mr-2">🔥</span> 追番热度榜
+        <div class="glass-card p-6 shadow-xl border-l-4 border-pink-400">
+            <h2 class="text-2xl acg-font text-pink-600 mb-4 flex items-center justify-between">
+                <span><i class="fa-solid fa-fire-flame-curved mr-2"></i>番剧排行榜</span>
             </h2>
             <ul class="space-y-4">
-                <li class="flex items-center justify-between">
-                    <span class="font-bold text-lg text-orange-500">1</span>
-                    <span class="flex-1 ml-4 hover:underline cursor-pointer">更衣人偶坠入爱河</span>
-                    <span class="text-xs text-gray-500">9.8w</span>
+                <li class="flex items-center group cursor-pointer">
+                    <span class="w-6 h-6 flex items-center justify-center rounded-full bg-orange-500 text-white text-xs font-bold">1</span>
+                    <span class="flex-1 ml-3 text-gray-700 group-hover:text-pink-500 transition-colors">更衣人偶坠入爱河</span>
+                    <span class="text-xs text-gray-400">9.8w</span>
                 </li>
-                <li class="flex items-center justify-between">
-                    <span class="font-bold text-lg text-gray-500">2</span>
-                    <span class="flex-1 ml-4 hover:underline cursor-pointer">电锯人</span>
-                    <span class="text-xs text-gray-500">8.5w</span>
+                <li class="flex items-center group cursor-pointer">
+                    <span class="w-6 h-6 flex items-center justify-center rounded-full bg-orange-400 text-white text-xs font-bold">2</span>
+                    <span class="flex-1 ml-3 text-gray-700 group-hover:text-pink-500 transition-colors">电锯人</span>
+                    <span class="text-xs text-gray-400">8.5w</span>
+                </li>
+                <li class="flex items-center group cursor-pointer">
+                    <span class="w-6 h-6 flex items-center justify-center rounded-full bg-gray-300 text-white text-xs font-bold">3</span>
+                    <span class="flex-1 ml-3 text-gray-700 group-hover:text-pink-500 transition-colors">孤独摇滚</span>
+                    <span class="text-xs text-gray-400">7.2w</span>
                 </li>
             </ul>
+            <button class="w-full mt-6 py-2 text-sm text-pink-500 border border-pink-200 rounded-xl hover:bg-pink-500 hover:text-white transition-all duration-300">
+                查看完整榜单 <i class="fa-solid fa-chevron-right text-[10px]"></i>
+            </button>
         </div>
 
-        <div class="glass-card p-6 shadow-xl">
+        <div class="glass-card p-6 shadow-xl border-l-4 border-purple-400">
             <h2 class="text-2xl acg-font text-purple-600 mb-4 flex items-center">
-                <span class="mr-2">🏆</span> 口碑最高(Gal)
+                <span><i class="fa-solid fa-trophy mr-2"></i>Galgame榜</span>
             </h2>
-            <div class="text-sm space-y-2">
-                <p class="p-2 hover:bg-white/40 rounded">1. 白色相簿2 (入门必看!)</p>
-                <p class="p-2 hover:bg-white/40 rounded">2. 命运石之门 (神作推荐)</p>
+            <div class="space-y-4">
+                <div class="p-3 bg-white/50 rounded-xl hover:bg-white/80 transition-all border border-transparent hover:border-purple-200 cursor-pointer">
+                    <p class="text-sm font-bold text-gray-800">1. 白色相簿2</p>
+                    <p class="text-[11px] text-purple-400 mt-1">“又到了白色相簿的季节...”</p>
+                </div>
+                <div class="p-3 bg-white/50 rounded-xl hover:bg-white/80 transition-all border border-transparent hover:border-purple-200 cursor-pointer">
+                    <p class="text-sm font-bold text-gray-800">2. 命运石之门</p>
+                    <p class="text-[11px] text-purple-400 mt-1">这一切都是命运石之门的选择</p>
+                </div>
             </div>
+            <button class="w-full mt-6 py-2 text-sm text-purple-500 border border-purple-200 rounded-xl hover:bg-purple-500 hover:text-white transition-all duration-300">
+                查看详情 <i class="fa-solid fa-chevron-right text-[10px]"></i>
+            </button>
         </div>
     </aside>
 
     <section class="col-span-12 lg:col-span-6 space-y-6">
-        <div class="relative h-64 glass-card overflow-hidden group shadow-2xl">
-            <img src="https://api.dujin.org/bing/1366.php" class="w-full h-full object-cover transition duration-500 group-hover:scale-110">
-            <div class="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/80 to-transparent">
-                <span class="px-2 py-1 bg-pink-500 text-white text-xs rounded mb-2 inline-block">今日主打</span>
-                <h3 class="text-2xl text-white font-bold">新番首播：本季霸权名单已确定？</h3>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 animate__animated animate__fadeInDown">
+            <a href="#" class="glass-card p-4 flex flex-col items-center justify-center group hover:scale-105 transition-transform">
+                <div class="w-12 h-12 bg-pink-100 text-pink-500 rounded-2xl flex items-center justify-center mb-2 group-hover:bg-pink-500 group-hover:text-white transition-colors">
+                    <i class="fa-solid fa-pen-to-square text-xl"></i>
+                </div>
+                <span class="text-xs font-bold text-gray-600">发布说说</span>
+            </a>
+            <a href="#" class="glass-card p-4 flex flex-col items-center justify-center group hover:scale-105 transition-transform">
+                <div class="w-12 h-12 bg-blue-100 text-blue-500 rounded-2xl flex items-center justify-center mb-2 group-hover:bg-blue-500 group-hover:text-white transition-colors">
+                    <i class="fa-solid fa-paper-plane text-xl"></i>
+                </div>
+                <span class="text-xs font-bold text-gray-600">发布资讯</span>
+            </a>
+            <a href="#" class="glass-card p-4 flex flex-col items-center justify-center group hover:scale-105 transition-transform">
+                <div class="w-12 h-12 bg-yellow-100 text-yellow-600 rounded-2xl flex items-center justify-center mb-2 group-hover:bg-yellow-500 group-hover:text-white transition-colors">
+                    <i class="fa-solid fa-star text-xl"></i>
+                </div>
+                <span class="text-xs font-bold text-gray-600">推荐作品</span>
+            </a>
+            <a href="#" class="glass-card p-4 flex flex-col items-center justify-center group hover:scale-105 transition-transform">
+                <div class="w-12 h-12 bg-purple-100 text-purple-500 rounded-2xl flex items-center justify-center mb-2 group-hover:bg-purple-500 group-hover:text-white transition-colors">
+                    <i class="fa-solid fa-compass text-xl"></i>
+                </div>
+                <span class="text-xs font-bold text-gray-600">资讯中心</span>
+            </a>
+        </div>
+
+        <div class="space-y-4">
+            <div class="flex items-center justify-between px-2">
+                <h2 class="text-2xl acg-font text-gray-800"><i class="fa-solid fa-newspaper mr-2 text-blue-400"></i>热门资讯</h2>
+                <a href="#" class="text-sm text-pink-400 hover:text-pink-600">更多资讯 <i class="fa-solid fa-angle-right"></i></a>
+            </div>
+            <div class="relative h-56 glass-card overflow-hidden group shadow-2xl">
+                <img src="https://api.dujin.org/bing/1366.php" class="w-full h-full object-cover transition duration-700 group-hover:scale-110">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent flex flex-col justify-end p-6">
+                    <span class="w-fit px-3 py-1 bg-blue-500 text-white text-[10px] rounded-full mb-3 shadow-lg">HOT NEWS</span>
+                    <h3 class="text-xl text-white font-bold group-hover:text-pink-300 transition-colors">本月最受期待：十月番剧霸权花落谁家？</h3>
+                </div>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="glass-card p-4 hover-scale cursor-pointer">
-                <div class="h-40 bg-gray-200 rounded-xl mb-3 overflow-hidden">
-                    <img src="https://picsum.photos/400/300?random=1" class="w-full h-full object-cover">
-                </div>
-                <h4 class="font-bold text-lg">【番剧】孤独摇滚！</h4>
-                <p class="text-sm text-gray-600 line-clamp-2">波奇酱的社恐日常，每一个二次元都能找到共鸣...</p>
-                <div class="mt-3 flex justify-between items-center text-xs text-pink-500">
-                    <span>⭐ 9.9分</span>
-                    <span>12.5k 评论</span>
-                </div>
+        <div class="space-y-4">
+            <div class="flex items-center justify-between px-2">
+                <h2 class="text-2xl acg-font text-gray-800"><i class="fa-solid fa-heart mr-2 text-pink-400"></i>热门作品</h2>
+                <a href="#" class="text-sm text-pink-400 hover:text-pink-600">作品中心 <i class="fa-solid fa-angle-right"></i></a>
             </div>
-
-            <div class="glass-card p-4 hover-scale cursor-pointer">
-                <div class="h-40 bg-gray-200 rounded-xl mb-3 overflow-hidden">
-                    <img src="https://picsum.photos/400/300?random=2" class="w-full h-full object-cover">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="glass-card p-4 hover:shadow-2xl transition-all cursor-pointer group">
+                    <div class="h-40 bg-gray-200 rounded-xl mb-3 overflow-hidden relative">
+                        <img src="https://picsum.photos/400/300?random=1" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                        <div class="absolute top-2 right-2 bg-black/50 backdrop-blur-md text-white text-[10px] px-2 py-1 rounded">TV动画</div>
+                    </div>
+                    <h4 class="font-bold text-lg text-gray-800 group-hover:text-pink-500">孤独摇滚！</h4>
+                    <p class="text-sm text-gray-500 line-clamp-2 mt-1">每一位社恐的福音，用音乐治愈世界...</p>
+                    <div class="mt-4 flex justify-between items-center text-xs">
+                        <span class="text-orange-500 font-bold">⭐ 9.9分</span>
+                        <span class="text-gray-400"><i class="fa-regular fa-comment-dots mr-1"></i>12.5k</span>
+                    </div>
                 </div>
-                <h4 class="font-bold text-lg">【Gal】Summer Pockets</h4>
-                <p class="text-sm text-gray-600 line-clamp-2">Key社又一力作，这个夏天的感动还在延续。</p>
-                <div class="mt-3 flex justify-between items-center text-xs text-blue-500">
-                    <span>评分人数: 5.2k</span>
-                    <span>推荐指数: 🔥🔥🔥</span>
+
+                <div class="glass-card p-4 hover:shadow-2xl transition-all cursor-pointer group">
+                    <div class="h-40 bg-gray-200 rounded-xl mb-3 overflow-hidden relative">
+                        <img src="https://picsum.photos/400/300?random=2" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                        <div class="absolute top-2 right-2 bg-black/50 backdrop-blur-md text-white text-[10px] px-2 py-1 rounded">Visual Novel</div>
+                    </div>
+                    <h4 class="font-bold text-lg text-gray-800 group-hover:text-blue-500">Summer Pockets</h4>
+                    <p class="text-sm text-gray-500 line-clamp-2 mt-1">在那个永恒的夏天，我们相遇并告别。</p>
+                    <div class="mt-4 flex justify-between items-center text-xs">
+                        <span class="text-blue-500 font-bold">推荐指数: 🔥🔥🔥</span>
+                        <span class="text-gray-400"><i class="fa-regular fa-comment-dots mr-1"></i>5.2k</span>
+                    </div>
                 </div>
             </div>
         </div>
     </section>
 
     <aside class="col-span-12 lg:col-span-3 space-y-6 animate__animated animate__fadeInRight">
-        <div class="glass-card p-6 text-center">
-            <div class="w-20 h-20 bg-pink-100 rounded-full mx-auto mb-4 border-4 border-white shadow-md overflow-hidden">
+        <div class="glass-card p-6 text-center shadow-xl border-t-4 border-pink-300">
+            <div class="w-20 h-20 bg-pink-100 rounded-full mx-auto mb-4 border-4 border-white shadow-md overflow-hidden relative group">
                 {% if user.is_authenticated %}
                     {% if user.avatar %}
                         <img src="{{ user.avatar.url }}" class="w-full h-full object-cover">
@@ -101,27 +160,44 @@
             </p>
 
             {% if user.is_authenticated %}
-                <a href="{% url 'user_center' %}" class="block mt-4 w-full py-2 bg-gradient-to-r from-pink-400 to-purple-500 text-white rounded-lg shadow-lg hover:scale-[1.02] transition text-sm font-bold">
+                <a href="{% url 'user_center' %}" class="block mt-4 w-full py-2 bg-gradient-to-r from-pink-400 to-purple-500 text-white rounded-lg shadow-lg hover:scale-[1.05] transition-all text-sm font-bold">
                     进入次元中心
                 </a>
             {% else %}
-                <a href="{% url 'login' %}" class="block mt-4 w-full py-2 bg-gradient-to-r from-pink-400 to-purple-500 text-white rounded-lg shadow-lg hover:opacity-90 transition text-sm font-bold">
+                <a href="{% url 'login' %}" class="block mt-4 w-full py-2 bg-gradient-to-r from-pink-400 to-purple-500 text-white rounded-lg shadow-lg hover:opacity-90 transition-all text-sm font-bold">
                     立即登录
                 </a>
             {% endif %}
         </div>
 
-        <div class="glass-card p-6">
-            <h2 class="text-xl acg-font text-blue-600 mb-4 italic">新鲜吐槽...</h2>
-            <div class="space-y-4">
-                <div class="text-sm border-b border-white/30 pb-2">
-                    <span class="font-bold text-pink-400">@路人甲:</span> 有没有人推荐点致郁系的漫画？在线等。
-                </div>
-                <div class="text-sm border-b border-white/30 pb-2">
-                    <span class="font-bold text-blue-400">@圣人惠:</span> 这个网站的前端太好看啦！
-                </div>
+        <div class="glass-card p-6 shadow-lg">
+            <h2 class="text-xl acg-font text-blue-600 mb-4 flex items-center">
+                <i class="fa-solid fa-users-viewfinder mr-2"></i> 快速传送
+            </h2>
+            <div class="space-y-3">
+                <a href="#" class="flex items-center p-3 rounded-xl bg-pink-50 text-pink-600 hover:bg-pink-500 hover:text-white transition-all group">
+                    <i class="fa-solid fa-house-chimney mr-3"></i>
+                    <span class="text-sm font-bold">社区中心</span>
+                    <i class="fa-solid fa-arrow-right ml-auto opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                </a>
+                <a href="#" class="flex items-center p-3 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-500 hover:text-white transition-all group">
+                    <i class="fa-solid fa-book-open mr-3"></i>
+                    <span class="text-sm font-bold">作品推荐中心</span>
+                    <i class="fa-solid fa-arrow-right ml-auto opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                </a>
+                <a href="#" class="flex items-center p-3 rounded-xl bg-purple-50 text-purple-600 hover:bg-purple-500 hover:text-white transition-all group">
+                    <i class="fa-solid fa-bullhorn mr-3"></i>
+                    <span class="text-sm font-bold">热门公告</span>
+                    <i class="fa-solid fa-arrow-right ml-auto opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                </a>
             </div>
-            <button class="w-full mt-4 py-2 border-2 border-dashed border-pink-300 text-pink-500 rounded-xl hover:bg-white/50 transition">我也要发帖</button>
+        </div>
+
+        <div class="p-4 rounded-2xl border-2 border-dashed border-pink-200 text-center">
+            <p class="text-[11px] text-pink-400">发现有趣的新作了？</p>
+            <button class="mt-2 text-xs font-bold text-white bg-pink-300 px-4 py-1.5 rounded-full hover:bg-pink-400 transition-colors">
+                点我安利给他人
+            </button>
         </div>
     </aside>
 
