@@ -1,0 +1,396 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}羁绊系统{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 py-10 animate__animated animate__fadeIn">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-8">
+        <div>
+            <h2 class="text-3xl acg-font text-pink-500 flex items-center">
+                <i class="fa-solid fa-heart mr-3 animate-pulse"></i> 羁绊系统
+            </h2>
+            <p class="text-gray-500 text-sm mt-2 ml-1">连接次元彼端的你我，编织命运的红线。</p>
+        </div>
+        <a href="{% url 'user_center' %}" class="px-5 py-2 bg-white text-pink-500 rounded-full font-bold shadow-sm hover:shadow-md transition-all flex items-center border border-pink-100">
+            <i class="fa-solid fa-user mr-2"></i> 返回个人中心
+        </a>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <!-- Left Sidebar: Navigation & Stats -->
+        <div class="lg:col-span-3 space-y-6">
+            <div class="glass-card p-6">
+                <div class="flex flex-col items-center mb-6">
+                    <div class="relative w-20 h-20 mb-3">
+                        {% if user.avatar %}
+                            <img src="{{ user.avatar.url }}" class="w-full h-full rounded-full object-cover border-4 border-white shadow-md">
+                        {% else %}
+                            <img src="{% static 'images/default_head.png' %}" class="w-full h-full rounded-full object-cover border-4 border-white shadow-md">
+                        {% endif %}
+                        <div class="absolute bottom-0 right-0 w-5 h-5 bg-green-400 rounded-full border-2 border-white"></div>
+                    </div>
+                    <h3 class="font-bold text-gray-800">{{ user.username }}</h3>
+                    <p class="text-xs text-pink-400 mt-1">羁绊等级: Lv.1</p>
+                </div>
+                
+                <nav class="space-y-2">
+                    <button onclick="switchBondTab('network')" id="nav-btn-network" class="w-full text-left px-4 py-3 rounded-xl font-bold transition-all text-pink-500 bg-pink-50">
+                        <i class="fa-solid fa-circle-nodes mr-3"></i> 羁绊星图
+                    </button>
+                    <button onclick="switchBondTab('list')" id="nav-btn-list" class="w-full text-left px-4 py-3 rounded-xl font-bold transition-all text-gray-500 hover:bg-gray-50">
+                        <i class="fa-solid fa-users mr-3"></i> 我的好友
+                    </button>
+                    <button onclick="switchBondTab('requests')" id="nav-btn-requests" class="w-full text-left px-4 py-3 rounded-xl font-bold transition-all text-gray-500 hover:bg-gray-50 flex justify-between items-center">
+                        <span><i class="fa-solid fa-envelope mr-3"></i> 好友请求</span>
+                        <span id="req-badge" class="hidden px-2 py-0.5 bg-red-500 text-white text-[10px] rounded-full">0</span>
+                    </button>
+                    <button onclick="switchBondTab('add')" id="nav-btn-add" class="w-full text-left px-4 py-3 rounded-xl font-bold transition-all text-gray-500 hover:bg-gray-50">
+                        <i class="fa-solid fa-user-plus mr-3"></i> 结缔契约
+                    </button>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Right Content Area -->
+        <div class="lg:col-span-9">
+            
+            <!-- Tab: Relationship Network (Visualization) -->
+            <div id="bond-tab-network" class="glass-card p-6 h-[600px] relative overflow-hidden animate__animated animate__fadeIn">
+                <div class="absolute top-4 left-6 z-10">
+                    <h3 class="text-xl font-bold text-gray-700">星图可视化</h3>
+                    <p class="text-xs text-gray-400">拖动节点探索你的社交宇宙</p>
+                </div>
+                <div id="network-container" class="w-full h-full flex items-center justify-center bg-gradient-to-br from-indigo-50/30 to-pink-50/30 rounded-2xl">
+                    <!-- Placeholder for Network Graph -->
+                    <div class="text-center text-gray-400">
+                        <i class="fa-solid fa-spinner fa-spin text-3xl mb-3 text-pink-300"></i>
+                        <p>正在解析星图数据...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Friend List -->
+            <div id="bond-tab-list" class="hidden space-y-6 animate__animated animate__fadeIn">
+                <div class="glass-card p-6 min-h-[600px]">
+                    <h3 class="text-xl font-bold text-gray-700 mb-6 border-b border-gray-100 pb-4">契约伙伴列表</h3>
+                    <div id="friends-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- JS Loaded -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Requests -->
+            <div id="bond-tab-requests" class="hidden space-y-6 animate__animated animate__fadeIn">
+                <div class="glass-card p-6 min-h-[600px]">
+                    <h3 class="text-xl font-bold text-gray-700 mb-6 border-b border-gray-100 pb-4">待处理的契约</h3>
+                    <div id="requests-container" class="space-y-4">
+                        <!-- JS Loaded -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Add Friend -->
+            <div id="bond-tab-add" class="hidden space-y-6 animate__animated animate__fadeIn">
+                <div class="glass-card p-6 min-h-[600px]">
+                    <h3 class="text-xl font-bold text-gray-700 mb-6">寻找灵魂共鸣</h3>
+                    <div class="flex space-x-3 mb-8">
+                        <div class="flex-1 relative">
+                            <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 transform -translate-y-1/2 text-pink-300"></i>
+                            <input type="text" id="search-friend-input" class="w-full pl-12 pr-5 py-4 bg-gray-50 border-2 border-transparent focus:border-pink-300 focus:bg-white rounded-2xl outline-none transition-all" placeholder="输入 ID 或 昵称 搜索伙伴...">
+                        </div>
+                        <button onclick="searchUsers()" class="px-8 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-2xl font-bold shadow-lg hover:shadow-pink-200 hover:scale-105 transition-all">
+                            搜索
+                        </button>
+                    </div>
+                    <div id="search-results" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- ECharts for Network Graph -->
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+
+<script>
+    let currentBondTab = 'network';
+    let networkChart = null;
+
+    function switchBondTab(tab) {
+        currentBondTab = tab;
+        
+        // Hide all tabs
+        ['network', 'list', 'requests', 'add'].forEach(t => {
+            document.getElementById(`bond-tab-${t}`).classList.add('hidden');
+            const btn = document.getElementById(`nav-btn-${t}`);
+            btn.classList.remove('text-pink-500', 'bg-pink-50');
+            btn.classList.add('text-gray-500', 'hover:bg-gray-50');
+        });
+
+        // Show active tab
+        document.getElementById(`bond-tab-${tab}`).classList.remove('hidden');
+        const activeBtn = document.getElementById(`nav-btn-${tab}`);
+        activeBtn.classList.remove('text-gray-500', 'hover:bg-gray-50');
+        activeBtn.classList.add('text-pink-500', 'bg-pink-50');
+
+        // Logic triggers
+        if (tab === 'network') initNetworkGraph();
+        if (tab === 'list' || tab === 'requests') loadBondData();
+    }
+
+    async function loadBondData() {
+        try {
+            const res = await fetch('/auth/api/friends/');
+            const data = await res.json();
+            renderFriends(data.friends);
+            renderRequests(data.requests);
+            
+            // Init graph data if needed
+            if(currentBondTab === 'network') renderNetworkGraph(data.friends);
+            
+        } catch (e) { console.error("Failed to load bond data", e); }
+    }
+
+    function renderFriends(friends) {
+        const container = document.getElementById('friends-container');
+        if (friends.length === 0) {
+            container.innerHTML = `<div class="text-center text-gray-400 py-12 col-span-2 flex flex-col items-center">
+                <i class="fa-regular fa-paper-plane text-4xl mb-4 text-gray-200"></i>
+                <p>还没有建立羁绊哦～去“结缔契约”看看吧！</p>
+            </div>`;
+            return;
+        }
+        container.innerHTML = friends.map(f => `
+            <div class="flex items-center p-5 bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:border-pink-100 transition-all group">
+                <div class="relative">
+                    <img src="${f.avatar || '/static/images/default_head.png'}" class="w-14 h-14 rounded-full object-cover border-2 border-white shadow-sm group-hover:scale-105 transition-transform">
+                    <div class="absolute -bottom-1 -right-1 bg-white rounded-full px-1.5 py-0.5 border border-gray-100 shadow-sm text-[10px] font-bold text-pink-500">Lv.1</div>
+                </div>
+                <div class="ml-4 flex-1">
+                    <div class="flex justify-between items-center">
+                        <div class="font-bold text-gray-800">${f.username}</div>
+                        <span class="text-[10px] text-gray-300 bg-gray-50 px-2 py-0.5 rounded-md">ID: ${f.id}</span>
+                    </div>
+                    <div class="text-xs text-gray-400 truncate mt-1 max-w-[140px]">${f.bio || '这家伙很神秘...'}</div>
+                </div>
+                <div class="ml-2 flex space-x-2">
+                    <button onclick="startChat('${f.id}', '${f.username}')" class="w-9 h-9 flex items-center justify-center bg-blue-50 text-blue-500 rounded-xl hover:bg-blue-500 hover:text-white transition-all" title="发起聊天">
+                        <i class="fa-solid fa-comment-dots"></i>
+                    </button>
+                    <!-- Future: Gift or Profile -->
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function renderRequests(requests) {
+        const container = document.getElementById('requests-container');
+        const badge = document.getElementById('req-badge');
+        
+        if(requests.length > 0) {
+            badge.innerText = requests.length;
+            badge.classList.remove('hidden');
+        } else {
+            badge.classList.add('hidden');
+        }
+
+        if (requests.length === 0) {
+            container.innerHTML = `<div class="text-center text-gray-400 py-12">暂无新的契约申请</div>`;
+            return;
+        }
+        container.innerHTML = requests.map(r => `
+            <div class="flex items-center justify-between p-5 bg-gradient-to-r from-pink-50/50 to-white rounded-2xl border border-pink-100">
+                <div class="flex items-center">
+                    <img src="${r.from_user.avatar || '/static/images/default_head.png'}" class="w-12 h-12 rounded-full object-cover mr-4 border-2 border-white shadow-sm">
+                    <div>
+                        <div class="font-bold text-gray-800 flex items-center">
+                            ${r.from_user.username}
+                            <span class="ml-2 px-2 py-0.5 bg-pink-100 text-pink-500 text-[10px] rounded-full font-bold">New</span>
+                        </div>
+                        <div class="text-xs text-gray-500 mt-1">请求与你建立羁绊</div>
+                    </div>
+                </div>
+                <div class="flex space-x-3">
+                    <button onclick="handleRequest(${r.id}, 'accept')" class="px-5 py-2 bg-gradient-to-r from-green-400 to-green-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-green-100 hover:scale-105 transition-transform">接受</button>
+                    <button onclick="handleRequest(${r.id}, 'reject')" class="px-5 py-2 bg-white text-gray-400 border border-gray-200 text-xs font-bold rounded-xl hover:bg-gray-50 transition-colors">忽略</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    async function searchUsers() {
+        const query = document.getElementById('search-friend-input').value;
+        if (!query) return;
+        
+        try {
+            const res = await fetch(`/auth/api/search/?q=${encodeURIComponent(query)}`);
+            const users = await res.json();
+            const container = document.getElementById('search-results');
+            
+            if (users.length === 0) {
+                container.innerHTML = `<div class="text-center text-gray-400 col-span-2 py-8">未探测到名为 "${query}" 的生命体信号</div>`;
+            } else {
+                container.innerHTML = users.map(u => {
+                    let actionBtn = '';
+                    if (u.friend_status === 'friend') {
+                        actionBtn = `<span class="px-4 py-1.5 bg-gray-100 text-gray-400 rounded-lg text-xs font-bold"><i class="fa-solid fa-check mr-1"></i> 已结契</span>`;
+                    } else if (u.friend_status === 'sent') {
+                        actionBtn = `<span class="px-4 py-1.5 bg-pink-50 text-pink-400 rounded-lg text-xs font-bold"><i class="fa-regular fa-paper-plane mr-1"></i> 请求中</span>`;
+                    } else if (u.friend_status === 'received') {
+                        actionBtn = `<button onclick="switchBondTab('requests')" class="px-4 py-1.5 bg-pink-500 text-white rounded-lg text-xs font-bold hover:bg-pink-600">去处理</button>`;
+                    } else {
+                        actionBtn = `<button onclick="sendRequest(${u.id}, this)" class="px-4 py-1.5 bg-pink-500 text-white rounded-lg text-xs font-bold hover:bg-pink-600 transition-all shadow-md shadow-pink-200"><i class="fa-solid fa-plus mr-1"></i> 结缔</button>`;
+                    }
+                    
+                    return `
+                    <div class="flex items-center justify-between p-5 bg-white rounded-2xl border border-gray-100 hover:border-pink-200 transition-colors shadow-sm">
+                        <div class="flex items-center overflow-hidden">
+                            <img src="${u.avatar ? '/media/'+u.avatar : '/static/images/default_head.png'}" class="w-12 h-12 rounded-full object-cover mr-4 shrink-0">
+                            <div class="min-w-0">
+                                <div class="font-bold text-gray-800 truncate">${u.username}</div>
+                                <div class="text-xs text-gray-400 truncate">${u.bio || '这个星球的过客...'}</div>
+                            </div>
+                        </div>
+                        <div class="ml-2 shrink-0">${actionBtn}</div>
+                    </div>`;
+                }).join('');
+            }
+        } catch(e) { console.error(e); }
+    }
+
+    // --- Network Graph Logic ---
+    function initNetworkGraph() {
+        if (!networkChart) {
+            networkChart = echarts.init(document.getElementById('network-container'));
+            window.addEventListener('resize', () => networkChart.resize());
+        }
+        loadBondData(); // Will trigger renderNetworkGraph
+    }
+
+    function renderNetworkGraph(friends) {
+        if(!networkChart) return;
+        
+        // Prepare Data
+        const currentUserNode = {
+            id: '{{ user.id }}',
+            name: '{{ user.username }}',
+            symbolSize: 40,
+            itemStyle: { color: '#ec4899', borderColor: '#fff', borderWidth: 3, shadowBlur: 10, shadowColor: 'rgba(236, 72, 153, 0.5)' },
+            label: { show: true, position: 'bottom', color: '#333', fontWeight: 'bold' },
+            category: 0
+        };
+
+        let nodes = [currentUserNode];
+        let links = [];
+
+        friends.forEach(f => {
+            nodes.push({
+                id: f.id.toString(),
+                name: f.username,
+                symbolSize: 25,
+                itemStyle: { color: '#a78bfa' }, // Purple
+                label: { show: true, position: 'bottom', color: '#666', fontSize: 10 },
+                category: 1
+            });
+            links.push({
+                source: '{{ user.id }}',
+                target: f.id.toString(),
+                lineStyle: { color: '#fbcfe8', width: 2, curveness: 0.1 }
+            });
+        });
+
+        // Add some dummy "friends of friends" for visual effect if friends list is small
+        // In a real app, you'd fetch 2nd degree connections
+        if (friends.length > 0 && friends.length < 5) {
+             // Just for show: Connect first friend to a ghost node
+             nodes.push({ id: 'ghost1', name: '?', symbolSize: 15, itemStyle: { color: '#e5e7eb' }, label: {show:false}, category: 2 });
+             links.push({ source: friends[0].id.toString(), target: 'ghost1', lineStyle: { color: '#f3f4f6', width: 1, type: 'dashed' } });
+        }
+
+        const option = {
+            tooltip: {},
+            animationDurationUpdate: 1500,
+            animationEasingUpdate: 'quinticInOut',
+            series: [
+                {
+                    type: 'graph',
+                    layout: 'force',
+                    force: {
+                        repulsion: 300,
+                        edgeLength: 80,
+                        gravity: 0.1
+                    },
+                    data: nodes,
+                    links: links,
+                    categories: [{ name: '我' }, { name: '好友' }, { name: '潜在' }],
+                    roam: true, // Allow drag/zoom
+                    label: {
+                        position: 'right',
+                        formatter: '{b}'
+                    },
+                    lineStyle: {
+                        color: 'source',
+                        curveness: 0.3
+                    },
+                    emphasis: {
+                        focus: 'adjacency',
+                        lineStyle: { width: 4 }
+                    }
+                }
+            ]
+        };
+
+        networkChart.setOption(option);
+    }
+
+    // Reuse helper functions (sendRequest, handleRequest, startChat)
+    // IMPORTANT: Copy these from the previous user_center code or ensure they are globally available
+    // For brevity, I'll inline simplified versions or assume they exist. 
+    // Best practice: Move shared logic to a separate JS file. 
+    
+    // ... (Adding helper functions to ensure standalone functionality) ...
+    async function sendRequest(targetId, btn) {
+        btn.innerText = "...";
+        try {
+            const res = await fetch('/auth/api/friend/request/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+                body: JSON.stringify({ target_id: targetId })
+            });
+            const data = await res.json();
+            if (data.status === 'success') {
+                btn.parentElement.innerHTML = `<span class="px-4 py-1.5 bg-pink-50 text-pink-400 rounded-lg text-xs font-bold">已发送</span>`;
+            } else { alert(data.message); btn.innerText = "重试"; }
+        } catch (e) { console.error(e); }
+    }
+
+    async function handleRequest(reqId, action) {
+        try {
+            const res = await fetch('/auth/api/friend/handle/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+                body: JSON.stringify({ request_id: reqId, action: action })
+            });
+            const data = await res.json();
+            if (data.status === 'success') loadBondData();
+        } catch (e) { console.error(e); }
+    }
+
+    function startChat(userId, username) {
+        if (window.openPrivateChat) {
+            window.openPrivateChat(userId, username);
+        } else {
+            alert("聊天组件未就绪");
+        }
+    }
+
+    // Init
+    window.addEventListener('DOMContentLoaded', () => {
+        initNetworkGraph();
+    });
+
+</script>
+{% endblock %}

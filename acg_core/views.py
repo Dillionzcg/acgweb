@@ -143,3 +143,7 @@ def user_center(request):
             return JsonResponse({'status': 'error'}, status=400)
 
     return render(request, 'user_center.html')
+
+@login_required
+def bond_system_view(request):
+    return render(request, 'bond_system.html')
