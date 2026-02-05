@@ -156,7 +156,9 @@ def get_friends_data(request):
             'id': friend.id,
             'username': friend.username,
             'avatar': friend.avatar.url if friend.avatar else None,
-            'bio': friend.bio
+            'bio': friend.bio,
+            'relationship': rel.relationship_type,
+            'rel_id': rel.id
         })
         
     # Get pending requests
@@ -172,6 +174,26 @@ def get_friends_data(request):
     } for req in pending]
     
     return JsonResponse({'friends': friends, 'requests': requests})
+
+@login_required
+def update_relationship_type(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            rel_id = data.get('rel_id')
+            new_type = data.get('type')
+            
+            # Ensure the user is part of this friendship
+            friendship = Friendship.objects.get(id=rel_id)
+            if request.user not in [friendship.from_user, friendship.to_user]:
+                return JsonResponse({'status': 'error', 'message': '无权操作'})
+                
+            friendship.relationship_type = new_type
+            friendship.save()
+            return JsonResponse({'status': 'success'})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)})
+    return JsonResponse({'status': 'error'}, status=400)
 
 def user_list_api(request):
     if not request.user.is_authenticated:

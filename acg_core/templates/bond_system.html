@@ -163,8 +163,16 @@
             </div>`;
             return;
         }
+        
+        const typeLabels = {
+            'normal': { text: '好友', color: 'bg-gray-100 text-gray-500' },
+            'bestie': { text: '基友', color: 'bg-blue-100 text-blue-500' },
+            'lover': { text: 'CP', color: 'bg-pink-100 text-pink-500' },
+            'family': { text: '家人', color: 'bg-orange-100 text-orange-500' }
+        };
+
         container.innerHTML = friends.map(f => `
-            <div class="flex items-center p-5 bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:border-pink-100 transition-all group">
+            <div class="flex items-center p-5 bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:border-pink-100 transition-all group relative">
                 <div class="relative">
                     <img src="${f.avatar || '/static/images/default_head.png'}" class="w-14 h-14 rounded-full object-cover border-2 border-white shadow-sm group-hover:scale-105 transition-transform">
                     <div class="absolute -bottom-1 -right-1 bg-white rounded-full px-1.5 py-0.5 border border-gray-100 shadow-sm text-[10px] font-bold text-pink-500">Lv.1</div>
@@ -172,7 +180,21 @@
                 <div class="ml-4 flex-1">
                     <div class="flex justify-between items-center">
                         <div class="font-bold text-gray-800">${f.username}</div>
-                        <span class="text-[10px] text-gray-300 bg-gray-50 px-2 py-0.5 rounded-md">ID: ${f.id}</span>
+                        
+                        <!-- Relationship Tag (Click to change) -->
+                        <div class="relative group/rel">
+                            <span onclick="toggleRelMenu('${f.rel_id}')" class="cursor-pointer px-2 py-0.5 rounded-md text-[10px] font-bold ${typeLabels[f.relationship].color} hover:opacity-80 transition-opacity select-none">
+                                ${typeLabels[f.relationship].text} <i class="fa-solid fa-caret-down ml-1"></i>
+                            </span>
+                            
+                            <!-- Dropdown -->
+                            <div id="rel-menu-${f.rel_id}" class="hidden absolute right-0 top-6 w-24 bg-white border border-gray-100 rounded-xl shadow-lg z-20 overflow-hidden text-xs">
+                                <div onclick="updateRel('${f.rel_id}', 'normal')" class="px-3 py-2 hover:bg-gray-50 cursor-pointer text-gray-600">普通好友</div>
+                                <div onclick="updateRel('${f.rel_id}', 'bestie')" class="px-3 py-2 hover:bg-blue-50 cursor-pointer text-blue-500">基友/死党</div>
+                                <div onclick="updateRel('${f.rel_id}', 'lover')" class="px-3 py-2 hover:bg-pink-50 cursor-pointer text-pink-500">情侣/CP</div>
+                                <div onclick="updateRel('${f.rel_id}', 'family')" class="px-3 py-2 hover:bg-orange-50 cursor-pointer text-orange-500">家人</div>
+                            </div>
+                        </div>
                     </div>
                     <div class="text-xs text-gray-400 truncate mt-1 max-w-[140px]">${f.bio || '这家伙很神秘...'}</div>
                 </div>
@@ -180,7 +202,6 @@
                     <button onclick="startChat('${f.id}', '${f.username}')" class="w-9 h-9 flex items-center justify-center bg-blue-50 text-blue-500 rounded-xl hover:bg-blue-500 hover:text-white transition-all" title="发起聊天">
                         <i class="fa-solid fa-comment-dots"></i>
                     </button>
-                    <!-- Future: Gift or Profile -->
                 </div>
             </div>
         `).join('');
@@ -277,28 +298,36 @@
         const currentUserNode = {
             id: '{{ user.id }}',
             name: '{{ user.username }}',
-            symbolSize: 40,
-            itemStyle: { color: '#ec4899', borderColor: '#fff', borderWidth: 3, shadowBlur: 10, shadowColor: 'rgba(236, 72, 153, 0.5)' },
+            symbolSize: 50,
+            itemStyle: { color: '#ec4899', borderColor: '#fff', borderWidth: 4, shadowBlur: 10, shadowColor: 'rgba(236, 72, 153, 0.5)' },
             label: { show: true, position: 'bottom', color: '#333', fontWeight: 'bold' },
             category: 0
         };
 
         let nodes = [currentUserNode];
         let links = [];
+        
+        const typeStyles = {
+            'normal': { color: '#a78bfa', lineColor: '#e9d5ff', width: 2 }, // Purple
+            'bestie': { color: '#3b82f6', lineColor: '#93c5fd', width: 4 }, // Blue
+            'lover':  { color: '#ef4444', lineColor: '#fca5a5', width: 5 }, // Red
+            'family': { color: '#f97316', lineColor: '#fdba74', width: 4 }  // Orange
+        };
 
         friends.forEach(f => {
+            const style = typeStyles[f.relationship] || typeStyles['normal'];
             nodes.push({
                 id: f.id.toString(),
                 name: f.username,
-                symbolSize: 25,
-                itemStyle: { color: '#a78bfa' }, // Purple
+                symbolSize: f.relationship === 'lover' ? 40 : 30,
+                itemStyle: { color: style.color },
                 label: { show: true, position: 'bottom', color: '#666', fontSize: 10 },
                 category: 1
             });
             links.push({
                 source: '{{ user.id }}',
                 target: f.id.toString(),
-                lineStyle: { color: '#fbcfe8', width: 2, curveness: 0.1 }
+                lineStyle: { color: style.lineColor, width: style.width, curveness: 0.1 }
             });
         });
 
@@ -311,6 +340,7 @@
         }
 
         const option = {
+            title: { text: '我的羁绊星图', left: 'center', top: 20, textStyle: { color: '#888', fontSize: 14 } },
             tooltip: {},
             animationDurationUpdate: 1500,
             animationEasingUpdate: 'quinticInOut',
@@ -319,8 +349,8 @@
                     type: 'graph',
                     layout: 'force',
                     force: {
-                        repulsion: 300,
-                        edgeLength: 80,
+                        repulsion: 400,
+                        edgeLength: 100,
                         gravity: 0.1
                     },
                     data: nodes,
@@ -345,6 +375,37 @@
 
         networkChart.setOption(option);
     }
+
+    // Helper functions
+    function toggleRelMenu(relId) {
+        const menu = document.getElementById(`rel-menu-${relId}`);
+        // Close others
+        document.querySelectorAll('[id^="rel-menu-"]').forEach(el => {
+            if(el.id !== `rel-menu-${relId}`) el.classList.add('hidden');
+        });
+        menu.classList.toggle('hidden');
+    }
+    
+    async function updateRel(relId, newType) {
+        try {
+            const res = await fetch('/auth/api/friend/update_type/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+                body: JSON.stringify({ rel_id: relId, type: newType })
+            });
+            const data = await res.json();
+            if(data.status === 'success') {
+                loadBondData(); // Reload UI and Graph
+            } else { alert(data.message); }
+        } catch(e) { console.error(e); }
+    }
+    
+    // Close menus on click outside
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.group/rel')) {
+            document.querySelectorAll('[id^="rel-menu-"]').forEach(el => el.classList.add('hidden'));
+        }
+    });
 
     // Reuse helper functions (sendRequest, handleRequest, startChat)
     // IMPORTANT: Copy these from the previous user_center code or ensure they are globally available
