@@ -31,7 +31,7 @@
         box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
         display: none;
         flex-direction: column;
-        z-index: 1000;
+        z-index: 1001; /* Higher than FAB */
         border: 1px solid rgba(255, 182, 193, 0.3);
         overflow: hidden;
         animation: slideUp 0.3s ease-out;
@@ -233,20 +233,35 @@
 
         // --- UI Logic ---
         fab.addEventListener('click', () => {
-            chatWindow.style.display = 'flex';
-            if (!chatWindow.style.top) {
+            try {
+                chatWindow.style.display = 'flex';
+                
+                // Position Safety Check: Ensure window is on screen
                 const rect = chatWindow.getBoundingClientRect();
-                chatWindow.style.bottom = 'auto'; chatWindow.style.right = 'auto';
-                chatWindow.style.top = rect.top + 'px'; chatWindow.style.left = rect.left + 'px';
+                if (rect.top < 0 || rect.left < 0 || rect.bottom > window.innerHeight || rect.right > window.innerWidth) {
+                    // Reset if off-screen or weird
+                    chatWindow.style.top = 'auto';
+                    chatWindow.style.left = 'auto';
+                    chatWindow.style.bottom = '100px';
+                    chatWindow.style.right = '30px';
+                }
+
+                // Hide FAB as requested
+                fab.style.display = 'none'; 
+                
+                switchRoom('lobby', 'ACG 大厅');
+                loadUserList();
+            } catch (e) {
+                console.error("Error opening chat:", e);
+                // Recovery: Show button if error
+                fab.style.display = 'flex';
+                alert("聊天窗口打开失败，请刷新页面。");
             }
-            fab.style.display = 'none';
-            switchRoom('lobby', 'ACG 大厅');
-            loadUserList();
         });
 
         closeBtn.addEventListener('click', () => {
             chatWindow.style.display = 'none';
-            fab.style.display = 'flex';
+            fab.style.display = 'flex'; // Show FAB again
         });
 
         toggleUsersBtn.addEventListener('click', () => {
@@ -421,6 +436,7 @@
             msgContainer.scrollTop = msgContainer.scrollHeight;
         }
 
+        // Draggable
         function makeDraggable(element, handle) {
             let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
             const dragHandle = handle || element;
@@ -433,9 +449,24 @@
                     e.preventDefault();
                     pos1 = pos3 - e.clientX; pos2 = pos4 - e.clientY;
                     pos3 = e.clientX; pos4 = e.clientY;
+                    
+                    let newTop = element.offsetTop - pos2;
+                    let newLeft = element.offsetLeft - pos1;
+                    
+                    // Boundary Checks
+                    const minTop = 0;
+                    const maxTop = window.innerHeight - element.offsetHeight;
+                    const minLeft = 0;
+                    const maxLeft = window.innerWidth - element.offsetWidth;
+                    
+                    if (newTop < minTop) newTop = minTop;
+                    if (newTop > maxTop) newTop = maxTop;
+                    if (newLeft < minLeft) newLeft = minLeft;
+                    if (newLeft > maxLeft) newLeft = maxLeft;
+
                     element.style.bottom = 'auto'; element.style.right = 'auto';
-                    element.style.top = (element.offsetTop - pos2) + "px";
-                    element.style.left = (element.offsetLeft - pos1) + "px";
+                    element.style.top = newTop + "px";
+                    element.style.left = newLeft + "px";
                 };
             };
         }
