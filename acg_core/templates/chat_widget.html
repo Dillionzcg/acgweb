@@ -130,6 +130,71 @@
     .alert-btn { padding: 6px 20px; border-radius: 20px; border: none; cursor: pointer; font-size: 12px; font-weight: bold; }
     .btn-login { background: #ff9a9e; color: white; }
     .btn-cancel { background: #f1f2f6; color: #a4b0be; margin-left: 5px; }
+
+    /* --- Video Call Mode Styles --- */
+    #chat-window.video-mode {
+        width: 900px !important;
+        height: 600px !important;
+        /* Center on screen */
+        top: 50% !important;
+        left: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        border-radius: 10px;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    }
+
+    #chat-window.video-mode #video-container {
+        display: flex !important;
+        z-index: 0; /* Background layer */
+        background: #000;
+    }
+
+    /* Message Overlay (Danmaku-ish) */
+    #chat-window.video-mode #chat-messages {
+        position: absolute;
+        bottom: 60px;
+        left: 10px;
+        width: 300px;
+        height: 250px;
+        z-index: 10;
+        background: transparent;
+        overflow-y: hidden; /* Hide scrollbar */
+        justify-content: flex-end; /* Align bottom */
+        mask-image: linear-gradient(to bottom, transparent, black 20%);
+        pointer-events: none; /* Click through */
+    }
+
+    #chat-window.video-mode .message-bubble {
+        background: rgba(0, 0, 0, 0.6);
+        color: white;
+        border: none;
+        box-shadow: none;
+        margin-bottom: 8px;
+        align-self: flex-start; /* All align left */
+        animation: slideInLeft 0.3s ease-out;
+        backdrop-filter: blur(2px);
+    }
+    
+    #chat-window.video-mode .chat-input-area {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        z-index: 20;
+        background: rgba(0,0,0,0.5);
+        border-top: none;
+    }
+    
+    #chat-window.video-mode #chat-widget-input {
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: none;
+    }
+    #chat-window.video-mode #chat-widget-input::placeholder { color: rgba(255,255,255,0.7); }
+    
+    #chat-window.video-mode #user-list-sidebar { display: none; }
+    
+    @keyframes slideInLeft { from { transform: translateX(-20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 </style>
 
 <div id="chat-fab" title="Chat with us!">
@@ -360,6 +425,7 @@
 
         async function startCall(sendRequest = true) {
             videoContainer.style.display = 'flex';
+            chatWindow.classList.add('video-mode'); // Enter Video Mode
             try {
                 if (!localStream) {
                     localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
@@ -375,7 +441,11 @@
 
         async function handleVideoOffer(data) {
             if (peerConnection) return;
+            // Auto-accept offer since we already confirmed via notification modal
+            console.log("Auto-accepting video offer from", data.sender);
+            
             videoContainer.style.display = 'flex';
+            chatWindow.classList.add('video-mode'); // Enter Video Mode
             try {
                 localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
                 localVideo.srcObject = localStream;
@@ -385,7 +455,10 @@
                 const answer = await peerConnection.createAnswer();
                 await peerConnection.setLocalDescription(answer);
                 sendSignal('video_answer', { sdp: peerConnection.localDescription });
-            } catch (e) { console.error(e); hangup(); }
+            } catch (e) {
+                console.error(e);
+                hangup();
+            }
         }
 
         async function handleVideoAnswer(data) {
@@ -411,6 +484,7 @@
             if (localStream) { localStream.getTracks().forEach(track => track.stop()); localStream = null; }
             localVideo.srcObject = null; remoteVideo.srcObject = null;
             videoContainer.style.display = 'none';
+            chatWindow.classList.remove('video-mode'); // Exit Video Mode
         }
 
         function sendMessage() {
@@ -473,6 +547,10 @@
         makeDraggable(fab);
         makeDraggable(chatWindow, document.querySelector('.chat-header'));
         
+        // Ensure default position is set in JS to prevent initial glitch
+        chatWindow.style.bottom = '100px';
+        chatWindow.style.right = '30px';
+        
         // Auto-connect on load
         switchRoom('lobby', 'ACG 大厅');
 
@@ -480,6 +558,14 @@
         window.openPrivateChat = function(targetUserId, targetUsername) {
             // Ensure chat window is open
             chatWindow.style.display = 'flex';
+            // Reset position if weird
+            const rect = chatWindow.getBoundingClientRect();
+            if (rect.height === 0) {
+                 chatWindow.style.top = 'auto'; 
+                 chatWindow.style.left = 'auto';
+                 chatWindow.style.bottom = '100px';
+                 chatWindow.style.right = '30px';
+            }
             fab.style.display = 'none';
             
             // Switch room logic
