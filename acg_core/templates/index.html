@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block content %}
 <div class="grid grid-cols-12 gap-6">
@@ -19,7 +20,7 @@
                     <span class="flex-1 ml-4 hover:underline cursor-pointer">电锯人</span>
                     <span class="text-xs text-gray-500">8.5w</span>
                 </li>
-                </ul>
+            </ul>
         </div>
 
         <div class="glass-card p-6 shadow-xl">
@@ -71,12 +72,43 @@
 
     <aside class="col-span-12 lg:col-span-3 space-y-6 animate__animated animate__fadeInRight">
         <div class="glass-card p-6 text-center">
-            <div class="w-20 h-20 bg-pink-200 rounded-full mx-auto mb-4 border-4 border-white shadow-md overflow-hidden">
-                <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=Lucky" alt="avatar">
+            <div class="w-20 h-20 bg-pink-100 rounded-full mx-auto mb-4 border-4 border-white shadow-md overflow-hidden">
+                {% if user.is_authenticated %}
+                    {% if user.avatar %}
+                        <img src="{{ user.avatar.url }}" class="w-full h-full object-cover">
+                    {% else %}
+                        <img src="{% static 'default_head.png' %}" class="w-full h-full object-cover">
+                    {% endif %}
+                {% else %}
+                    <img src="{% static 'default_head.png' %}" class="w-full h-full object-cover">
+                {% endif %}
             </div>
-            <h3 class="font-bold text-xl">游客君</h3>
-            <p class="text-xs text-gray-500 mt-1">登录后解锁“圣地巡礼”</p>
-            <button class="mt-4 w-full py-2 bg-gradient-to-r from-pink-400 to-purple-500 text-white rounded-lg shadow-lg hover:opacity-90 transition">立即签到</button>
+
+            <h3 class="font-bold text-xl text-gray-800">
+                {% if user.is_authenticated %}
+                    {{ user.username }}
+                {% else %}
+                    游客君
+                {% endif %}
+            </h3>
+
+            <p class="text-xs text-gray-500 mt-2 italic px-2">
+                {% if user.is_authenticated %}
+                    {{ user.bio|default:"暂无签名，快去设置吧~" }}
+                {% else %}
+                    登录后解锁“圣地巡礼”
+                {% endif %}
+            </p>
+
+            {% if user.is_authenticated %}
+                <a href="{% url 'user_center' %}" class="block mt-4 w-full py-2 bg-gradient-to-r from-pink-400 to-purple-500 text-white rounded-lg shadow-lg hover:scale-[1.02] transition text-sm font-bold">
+                    进入次元中心
+                </a>
+            {% else %}
+                <a href="{% url 'login' %}" class="block mt-4 w-full py-2 bg-gradient-to-r from-pink-400 to-purple-500 text-white rounded-lg shadow-lg hover:opacity-90 transition text-sm font-bold">
+                    立即登录
+                </a>
+            {% endif %}
         </div>
 
         <div class="glass-card p-6">

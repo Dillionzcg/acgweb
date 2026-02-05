@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}个人中心{% endblock %}
+{% load static %}  {% block title %}个人中心{% endblock %}
 
 {% block content %}
     <style>
@@ -81,11 +81,11 @@
                 </a>
 
                 <div class="relative w-36 h-36 mx-auto mb-6 mt-4">
-                    <div id="avatar-preview-container" class="w-full h-full rounded-3xl border-4 border-white shadow-xl bg-pink-50 overflow-hidden">
+                    <div id="avatar-preview-container" class="w-full h-full rounded-3xl border-4 border-white shadow-xl bg-pink-50 overflow-hidden flex items-center justify-center">
                         {% if user.avatar %}
                             <img src="{{ user.avatar.url }}" class="w-full h-full object-cover">
                         {% else %}
-                            <i class="fa-solid fa-user-astronaut text-6xl text-pink-200 mt-8 flex items-center justify-center"></i>
+                            <img src="{% static 'images/default_head.png' %}" class="w-full h-full object-cover">
                         {% endif %}
                     </div>
                     <label for="avatar-input" class="absolute bottom-0 right-0 w-10 h-10 bg-pink-500 text-white rounded-2xl border-4 border-white flex items-center justify-center cursor-pointer hover:scale-110 transition-all shadow-lg">
@@ -395,25 +395,35 @@
     });
 
     document.getElementById('avatar-input').onchange = function(e) {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = (ev) => {
-                document.getElementById('avatar-preview-container').innerHTML = `<img src="${ev.target.result}" class="w-full h-full object-cover">`;
-            };
-            reader.readAsDataURL(file);
-            const fd = new FormData();
-            fd.append('avatar', file);
-            fetch('/user_center/', {
-                method: 'POST',
-                headers: { 'X-CSRFToken': '{{ csrf_token }}' },
-                body: fd
-            }).then(r => r.json()).then(d => {
-                if(d.status==='success') {
-                   if(window.askXiaoYou) window.askXiaoYou('USER_ACTION', '用户更换了头像');
-                }
-            });
-        }
-    };
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            const newImageSrc = ev.target.result;
+            // 1. 更新个人中心的大预览图
+            document.getElementById('avatar-preview-container').innerHTML = `<img src="${newImageSrc}" class="w-full h-full object-cover">`;
+
+            // 2. 【新增】同步更新顶部导航栏的头像
+            const navAvatar = document.getElementById('nav-avatar');
+            if (navAvatar) {
+                navAvatar.src = newImageSrc;
+            }
+        };
+        reader.readAsDataURL(file);
+
+        // 发送给后端的代码保持不变...
+        const fd = new FormData();
+        fd.append('avatar', file);
+        fetch('/user_center/', {
+            method: 'POST',
+            headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+            body: fd
+        }).then(r => r.json()).then(d => {
+            if(d.status==='success') {
+               if(window.askXiaoYou) window.askXiaoYou('USER_ACTION', '用户更换了头像');
+            }
+        });
+    }
+};
 </script>
 {% endblock %}
