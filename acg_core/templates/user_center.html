@@ -202,11 +202,229 @@
                     </button>
                 </div>
             </div>
+
+            <!-- Friend System Section -->
+            <div class="glass-card p-10 mt-8">
+                <h3 class="text-2xl font-bold text-gray-800 mb-6">羁绊系统</h3>
+                
+                <!-- Tabs -->
+                <div class="flex space-x-4 mb-6 border-b border-pink-100 pb-2">
+                    <button onclick="showFriendTab('list')" id="tab-btn-list" class="px-4 py-2 text-pink-500 font-bold border-b-2 border-pink-500 transition-colors">我的好友</button>
+                    <button onclick="showFriendTab('requests')" id="tab-btn-requests" class="px-4 py-2 text-gray-400 hover:text-pink-400 font-bold transition-colors">好友请求</button>
+                    <button onclick="showFriendTab('add')" id="tab-btn-add" class="px-4 py-2 text-gray-400 hover:text-pink-400 font-bold transition-colors">添加好友</button>
+                </div>
+
+                <!-- Friend List -->
+                <div id="friend-tab-list" class="animate__animated animate__fadeIn">
+                    <div id="friends-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Content loaded via JS -->
+                        <div class="text-center text-gray-400 py-8 w-full col-span-2">加载中...</div>
+                    </div>
+                </div>
+
+                <!-- Requests -->
+                <div id="friend-tab-requests" class="hidden animate__animated animate__fadeIn">
+                    <div id="requests-container" class="space-y-4">
+                        <!-- Content loaded via JS -->
+                        <div class="text-center text-gray-400 py-8">暂无新的请求</div>
+                    </div>
+                </div>
+
+                <!-- Add Friend -->
+                <div id="friend-tab-add" class="hidden animate__animated animate__fadeIn">
+                    <div class="flex space-x-2 mb-6">
+                        <input type="text" id="search-friend-input" class="flex-1 px-5 py-3 border-2 border-pink-100 rounded-2xl outline-none focus:border-pink-300" placeholder="输入ID或用户名搜索...">
+                        <button onclick="searchUsers()" class="px-6 py-3 bg-pink-500 text-white rounded-2xl font-bold hover:bg-pink-600 transition-all">搜索</button>
+                    </div>
+                    <div id="search-results" class="space-y-4"></div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
+    // --- Friend System Logic ---
+    let currentFriendTab = 'list';
+
+    function showFriendTab(tab) {
+        currentFriendTab = tab;
+        ['list', 'requests', 'add'].forEach(t => {
+            document.getElementById(`friend-tab-${t}`).classList.add('hidden');
+            document.getElementById(`tab-btn-${t}`).classList.remove('text-pink-500', 'border-b-2', 'border-pink-500');
+            document.getElementById(`tab-btn-${t}`).classList.add('text-gray-400');
+        });
+        document.getElementById(`friend-tab-${tab}`).classList.remove('hidden');
+        const activeBtn = document.getElementById(`tab-btn-${tab}`);
+        activeBtn.classList.remove('text-gray-400');
+        activeBtn.classList.add('text-pink-500', 'border-b-2', 'border-pink-500');
+
+        if (tab === 'list' || tab === 'requests') loadFriendsData();
+    }
+
+    async function loadFriendsData() {
+        try {
+            const res = await fetch('/auth/api/friends/');
+            const data = await res.json();
+            renderFriends(data.friends);
+            renderRequests(data.requests);
+        } catch (e) { console.error("Failed to load friends", e); }
+    }
+
+    function renderFriends(friends) {
+        const container = document.getElementById('friends-container');
+        if (friends.length === 0) {
+            container.innerHTML = `<div class="text-center text-gray-400 py-8 col-span-2">还没有建立羁绊哦～快去添加好友吧！</div>`;
+            return;
+        }
+        container.innerHTML = friends.map(f => `
+            <div class="flex items-center p-4 bg-white rounded-2xl border border-pink-50 shadow-sm hover:shadow-md transition-shadow">
+                <img src="${f.avatar || '/static/images/default_head.png'}" class="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm mr-4">
+                <div>
+                    <div class="font-bold text-gray-800">${f.username}</div>
+                    <div class="text-xs text-gray-400 truncate max-w-[150px]">${f.bio || '这个人很懒...'}</div>
+                </div>
+                <button onclick="startChat('${f.id}', '${f.username}')" class="ml-auto w-8 h-8 flex items-center justify-center bg-pink-100 text-pink-500 rounded-full hover:bg-pink-500 hover:text-white transition-all">
+                    <i class="fa-solid fa-comment-dots"></i>
+                </button>
+            </div>
+        `).join('');
+    }
+
+    function renderRequests(requests) {
+        const container = document.getElementById('requests-container');
+        document.getElementById('tab-btn-requests').innerHTML = `好友请求 ${requests.length > 0 ? `<span class="ml-1 px-2 py-0.5 bg-red-500 text-white text-[10px] rounded-full">${requests.length}</span>` : ''}`;
+        
+        if (requests.length === 0) {
+            container.innerHTML = `<div class="text-center text-gray-400 py-8">暂无新的请求</div>`;
+            return;
+        }
+        container.innerHTML = requests.map(r => `
+            <div class="flex items-center justify-between p-4 bg-pink-50/30 rounded-2xl border border-pink-100">
+                <div class="flex items-center">
+                    <img src="${r.from_user.avatar || '/static/images/default_head.png'}" class="w-10 h-10 rounded-full object-cover mr-3">
+                    <span class="font-bold text-gray-700">${r.from_user.username}</span>
+                    <span class="text-xs text-gray-400 ml-2">请求建立羁绊</span>
+                </div>
+                <div class="flex space-x-2">
+                    <button onclick="handleRequest(${r.id}, 'accept')" class="px-3 py-1 bg-green-500 text-white text-xs rounded-full hover:bg-green-600 transition">接受</button>
+                    <button onclick="handleRequest(${r.id}, 'reject')" class="px-3 py-1 bg-gray-300 text-white text-xs rounded-full hover:bg-gray-400 transition">忽略</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    async function searchUsers() {
+        const query = document.getElementById('search-friend-input').value;
+        if (!query) return;
+        
+        const btn = document.querySelector('#friend-tab-add button');
+        const originalText = btn.innerText;
+        btn.innerText = "Searching...";
+        
+        try {
+            const res = await fetch(`/auth/api/search/?q=${encodeURIComponent(query)}`);
+            const users = await res.json();
+            const container = document.getElementById('search-results');
+            
+            if (users.length === 0) {
+                container.innerHTML = `<div class="text-center text-gray-400">未找到名为 "${query}" 的用户</div>`;
+            } else {
+                container.innerHTML = users.map(u => {
+                    let actionBtn = '';
+                    if (u.friend_status === 'friend') {
+                        actionBtn = `<span class="text-xs text-green-500 font-bold"><i class="fa-solid fa-check"></i> 已是好友</span>`;
+                    } else if (u.friend_status === 'sent') {
+                        actionBtn = `<span class="text-xs text-gray-400">已发送请求</span>`;
+                    } else if (u.friend_status === 'received') {
+                        actionBtn = `<span class="text-xs text-pink-500">对方已请求</span>`;
+                    } else {
+                        actionBtn = `<button onclick="sendRequest(${u.id}, this)" class="px-4 py-1.5 bg-pink-500 text-white text-xs rounded-full hover:bg-pink-600 transition"><i class="fa-solid fa-user-plus mr-1"></i> 添加</button>`;
+                    }
+                    
+                    return `
+                    <div class="flex items-center justify-between p-4 bg-white rounded-2xl border border-gray-100 shadow-sm">
+                        <div class="flex items-center">
+                            <img src="${u.avatar ? '/media/'+u.avatar : '/static/images/default_head.png'}" class="w-10 h-10 rounded-full object-cover mr-3">
+                            <div>
+                                <div class="font-bold text-gray-800">${u.username}</div>
+                                <div class="text-xs text-gray-400 truncate max-w-[200px]">${u.bio || '暂无简介'}</div>
+                            </div>
+                        </div>
+                        ${actionBtn}
+                    </div>`;
+                }).join('');
+            }
+        } finally {
+            btn.innerText = originalText;
+        }
+    }
+
+    async function sendRequest(targetId, btn) {
+        btn.disabled = true;
+        btn.innerText = "发送中...";
+        try {
+            const res = await fetch('/auth/api/friend/request/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+                body: JSON.stringify({ target_id: targetId })
+            });
+            const data = await res.json();
+            if (data.status === 'success') {
+                btn.className = "text-xs text-gray-400";
+                btn.innerText = "已发送请求";
+                btn.onclick = null;
+            } else {
+                alert(data.message || "发送失败");
+                btn.disabled = false;
+                btn.innerText = "添加";
+            }
+        } catch (e) { console.error(e); }
+    }
+
+    async function handleRequest(reqId, action) {
+        try {
+            const res = await fetch('/auth/api/friend/handle/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+                body: JSON.stringify({ request_id: reqId, action: action })
+            });
+            const data = await res.json();
+            if (data.status === 'success') {
+                loadFriendsData(); // Reload lists
+            }
+        } catch (e) { console.error(e); }
+    }
+
+    // Call from friend list to open chat
+    function startChat(userId, username) {
+        // Trigger the global chat widget
+        const fab = document.getElementById('chat-fab');
+        if (fab) {
+            // If chat is closed, open it
+            if (fab.style.display !== 'none') fab.click(); 
+            
+            // Wait a bit for widget to init then switch room
+            setTimeout(() => {
+                // We need to access the internal switchRoom of chat widget. 
+                // Since it's inside a closure, we can't call it directly.
+                // But we can simulate a click on the user list in the widget if we find it.
+                // Alternative: We expose a global function in chat_widget.html
+                if (window.openPrivateChat) {
+                    window.openPrivateChat(userId, username);
+                } else {
+                    alert("聊天组件正在初始化，请稍后再试");
+                }
+            }, 100);
+        }
+    }
+
+    // Load initial data
+    window.addEventListener('DOMContentLoaded', () => {
+        // ... previous init code ...
+        loadFriendsData();
+    });
+
     // 初始化日期选择框
     function initDateSelects() {
     const yearSelect = document.getElementById('birth-year');
