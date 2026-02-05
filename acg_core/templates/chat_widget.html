@@ -16,13 +16,8 @@
         z-index: 1000;
         transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
-    #chat-fab:hover {
-        transform: scale(1.1) rotate(10deg);
-    }
-    #chat-fab i {
-        color: white;
-        font-size: 24px;
-    }
+    #chat-fab:hover { transform: scale(1.1) rotate(10deg); }
+    #chat-fab i { color: white; font-size: 24px; }
 
     #chat-window {
         position: fixed;
@@ -34,7 +29,7 @@
         backdrop-filter: blur(10px);
         border-radius: 20px;
         box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-        display: none; /* Hidden by default */
+        display: none;
         flex-direction: column;
         z-index: 1000;
         border: 1px solid rgba(255, 182, 193, 0.3);
@@ -42,23 +37,42 @@
         animation: slideUp 0.3s ease-out;
     }
 
-    @keyframes slideUp {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
     .chat-header {
-        padding: 15px 20px;
+        padding: 12px 15px;
         background: linear-gradient(to right, #ff9a9e, #fad0c4);
         color: white;
         font-weight: bold;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        cursor: move; /* Indicate draggable */
+        cursor: move;
+        font-size: 14px;
     }
     .chat-close { cursor: pointer; opacity: 0.8; }
     .chat-close:hover { opacity: 1; }
+
+    .chat-body { display: flex; flex: 1; overflow: hidden; position: relative; }
+    
+    #user-list-sidebar {
+        width: 120px;
+        background: rgba(255, 255, 255, 0.5);
+        border-right: 1px solid rgba(255, 182, 193, 0.2);
+        display: none;
+        flex-direction: column;
+        overflow-y: auto;
+    }
+    .user-item {
+        padding: 10px 12px;
+        font-size: 12px;
+        cursor: pointer;
+        border-bottom: 1px solid rgba(255, 182, 193, 0.1);
+        transition: all 0.2s;
+        color: #666;
+    }
+    .user-item:hover { background: #fff0f5; color: #ff9a9e; }
+    .user-item.active { background: #ff9a9e; color: white; font-weight: bold; }
 
     #chat-messages {
         flex: 1;
@@ -67,135 +81,113 @@
         display: flex;
         flex-direction: column;
         gap: 10px;
+        background: transparent;
     }
 
     .message-bubble {
-        max-width: 80%;
-        padding: 10px 15px;
+        max-width: 85%;
+        padding: 8px 12px;
         border-radius: 15px;
-        font-size: 14px;
+        font-size: 13px;
         line-height: 1.4;
         word-wrap: break-word;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.02);
     }
-    .message-bubble.received {
-        align-self: flex-start;
-        background: #f0f2f5;
-        color: #333;
-        border-bottom-left-radius: 2px;
-    }
-    .message-bubble.sent {
-        align-self: flex-end;
-        background: #ff9a9e;
-        color: white;
-        border-bottom-right-radius: 2px;
-    }
+    .message-bubble.received { align-self: flex-start; background: white; color: #444; border-bottom-left-radius: 2px; }
+    .message-bubble.sent { align-self: flex-end; background: #ff9a9e; color: white; border-bottom-right-radius: 2px; }
 
     .chat-input-area {
-        padding: 15px;
-        border-top: 1px solid #eee;
+        padding: 12px;
+        border-top: 1px solid #f0f0f0;
         display: flex;
-        gap: 10px;
+        gap: 8px;
         background: white;
     }
     #chat-widget-input {
         flex: 1;
-        border: 1px solid #ddd;
+        border: 1px solid #eee;
         border-radius: 20px;
-        padding: 8px 15px;
+        padding: 6px 15px;
         outline: none;
-        transition: border-color 0.3s;
+        font-size: 13px;
     }
-    #chat-widget-input:focus { border-color: #ff9a9e; }
-    #chat-widget-send {
-        background: #ff9a9e;
-        color: white;
-        border: none;
-        border-radius: 50%;
-        width: 35px;
-        height: 35px;
-        cursor: pointer;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        transition: background 0.3s;
-    }
-    #chat-widget-send:hover { background: #ff758c; }
+    #chat-widget-send { background: #ff9a9e; color: white; border: none; border-radius: 50%; width: 32px; height: 32px; cursor: pointer; display: flex; justify-content: center; align-items: center; }
 
-    /* Video Call Overlay Styles */
-    #video-modal {
-        position: fixed;
-        top: 0; left: 0; width: 100vw; height: 100vh;
-        background: rgba(0,0,0,0.8);
-        z-index: 2000;
+    /* Custom Alert Modal Style */
+    #custom-alert {
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(255, 255, 255, 0.6);
+        backdrop-filter: blur(4px);
+        z-index: 1100;
         display: none;
+        flex-direction: column;
         justify-content: center;
         align-items: center;
-        flex-direction: column;
     }
-    #video-container {
-        position: relative;
-        width: 80%;
-        max-width: 800px;
-        aspect-ratio: 16/9;
-        background: black;
-        border-radius: 15px;
-        overflow: hidden;
-    }
-    video { width: 100%; height: 100%; object-fit: cover; }
-    .video-controls {
-        margin-top: 20px;
-        display: flex;
-        gap: 20px;
-    }
-    .v-btn {
-        width: 50px; height: 50px;
-        border-radius: 50%;
-        border: none;
-        color: white;
-        font-size: 20px;
-        cursor: pointer;
-        display: flex; justify-content: center; align-items: center;
-    }
-    .btn-hangup { background: #ff4757; }
-    .btn-mic { background: #2ed573; }
+    .alert-content { background: white; padding: 20px; border-radius: 20px; text-align: center; border: 2px solid #ffeff3; width: 80%; }
+    .alert-text { color: #ff6b81; font-weight: bold; margin-bottom: 15px; font-size: 13px; }
+    .alert-btn { padding: 6px 20px; border-radius: 20px; border: none; cursor: pointer; font-size: 12px; font-weight: bold; }
+    .btn-login { background: #ff9a9e; color: white; }
+    .btn-cancel { background: #f1f2f6; color: #a4b0be; margin-left: 5px; }
 </style>
 
-<!-- Floating Action Button -->
 <div id="chat-fab" title="Chat with us!">
     <i class="fas fa-comment-dots"></i>
 </div>
 
-<!-- Chat Window -->
 <div id="chat-window">
     <div class="chat-header">
-        <span>ACG 聊天室</span>
-        <div style="display: flex; gap: 10px;">
-             <!-- Video Call Button (Future) -->
-            <i class="fas fa-video chat-close" id="start-video-btn" title="Start Video Call"></i>
+        <div style="display: flex; align-items: center;">
+            <i class="fas fa-bars" id="toggle-users" style="margin-right: 10px; cursor: pointer;" title="切换房间"></i>
+            <span id="chat-title">ACG 大厅</span>
+        </div>
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <i class="fas fa-video" id="start-video-call" style="cursor: pointer; opacity: 0.8;" title="视频通话"></i>
             <i class="fas fa-times chat-close" id="close-chat"></i>
         </div>
     </div>
-    <div id="chat-messages">
-        <!-- Messages will appear here -->
-        <div class="message-bubble received">你好！欢迎来到 ACG 聊天室~ (｡♥‿♥｡)</div>
+    <div class="chat-body">
+        <div id="video-container" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 10; flex-direction: column;">
+            <video id="remote-video" autoplay playsinline style="width: 100%; height: 100%; object-fit: cover;"></video>
+            <video id="local-video" autoplay playsinline muted style="position: absolute; bottom: 10px; right: 10px; width: 30%; border: 1px solid #fff;"></video>
+            <div style="position: absolute; bottom: 10px; left: 10px; display: flex; gap: 10px;">
+                <button id="hangup-video" style="background: rgba(255, 0, 0, 0.7); color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer;">挂断</button>
+            </div>
+        </div>
+        <div id="user-list-sidebar">
+            <div class="user-item active" data-type="lobby">公共大厅</div>
+            <div id="online-users-container"></div>
+        </div>
+        <div id="chat-messages">
+            <div class="message-bubble received">你好！欢迎来到 ACG 聊天室~</div>
+        </div>
     </div>
     <div class="chat-input-area">
         <input type="text" id="chat-widget-input" placeholder="说点什么..." autocomplete="off">
         <button id="chat-widget-send"><i class="fas fa-paper-plane"></i></button>
     </div>
+
+    <div id="custom-alert">
+        <div class="alert-content">
+            <div class="alert-text" id="alert-msg">请先登录后再发言</div>
+            <div>
+                <button class="alert-btn btn-login" onclick="window.location.href='/auth/login/'">去登录</button>
+                <button class="alert-btn btn-cancel" onclick="document.getElementById('custom-alert').style.display='none'">再看看</button>
+            </div>
+        </div>
+    </div>
 </div>
 
-<!-- Video Call Modal (Hidden by default) -->
-<div id="video-modal">
-    <div id="video-container">
-        <!-- Local Video -->
-        <video id="local-video" autoplay muted playsinline></video>
-        <!-- Remote Video (overlay or split) -->
-        <!-- For simplicity, let's just show local for now -->
-    </div>
-    <div class="video-controls">
-        <button class="v-btn btn-mic"><i class="fas fa-microphone"></i></button>
-        <button class="v-btn btn-hangup" id="end-video-btn"><i class="fas fa-phone-slash"></i></button>
+<!-- Incoming Call Modal -->
+<div id="incoming-call-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center;">
+    <div style="background: white; padding: 20px; border-radius: 15px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.3); width: 300px;">
+        <div style="font-size: 18px; font-weight: bold; margin-bottom: 10px; color: #333;">视频通话请求</div>
+        <div id="incoming-call-text" style="margin-bottom: 20px; color: #666;">有人邀请你视频通话</div>
+        <div style="display: flex; justify-content: space-around;">
+            <button id="btn-accept-call" style="background: #4cd137; color: white; border: none; padding: 8px 20px; border-radius: 20px; cursor: pointer;">接听</button>
+            <button id="btn-reject-call" style="background: #ff6b81; color: white; border: none; padding: 8px 20px; border-radius: 20px; cursor: pointer;">拒绝</button>
+        </div>
     </div>
 </div>
 
@@ -204,30 +196,52 @@
         const fab = document.getElementById('chat-fab');
         const chatWindow = document.getElementById('chat-window');
         const closeBtn = document.getElementById('close-chat');
+        const toggleUsersBtn = document.getElementById('toggle-users');
+        const sidebar = document.getElementById('user-list-sidebar');
+        const onlineUsersContainer = document.getElementById('online-users-container');
+        const chatTitle = document.getElementById('chat-title');
         const msgInput = document.getElementById('chat-widget-input');
         const sendBtn = document.getElementById('chat-widget-send');
         const msgContainer = document.getElementById('chat-messages');
 
-        // --- Toggle UI ---
+        // --- WebRTC Variables ---
+        const videoContainer = document.getElementById('video-container');
+        const localVideo = document.getElementById('local-video');
+        const remoteVideo = document.getElementById('remote-video');
+        const startVideoBtn = document.getElementById('start-video-call');
+        const hangupBtn = document.getElementById('hangup-video');
+
+        // Incoming Call Modal Elements
+        const incomingCallModal = document.getElementById('incoming-call-modal');
+        const incomingCallText = document.getElementById('incoming-call-text');
+        const btnAcceptCall = document.getElementById('btn-accept-call');
+        const btnRejectCall = document.getElementById('btn-reject-call');
+
+        let chatSocket = null;
+        let currentRoom = 'lobby';
+        const myId = "{{ user.id }}";
+        const myUsername = "{{ user.username }}";
+
+        let localStream;
+        let peerConnection;
+        const rtcConfig = {
+            iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' }
+            ]
+        };
+
+        // --- UI Logic ---
         fab.addEventListener('click', () => {
             chatWindow.style.display = 'flex';
-            // When opening, we might want to keep FAB hidden or visible.
-            // If dragging FAB was fun, maybe keep it? But design says hide it.
-            // Let's reset window position if it was never moved? No, keep memory.
-
-            // If window was never moved, it has default bottom/right.
-            // If moved, it has top/left.
             if (!chatWindow.style.top) {
-                // Initialize position based on current CSS to prevent jumping
                 const rect = chatWindow.getBoundingClientRect();
-                chatWindow.style.bottom = 'auto';
-                chatWindow.style.right = 'auto';
-                chatWindow.style.top = rect.top + 'px';
-                chatWindow.style.left = rect.left + 'px';
+                chatWindow.style.bottom = 'auto'; chatWindow.style.right = 'auto';
+                chatWindow.style.top = rect.top + 'px'; chatWindow.style.left = rect.left + 'px';
             }
-
             fab.style.display = 'none';
-            connectWebSocket();
+            switchRoom('lobby', 'ACG 大厅');
+            loadUserList();
         });
 
         closeBtn.addEventListener('click', () => {
@@ -235,123 +249,198 @@
             fab.style.display = 'flex';
         });
 
-        // --- WebSocket Logic ---
-        let chatSocket = null;
-        const roomName = 'lobby';
+        toggleUsersBtn.addEventListener('click', () => {
+            sidebar.style.display = sidebar.style.display === 'flex' ? 'none' : 'flex';
+        });
 
-        function connectWebSocket() {
-            if (chatSocket) return;
+        async function loadUserList() {
+            try {
+                const response = await fetch('/auth/api/users/');
+                const users = await response.json();
+                onlineUsersContainer.innerHTML = '';
+                users.forEach(user => {
+                    const div = document.createElement('div');
+                    div.className = 'user-item';
+                    div.textContent = user.username;
+                    div.onclick = () => {
+                        const roomName = `private_${Math.min(myId, user.id)}_${Math.max(myId, user.id)}`;
+                        switchRoom(roomName, `与 ${user.username} 私聊`);
+                        document.querySelectorAll('.user-item').forEach(el => el.classList.remove('active'));
+                        div.classList.add('active');
+                    };
+                    onlineUsersContainer.appendChild(div);
+                });
+            } catch (e) { console.error("Failed to load users", e); }
+        }
 
+        document.querySelector('[data-type="lobby"]').onclick = function() {
+            switchRoom('lobby', 'ACG 大厅');
+            document.querySelectorAll('.user-item').forEach(el => el.classList.remove('active'));
+            this.classList.add('active');
+        };
+
+        // --- Core Logic ---
+        function switchRoom(roomName, title) {
+            if (currentRoom === roomName && chatSocket) return;
+            if (chatSocket) { chatSocket.close(); }
+            currentRoom = roomName;
+            chatTitle.textContent = title;
+            msgContainer.innerHTML = '';
             const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
-            chatSocket = new WebSocket(
-                protocol + window.location.host + '/ws/chat/' + roomName + '/'
-            );
+            const url = protocol + window.location.host + '/ws/chat/' + roomName + '/';
+            chatSocket = new WebSocket(url);
 
-            chatSocket.onmessage = function(e) {
+            chatSocket.onmessage = async function(e) {
                 const data = JSON.parse(e.data);
-                addMessage(data.message, 'received');
+                if (data.type === 'error') {
+                    document.getElementById('alert-msg').textContent = data.message;
+                    document.getElementById('custom-alert').style.display = 'flex';
+                } else if (data.type === 'chat_message' || (!data.type && data.message)) {
+                    addMessage(data.message, data.sender === myUsername ? 'sent' : 'received', data.sender);
+                } else if (data.type === 'call_notification') {
+                    incomingCallText.textContent = `${data.sender} 邀请你进行视频通话`;
+                    incomingCallModal.style.display = 'flex';
+                    btnAcceptCall.onclick = () => {
+                        incomingCallModal.style.display = 'none';
+                        fab.click();
+                        switchRoom(data.room_name, `与 ${data.sender} 私聊`);
+                        waitForSocketConnection(chatSocket, function(){ sendSignal('ready_for_call', {}); });
+                    };
+                    btnRejectCall.onclick = () => { incomingCallModal.style.display = 'none'; };
+                } else if (data.type === 'ready_for_call') {
+                     if (!peerConnection) { await startCall(false); }
+                } else if (data.type === 'video_offer') {
+                    await handleVideoOffer(data);
+                } else if (data.type === 'video_answer') {
+                    await handleVideoAnswer(data);
+                } else if (data.type === 'new_ice_candidate') {
+                    await handleNewICECandidate(data);
+                }
             };
+        }
 
-            chatSocket.onclose = function(e) {
-                console.error('Chat socket closed unexpectedly');
-                chatSocket = null;
-            };
+        function waitForSocketConnection(socket, callback){
+            setTimeout(function () {
+                if (socket.readyState === 1) { if (callback != null){ callback(); } }
+                else { waitForSocketConnection(socket, callback); }
+            }, 5);
+        }
+
+        // --- Video Call Functions ---
+        startVideoBtn.onclick = async () => {
+            if (currentRoom === 'lobby') { alert("请选择一个用户进行私聊后再发起视频通话"); return; }
+            const parts = currentRoom.split('_');
+            if (parts.length !== 3) return;
+            const targetId = (parts[1] === myId) ? parts[2] : parts[1];
+            chatSocket.send(JSON.stringify({ 'type': 'call_request', 'target_user_id': targetId }));
+            alert("已发送视频通话请求，请等待对方接受...");
+            videoContainer.style.display = 'flex';
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                localVideo.srcObject = localStream;
+            } catch (e) { console.error(e); }
+        };
+
+        hangupBtn.onclick = hangup;
+
+        async function startCall(sendRequest = true) {
+            videoContainer.style.display = 'flex';
+            try {
+                if (!localStream) {
+                    localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                    localVideo.srcObject = localStream;
+                }
+                createPeerConnection();
+                localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+                const offer = await peerConnection.createOffer();
+                await peerConnection.setLocalDescription(offer);
+                sendSignal('video_offer', { sdp: peerConnection.localDescription });
+            } catch (e) { console.error(e); alert("无法访问摄像头/麦克风"); hangup(); }
+        }
+
+        async function handleVideoOffer(data) {
+            if (peerConnection) return;
+            videoContainer.style.display = 'flex';
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                localVideo.srcObject = localStream;
+                createPeerConnection();
+                localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+                await peerConnection.setRemoteDescription(new RTCSessionDescription(data.data.sdp));
+                const answer = await peerConnection.createAnswer();
+                await peerConnection.setLocalDescription(answer);
+                sendSignal('video_answer', { sdp: peerConnection.localDescription });
+            } catch (e) { console.error(e); hangup(); }
+        }
+
+        async function handleVideoAnswer(data) {
+            await peerConnection.setRemoteDescription(new RTCSessionDescription(data.data.sdp));
+        }
+
+        async function handleNewICECandidate(data) {
+            try { if (peerConnection) await peerConnection.addIceCandidate(new RTCIceCandidate(data.data.candidate)); }
+            catch (e) { console.error(e); }
+        }
+
+        function createPeerConnection() {
+            peerConnection = new RTCPeerConnection(rtcConfig);
+            peerConnection.onicecandidate = (e) => { if (e.candidate) sendSignal('new_ice_candidate', { candidate: e.candidate }); };
+            peerConnection.ontrack = (e) => { remoteVideo.srcObject = e.streams[0]; };
+            peerConnection.onconnectionstatechange = () => { if (peerConnection.connectionState === 'disconnected') hangup(); };
+        }
+
+        function sendSignal(type, data) { chatSocket.send(JSON.stringify({ type: type, data: data })); }
+
+        function hangup() {
+            if (peerConnection) { peerConnection.close(); peerConnection = null; }
+            if (localStream) { localStream.getTracks().forEach(track => track.stop()); localStream = null; }
+            localVideo.srcObject = null; remoteVideo.srcObject = null;
+            videoContainer.style.display = 'none';
         }
 
         function sendMessage() {
             const message = msgInput.value.trim();
-            if (message && chatSocket) {
-                chatSocket.send(JSON.stringify({
-                    'message': message
-                }));
-                msgInput.value = '';
-            }
+            if (message && chatSocket) { chatSocket.send(JSON.stringify({'message': message})); msgInput.value = ''; }
         }
 
         sendBtn.addEventListener('click', sendMessage);
-        msgInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') sendMessage();
-        });
+        msgInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
 
-        function addMessage(text, type) {
+        function addMessage(text, type, senderName) {
             const div = document.createElement('div');
-            div.classList.add('message-bubble');
-            div.classList.add('received');
-            div.textContent = text;
+            div.className = `message-bubble ${type}`;
+            if (type === 'received' && currentRoom === 'lobby') {
+                const nameDiv = document.createElement('div');
+                nameDiv.style.fontSize = '10px'; nameDiv.style.color = '#ff9a9e';
+                nameDiv.style.marginBottom = '2px'; nameDiv.textContent = senderName;
+                div.appendChild(nameDiv);
+            }
+            const textNode = document.createTextNode(text);
+            div.appendChild(textNode);
             msgContainer.appendChild(div);
             msgContainer.scrollTop = msgContainer.scrollHeight;
         }
 
-        // --- Video Call Logic ---
-        const startVideoBtn = document.getElementById('start-video-btn');
-        const videoModal = document.getElementById('video-modal');
-        const endVideoBtn = document.getElementById('end-video-btn');
-        const localVideo = document.getElementById('local-video');
-
-        startVideoBtn.addEventListener('click', async () => {
-            videoModal.style.display = 'flex';
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-                localVideo.srcObject = stream;
-            } catch (err) {
-                console.error("Error accessing media devices:", err);
-                alert("无法访问摄像头或麦克风");
-                videoModal.style.display = 'none';
-            }
-        });
-
-        endVideoBtn.addEventListener('click', () => {
-            videoModal.style.display = 'none';
-            const stream = localVideo.srcObject;
-            if (stream) {
-                stream.getTracks().forEach(track => track.stop());
-                localVideo.srcObject = null;
-            }
-        });
-
-        // --- Draggable Logic ---
         function makeDraggable(element, handle) {
             let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
             const dragHandle = handle || element;
-
-            dragHandle.onmousedown = dragMouseDown;
-
-            function dragMouseDown(e) {
-                e = e || window.event;
-                // Avoid dragging when clicking buttons in header
-                if (e.target.closest('.chat-close')) return;
-
+            dragHandle.onmousedown = (e) => {
+                if (e.target.closest('.chat-close') || e.target.closest('#toggle-users')) return;
                 e.preventDefault();
-                pos3 = e.clientX;
-                pos4 = e.clientY;
-                document.onmouseup = closeDragElement;
-                document.onmousemove = elementDrag;
-            }
-
-            function elementDrag(e) {
-                e = e || window.event;
-                e.preventDefault();
-                pos1 = pos3 - e.clientX;
-                pos2 = pos4 - e.clientY;
-                pos3 = e.clientX;
-                pos4 = e.clientY;
-
-                // Switch to absolute positioning on first drag
-                element.style.bottom = 'auto';
-                element.style.right = 'auto';
-
-                // Use offsetTop/Left to calculate new position
-                element.style.top = (element.offsetTop - pos2) + "px";
-                element.style.left = (element.offsetLeft - pos1) + "px";
-            }
-
-            function closeDragElement() {
-                document.onmouseup = null;
-                document.onmousemove = null;
-            }
+                pos3 = e.clientX; pos4 = e.clientY;
+                document.onmouseup = () => { document.onmouseup = null; document.onmousemove = null; };
+                document.onmousemove = (e) => {
+                    e.preventDefault();
+                    pos1 = pos3 - e.clientX; pos2 = pos4 - e.clientY;
+                    pos3 = e.clientX; pos4 = e.clientY;
+                    element.style.bottom = 'auto'; element.style.right = 'auto';
+                    element.style.top = (element.offsetTop - pos2) + "px";
+                    element.style.left = (element.offsetLeft - pos1) + "px";
+                };
+            };
         }
-
         makeDraggable(fab);
         makeDraggable(chatWindow, document.querySelector('.chat-header'));
+        switchRoom('lobby', 'ACG 大厅');
     });
 </script>
