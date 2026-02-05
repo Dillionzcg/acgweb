@@ -77,10 +77,10 @@
                     {% if user.avatar %}
                         <img src="{{ user.avatar.url }}" class="w-full h-full object-cover">
                     {% else %}
-                        <img src="{% static 'default_head.png' %}" class="w-full h-full object-cover">
+                        <img src="{% static 'images/default_head.png' %}" class="w-full h-full object-cover">
                     {% endif %}
                 {% else %}
-                    <img src="{% static 'default_head.png' %}" class="w-full h-full object-cover">
+                    <img src="{% static 'images/default_head.png' %}" class="w-full h-full object-cover">
                 {% endif %}
             </div>
 
