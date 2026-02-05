@@ -51,6 +51,8 @@
 <script>
     window.addEventListener('load', () => {
         let errorFromDjango = "";
+
+        // 1. 从 Django Messages 中提取错误
         {% if messages %}
             {% for message in messages %}
                 if ("{{ message }}".indexOf("FORM_INVALID") !== -1) {
@@ -60,14 +62,18 @@
         {% endif %}
 
         if (errorFromDjango) {
-            // 如果有错，小柚表现出担心/流汗，并安慰主人
-            setTimeout(() => askXiaoYou('FORM_ERROR', errorFromDjango), 600);
+            // 2. 核心修复：设置拦截标志位，告诉 waifu.html 不要说默认欢迎语
+            sessionStorage.setItem('xiaoyou_handling_error', 'true');
+
+            // 3. 延迟设为 900ms，晚于 waifu.html 的 800ms 触发，确保覆盖效果
+            setTimeout(() => askXiaoYou('FORM_ERROR', errorFromDjango), 900);
         } else {
-            // 只有完全没错（第一次进入页面）才欢迎
-            setTimeout(() => askXiaoYou('REGISTER'), 600);
+            // 只有完全没错误时才由 register.html 主动触发欢迎语
+            setTimeout(() => askXiaoYou('REGISTER'), 900);
         }
     });
 </script>
+
 
 <style>
     .custom-input-wrap input {

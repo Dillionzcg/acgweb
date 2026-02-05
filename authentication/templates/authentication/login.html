@@ -51,19 +51,29 @@
 
 <script>
     window.addEventListener('load', () => {
-        let hasError = false;
+        let errorFromDjango = "";
+
+        // 1. 从 Django Messages 中提取具体的登录错误
         {% if messages %}
             {% for message in messages %}
                 let msg = "{{ message }}";
-                if (["USER_NOT_FOUND", "WRONG_PASSWORD", "LOGIN_EMPTY"].includes(msg)) {
-                    hasError = true;
-                    setTimeout(() => askXiaoYou('LOGIN_ERROR', msg === "WRONG_PASSWORD" ? "口令错误" : "账号不存在"), 600);
+                if (msg.indexOf("LOGIN_ERROR") !== -1) {
+                    errorFromDjango = msg.split(':')[1] || "登录信息有误";
                 }
             {% endfor %}
         {% endif %}
 
-        if (!hasError) {
-            setTimeout(() => askXiaoYou('LOGIN'), 600);
+        if (errorFromDjango) {
+            // 2. 核心修复：设置拦截位，防止 waifu.html 触发默认的 LOGIN 欢迎语
+            sessionStorage.setItem('xiaoyou_handling_error', 'true');
+
+            // 3. 延迟触发，确保覆盖效果
+            setTimeout(() => askXiaoYou('LOGIN_ERROR', errorFromDjango), 900);
+        } else {
+            // 只有完全没错误时，才由页面逻辑或 waifu.html 触发欢迎语
+            // 注意：如果 waifu.html 已经有处理登录页的逻辑，这里可以不写，
+            // 但如果 waifu.html 被拦截了，这里就是唯一的触发点。
+            setTimeout(() => askXiaoYou('LOGIN'), 900);
         }
     });
 </script>

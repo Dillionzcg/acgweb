@@ -2,6 +2,75 @@
 {% block title %}个人中心{% endblock %}
 
 {% block content %}
+    <style>
+    /* 2*2 性别选择器容器 */
+    .gender-grid-container {
+        display: grid;
+        grid-template-cols: repeat(2, 1fr);
+        gap: 12px;
+        padding: 8px;
+        background: rgba(255, 241, 242, 0.5); /* pink-50/50 */
+        border-radius: 24px;
+        border: 1px solid rgba(252, 231, 235, 1); /* pink-100 */
+        position: relative;
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    /* 选中的白色粉圆滑块 */
+    #gender-slider {
+        position: absolute;
+        background: white;
+        border-radius: 16px;
+        z-index: 0;
+        box-shadow: 0 4px 12px rgba(244, 114, 182, 0.15),
+                    0 2px 4px rgba(0, 0, 0, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        /* 这里的 transition 决定了滑动的丝滑感 */
+        transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    /* 按钮基础样式 */
+    .gender-btn {
+        position: relative;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 16px 8px;
+        font-size: 0.875rem; /* text-sm */
+        font-weight: 700;
+        color: #9ca3af; /* gray-400/500 */
+        border-radius: 16px;
+        transition: all 0.2s ease;
+        cursor: pointer;
+        background: transparent;
+        border: none;
+    }
+
+    /* 按钮文字选中态 */
+    .gender-btn.active-text {
+        color: #ec4899; /* pink-500 */
+        transform: scale(1.05);
+    }
+
+    /* 按钮点击时的微缩反馈 */
+    .gender-btn:active {
+        transform: scale(0.92);
+    }
+
+    /* 图标间距 */
+    .gender-btn span {
+        margin-right: 8px;
+        font-size: 1.1rem;
+    }
+
+    /* 响应式微调：如果是手机端，高度可以稍微缩减 */
+    @media (max-width: 640px) {
+        .gender-btn {
+            padding: 12px 6px;
+        }
+    }
+</style>
 <div class="max-w-5xl mx-auto px-4 py-10 animate__animated animate__fadeIn">
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
 
@@ -57,12 +126,29 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div class="space-y-3">
                         <label class="block text-sm font-bold text-gray-600 ml-2">次元性别</label>
-                        <div class="relative bg-pink-50/50 p-1.5 rounded-full flex items-center border border-pink-100 shadow-inner">
-                            <div id="gender-slider" class="absolute h-10 bg-white rounded-full shadow-md transition-all duration-300 ease-out z-0" style="width: calc(25% - 2px);"></div>
-                            <button onclick="switchGender(0, 'male')" class="flex-1 py-2 text-xs font-bold z-10 transition-colors">少年</button>
-                            <button onclick="switchGender(1, 'female')" class="flex-1 py-2 text-xs font-bold z-10 transition-colors">少女</button>
-                            <button onclick="switchGender(2, 'cat')" class="flex-1 py-2 text-xs font-bold z-10 transition-colors">喵星人</button>
-                            <button onclick="switchGender(3, 'alien')" class="flex-1 py-2 text-xs font-bold z-10 transition-colors">外星生命</button>
+                        <div class="relative grid grid-cols-2 gap-3 p-1.5 bg-pink-50/50 rounded-[2rem] border border-pink-100 shadow-inner">
+                            <div id="gender-slider"
+                                 class="absolute bg-white rounded-2xl shadow-sm transition-all duration-300 ease-out z-0"
+                                 style="width: calc(50% - 0.75rem); height: calc(50% - 0.75rem); top: 0.375rem; left: 0.375rem;">
+                            </div>
+
+                            <button type="button" onclick="switchGender(0, 'male')"
+                                    class="gender-btn relative flex items-center justify-center py-4 px-2 rounded-2xl text-sm font-bold z-10 transition-all duration-200 active:scale-95 text-gray-500">
+                                <span class="mr-2">♂️</span>少年
+                            </button>
+                            <button type="button" onclick="switchGender(1, 'female')"
+                                    class="gender-btn relative flex items-center justify-center py-4 px-2 rounded-2xl text-sm font-bold z-10 transition-all duration-200 active:scale-95 text-gray-500">
+                                <span class="mr-2">♀️</span>少女
+                            </button>
+                            <button type="button" onclick="switchGender(2, 'cat')"
+                                    class="gender-btn relative flex items-center justify-center py-4 px-2 rounded-2xl text-sm font-bold z-10 transition-all duration-200 active:scale-95 text-gray-500">
+                                <span class="mr-2">🐾</span>猫猫
+                            </button>
+                            <button type="button" onclick="switchGender(3, 'alien')"
+                                    class="gender-btn relative flex items-center justify-center py-4 px-2 rounded-2xl text-sm font-bold z-10 transition-all duration-200 active:scale-95 text-gray-500">
+                                <span class="mr-2">🛸</span>外星生命
+                            </button>
+
                             <input type="hidden" id="gender-val" value="{{ user.gender|default:'female' }}">
                         </div>
                     </div>
@@ -123,64 +209,105 @@
 <script>
     // 初始化日期选择框
     function initDateSelects() {
-        const yearSelect = document.getElementById('birth-year');
-        const monthSelect = document.getElementById('birth-month');
-        const daySelect = document.getElementById('birth-day');
-        const currentVal = document.getElementById('birthday-val').value;
+    const yearSelect = document.getElementById('birth-year');
+    const monthSelect = document.getElementById('birth-month');
+    const daySelect = document.getElementById('birth-day');
+    const currentVal = document.getElementById('birthday-val').value;
 
-        let dateObj = currentVal ? new Date(currentVal) : new Date();
+    // 默认日期逻辑：如果有旧值用旧值，否则默认 2000-01-01 (更符合二次元用户习惯)
+    let dateObj = (currentVal && currentVal !== 'None') ? new Date(currentVal) : null;
 
-        // 年份：1970 - 今年
-        const currentYear = new Date().getFullYear();
-        for (let i = currentYear; i >= 1970; i--) {
-            yearSelect.add(new Option(`${i} 年`, i));
+    // 1. 初始化年份 (1970 - 今年)
+    const currentYear = new Date().getFullYear();
+    yearSelect.innerHTML = ''; // 清空防重叠
+    for (let i = currentYear; i >= 1970; i--) {
+        yearSelect.add(new Option(`${i} 年`, i));
+    }
+
+    // 2. 初始化月份
+    monthSelect.innerHTML = '';
+    for (let i = 1; i <= 12; i++) {
+        monthSelect.add(new Option(`${i} 月`, i));
+    }
+
+    // 3. 更新“日”的函数
+    function updateDays(targetDay = null) {
+        const y = yearSelect.value;
+        const m = monthSelect.value;
+        if (!y || !m) return;
+
+        const totalDays = new Date(y, m, 0).getDate();
+
+        // 记录当前已经选中的日，防止切换年月时重置
+        const lastSelected = targetDay || daySelect.value;
+
+        daySelect.innerHTML = '';
+        for (let i = 1; i <= totalDays; i++) {
+            daySelect.add(new Option(`${i} 日`, i));
         }
 
-        // 月份
-        for (let i = 1; i <= 12; i++) {
-            monthSelect.add(new Option(`${i} 月`, i));
-        }
-
-        function updateDays() {
-            const y = yearSelect.value;
-            const m = monthSelect.value;
-            const d = new Date(y, m, 0).getDate();
-            const selectedDay = daySelect.value;
-            daySelect.innerHTML = '';
-            for (let i = 1; i <= d; i++) {
-                daySelect.add(new Option(`${i} 日`, i));
-            }
-            if (selectedDay <= d) daySelect.value = selectedDay;
-        }
-
-        yearSelect.onchange = updateDays;
-        monthSelect.onchange = updateDays;
-
-        if (currentVal) {
-            yearSelect.value = dateObj.getFullYear();
-            monthSelect.value = dateObj.getMonth() + 1;
-            updateDays();
-            daySelect.value = dateObj.getDate();
+        // 核心修复：确保值被正确选中
+        if (lastSelected && lastSelected <= totalDays) {
+            daySelect.value = lastSelected;
         } else {
-            updateDays();
+            daySelect.selectedIndex = 0; // 默认选中 1 日
         }
     }
 
-    function switchGender(index, val, isManual=true) {
-        const slider = document.getElementById('gender-slider');
-        const buttons = slider.parentElement.querySelectorAll('button');
+    // 绑定事件
+    yearSelect.onchange = () => updateDays();
+    monthSelect.onchange = () => updateDays();
 
-        // 修改点：width 增加，left 偏移缩小
-        // 25% 是由于总共4个按钮。减去 2px 可以让白色块几乎贴近外框边缘，看起来更长。
-        slider.style.width = `calc(25% `;
-        slider.style.left = `calc(${index * 25}% + 1px)`;
-
-        buttons.forEach((btn, i) => {
-            btn.classList.remove('text-pink-600');
-            if (i === index) btn.classList.add('text-pink-600');
-        });
-        document.getElementById('gender-val').value = val;
+    // 4. 初次进入的赋值逻辑
+    if (dateObj && !isNaN(dateObj.getTime())) {
+        yearSelect.value = dateObj.getFullYear();
+        monthSelect.value = dateObj.getMonth() + 1;
+        // 传入具体的“日”进行初始化，确保在 option 生成后立即选中
+        updateDays(dateObj.getDate());
+    } else {
+        // 如果没有预设生日，默认初始化一次
+        updateDays(1);
     }
+}
+
+    function switchGender(index, value, shouldAsk = true) {
+    const slider = document.getElementById('gender-slider');
+    const valInput = document.getElementById('gender-val');
+    const buttons = document.querySelectorAll('.gender-btn');
+
+    // 1. 更新隐藏值
+    valInput.value = value;
+
+    // 2. 2x2 坐标计算
+    // index 0: (0,0), 1: (1,0), 2: (0,1), 3: (1,1)
+    const col = index % 2;
+    const row = Math.floor(index / 2);
+
+    // 计算位移百分比
+    const leftPos = col * 50;
+    const topPos = row * 50;
+
+    // 应用动画平移
+    slider.style.left = `calc(${leftPos}% + 0.375rem)`;
+    slider.style.top = `calc(${topPos}% + 0.375rem)`;
+
+    // 3. UI 状态反馈
+    buttons.forEach((btn, i) => {
+        if (i === index) {
+            btn.classList.add('text-pink-500', 'scale-105');
+            btn.classList.remove('text-gray-500');
+        } else {
+            btn.classList.remove('text-pink-500', 'scale-105');
+            btn.classList.add('text-gray-500');
+        }
+    });
+
+    // 4. 联动小柚 (保持你原有的逻辑)
+    if (shouldAsk) {
+        const genderNames = ["少年", "少女", "猫猫", "外星生命"];
+        safeAskXiaoYou('USER_UPDATE', `我把性别改成${genderNames[index]}啦！（请主要温柔且可爱地表达对主人性别的喜爱）`);
+    }
+}
 
     function showTagInput() { document.getElementById('tag-input-box').classList.remove('hidden'); }
     function hideTagInput() { document.getElementById('tag-input-box').classList.add('hidden'); }
