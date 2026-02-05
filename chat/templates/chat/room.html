@@ -2,37 +2,103 @@
 <html>
 <head>
     <meta charset="utf-8"/>
-    <title>Chat Room</title>
+    <title>Chat Room & Video Call</title>
+    <style>
+        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        #container { display: flex; width: 100%; max-width: 1200px; gap: 20px; }
+        #chat-section { flex: 1; display: flex; flex-direction: column; }
+        #video-section { flex: 1; display: flex; flex-direction: column; align-items: center; }
+        #chat-log { width: 100%; height: 400px; margin-bottom: 10px; resize: none; }
+        .video-container { position: relative; width: 100%; max-width: 500px; background: #000; margin-bottom: 10px; aspect-ratio: 16/9; }
+        video { width: 100%; height: 100%; object-fit: cover; }
+        #local-video { position: absolute; bottom: 10px; right: 10px; width: 30%; height: 30%; border: 2px solid #fff; z-index: 10; }
+        .controls { display: flex; gap: 10px; margin-bottom: 10px; }
+        input[type="text"] { flex-grow: 1; padding: 5px; }
+    </style>
 </head>
 <body>
-    <textarea id="chat-log" cols="100" rows="20"></textarea><br>
-    <input id="chat-message-input" type="text" size="100"><br>
-    <input id="chat-message-submit" type="button" value="Send">
+    <h1>Chat Room: {{ room_name }}</h1>
+    
+    <div id="container">
+        <!-- Chat Section -->
+        <div id="chat-section">
+            <textarea id="chat-log" readonly></textarea>
+            <div class="controls">
+                <input id="chat-message-input" type="text" placeholder="Type a message...">
+                <input id="chat-message-submit" type="button" value="Send">
+            </div>
+        </div>
+
+        <!-- Video Section -->
+        <div id="video-section">
+            <div class="video-container">
+                <video id="remote-video" autoplay playsinline></video>
+                <video id="local-video" autoplay playsinline muted></video>
+            </div>
+            <div class="controls">
+                <button id="btn-start-call">Start Call</button>
+                <button id="btn-hangup" disabled>Hang Up</button>
+            </div>
+        </div>
+    </div>
+
     {{ room_name|json_script:"room-name" }}
+    {{ user.username|json_script:"user-name" }}
 
     <script>
         const roomName = JSON.parse(document.getElementById('room-name').textContent);
+        const userName = JSON.parse(document.getElementById('user-name').textContent);
+        
+        const chatLog = document.querySelector('#chat-log');
+        const localVideo = document.getElementById('local-video');
+        const remoteVideo = document.getElementById('remote-video');
+        const btnStartCall = document.getElementById('btn-start-call');
+        const btnHangup = document.getElementById('btn-hangup');
+
+        let localStream;
+        let remoteStream;
+        let peerConnection;
+        
+        // STUN servers configuration
+        const rtcConfig = {
+            iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' }
+            ]
+        };
 
         const chatSocket = new WebSocket(
-            'ws://'
-            + window.location.host
-            + '/ws/chat/'
-            + roomName
-            + '/'
+            'ws://' + window.location.host + '/ws/chat/' + roomName + '/'
         );
 
-        chatSocket.onmessage = function(e) {
+        chatSocket.onopen = function(e) {
+            console.log("WebSocket connection established");
+        };
+
+        chatSocket.onmessage = async function(e) {
             const data = JSON.parse(e.data);
-            document.querySelector('#chat-log').value += (data.message + '\n');
+
+            if (data.type === 'chat_message' || (!data.type && data.message)) {
+                // Handle chat messages
+                chatLog.value += (data.sender + ': ' + data.message + '\n');
+                chatLog.scrollTop = chatLog.scrollHeight;
+            } else if (data.type === 'video_offer') {
+                await handleVideoOffer(data);
+            } else if (data.type === 'video_answer') {
+                await handleVideoAnswer(data);
+            } else if (data.type === 'new_ice_candidate') {
+                await handleNewICECandidate(data);
+            }
         };
 
         chatSocket.onclose = function(e) {
             console.error('Chat socket closed unexpectedly');
         };
 
+        // Chat Logic
         document.querySelector('#chat-message-input').focus();
         document.querySelector('#chat-message-input').onkeyup = function(e) {
-            if (e.keyCode === 13) {  // enter, return
+            if (e.keyCode === 13) {  // enter
                 document.querySelector('#chat-message-submit').click();
             }
         };
@@ -41,10 +107,141 @@
             const messageInputDom = document.querySelector('#chat-message-input');
             const message = messageInputDom.value;
             chatSocket.send(JSON.stringify({
+                'type': 'chat_message',
                 'message': message
             }));
             messageInputDom.value = '';
         };
+
+        // Video Call Logic
+        btnStartCall.onclick = startCall;
+        btnHangup.onclick = hangup;
+
+        async function startCall() {
+            btnStartCall.disabled = true;
+            btnHangup.disabled = false;
+            
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                localVideo.srcObject = localStream;
+
+                createPeerConnection();
+
+                localStream.getTracks().forEach(track => {
+                    peerConnection.addTrack(track, localStream);
+                });
+
+                const offer = await peerConnection.createOffer();
+                await peerConnection.setLocalDescription(offer);
+
+                sendSignal('video_offer', {
+                    sdp: peerConnection.localDescription
+                });
+
+            } catch (error) {
+                console.error("Error starting call:", error);
+                alert("Could not access camera/microphone");
+                hangup();
+            }
+        }
+
+        async function handleVideoOffer(data) {
+            if (peerConnection) {
+                console.warn("Already in a call, ignoring offer");
+                return;
+            }
+            
+            console.log("Received video offer from", data.sender);
+            const offer = data.data.sdp;
+
+            btnStartCall.disabled = true;
+            btnHangup.disabled = false;
+
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                localVideo.srcObject = localStream;
+
+                createPeerConnection();
+
+                localStream.getTracks().forEach(track => {
+                    peerConnection.addTrack(track, localStream);
+                });
+
+                await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
+                
+                const answer = await peerConnection.createAnswer();
+                await peerConnection.setLocalDescription(answer);
+
+                sendSignal('video_answer', {
+                    sdp: peerConnection.localDescription
+                });
+
+            } catch (error) {
+                console.error("Error handling offer:", error);
+                hangup();
+            }
+        }
+
+        async function handleVideoAnswer(data) {
+            console.log("Received video answer from", data.sender);
+            const answer = data.data.sdp;
+            await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
+        }
+
+        async function handleNewICECandidate(data) {
+            console.log("Received new ICE candidate");
+            const candidate = data.data.candidate;
+            try {
+                await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+            } catch (e) {
+                console.error("Error adding received ice candidate", e);
+            }
+        }
+
+        function createPeerConnection() {
+            peerConnection = new RTCPeerConnection(rtcConfig);
+
+            peerConnection.onicecandidate = (event) => {
+                if (event.candidate) {
+                    sendSignal('new_ice_candidate', {
+                        candidate: event.candidate
+                    });
+                }
+            };
+
+            peerConnection.ontrack = (event) => {
+                console.log("Received remote stream");
+                remoteVideo.srcObject = event.streams[0];
+            };
+            
+            peerConnection.onconnectionstatechange = () => {
+                if (peerConnection.connectionState === 'disconnected') {
+                    hangup();
+                }
+            };
+        }
+
+        function sendSignal(type, data) {
+            chatSocket.send(JSON.stringify({
+                'type': type,
+                'data': data
+            }));
+        }
+
+        function hangup() {
+            if (peerConnection) {
+                peerConnection.close();
+                peerConnection = null;
+            }
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+                localStream = null;
+            }
+            localVideo.srcObject = null;
+            remoteVideo.srcObject = null;
+            btnStartCall.disabled = false;
+            btnHangup.disabled = true;
+        }
     </script>
 </body>
 </html>
