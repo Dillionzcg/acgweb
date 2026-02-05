@@ -19,3 +19,24 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.username
+
+
+class Friendship(models.Model):
+    STATUS_CHOICES = (
+        ('pending', '申请中'),
+        ('accepted', '已接受'),
+        ('rejected', '已拒绝'),
+    )
+    from_user = models.ForeignKey(User, related_name='friendship_sent', on_delete=models.CASCADE, verbose_name="申请人")
+    to_user = models.ForeignKey(User, related_name='friendship_received', on_delete=models.CASCADE, verbose_name="接收人")
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending', verbose_name="状态")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="创建时间")
+
+    class Meta:
+        db_table = 'acg_friendship'
+        unique_together = ('from_user', 'to_user')
+        verbose_name = "好友关系"
+        verbose_name_plural = verbose_name
+
+    def __str__(self):
+        return f"{self.from_user} -> {self.to_user} ({self.status})"

@@ -472,6 +472,19 @@
         }
         makeDraggable(fab);
         makeDraggable(chatWindow, document.querySelector('.chat-header'));
+        
+        // Auto-connect on load
         switchRoom('lobby', 'ACG 大厅');
+
+        // --- Global API for other pages ---
+        window.openPrivateChat = function(targetUserId, targetUsername) {
+            // Ensure chat window is open
+            chatWindow.style.display = 'flex';
+            fab.style.display = 'none';
+            
+            // Switch room logic
+            const roomName = `private_${Math.min(myId, targetUserId)}_${Math.max(myId, targetUserId)}`;
+            switchRoom(roomName, `与 ${targetUsername} 私聊`);
+        };
     });
 </script>
