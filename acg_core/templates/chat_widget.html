@@ -133,12 +133,7 @@
 
     /* --- Video Call Mode Styles --- */
     #chat-window.video-mode {
-        width: 900px !important;
-        height: 600px !important;
-        /* Center on screen */
-        top: 50% !important;
-        left: 50% !important;
-        transform: translate(-50%, -50%) !important;
+        /* No fixed position, handled by JS for drag */
         border-radius: 10px;
         box-shadow: 0 20px 50px rgba(0,0,0,0.5);
     }
@@ -426,6 +421,14 @@
         async function startCall(sendRequest = true) {
             videoContainer.style.display = 'flex';
             chatWindow.classList.add('video-mode'); // Enter Video Mode
+            // Center Window
+            chatWindow.style.width = '900px';
+            chatWindow.style.height = '600px';
+            chatWindow.style.left = Math.max(0, (window.innerWidth - 900) / 2) + 'px';
+            chatWindow.style.top = Math.max(0, (window.innerHeight - 600) / 2) + 'px';
+            chatWindow.style.bottom = 'auto';
+            chatWindow.style.right = 'auto';
+
             try {
                 if (!localStream) {
                     localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
@@ -446,6 +449,14 @@
             
             videoContainer.style.display = 'flex';
             chatWindow.classList.add('video-mode'); // Enter Video Mode
+            // Center Window
+            chatWindow.style.width = '900px';
+            chatWindow.style.height = '600px';
+            chatWindow.style.left = Math.max(0, (window.innerWidth - 900) / 2) + 'px';
+            chatWindow.style.top = Math.max(0, (window.innerHeight - 600) / 2) + 'px';
+            chatWindow.style.bottom = 'auto';
+            chatWindow.style.right = 'auto';
+
             try {
                 localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
                 localVideo.srcObject = localStream;
@@ -485,6 +496,14 @@
             localVideo.srcObject = null; remoteVideo.srcObject = null;
             videoContainer.style.display = 'none';
             chatWindow.classList.remove('video-mode'); // Exit Video Mode
+            // Reset Size and position safely
+            chatWindow.style.width = '350px';
+            chatWindow.style.height = '450px';
+            // Optional: reset to corner or keep current pos
+            chatWindow.style.top = 'auto';
+            chatWindow.style.left = 'auto';
+            chatWindow.style.bottom = '100px';
+            chatWindow.style.right = '30px';
         }
 
         function sendMessage() {
