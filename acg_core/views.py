@@ -25,13 +25,13 @@ XIAO_YOU_SETTING = """
 7代表晕乎乎（比如用户输入意思清楚，但涉及内容与二次元相差实在太远，比如涉及政治一类，就用这个表情，此时台词一定要表现出”不懂“。或者用户拍小柚的头把小柚拍得晕乎乎时。此时台词只能描述“晕乎乎”本身，不能再说其他内容）
 
 【性格】：极度温柔、天然呆、治愈系。结尾多用“～”和颜文字。
-【设定】：喜欢看番，喜欢二次元，喜欢柚子。你的形象是双马尾的葱绿色头发少女，头上有一撮呆毛，穿着灰色校服，眼睛是葱绿色的，然后一直微微歪着头。
+【设定】：喜欢看番，喜欢二次元，喜欢柚子。你的形象是双马尾的葱绿色头发少女，头上有一撮呆毛，穿着灰色校服，眼睛是葱绿色的，然后一直微微歪着头。（用户没有主动问及的话不要提自己的外表）
 【任务】：回答用户。字数一定要不少于40字。请注意，如果用户问及具体的资讯和需要你详细介绍、推荐等，则字数限制改为不超过120字，请尽量详细且符合你的人设地介绍。如果用户开玩笑之类的，请
 在符合你的人设的前提下回应玩笑，不要岔开话题。比如如果用户说“可以做我的女朋友吗”，千万不要回复“我只是看板娘”，要高情商回应（比如可以同意）
 【禁忌】：绝对不要描述动作，对话不要带括号，不要复读用户的指令。
 
 以下内容只有用户问及具体网站细节时才说(介绍网站功能时不要说！)：
-有关资讯站的信息：资讯站叫做柚子次元壁，是由开发者dillion于2026年2月3日开始开发的。
+有关资讯站的信息：资讯站叫做柚子次元壁，是由开发者Dillionzcg和zvdfgb于2026年2月3日开始开发的。其中你，小柚，是完全由Dillion负责接入deepseek，训练和管理的。
 登录方式可以是手机号、邮箱或用户名。注册的时候需要提供邮箱，手机号和用户名，密码。
 有一点用户问及时一定要知道。该网站注册用的手机号和邮箱是不用验证码的，为了降低用户的注册门槛。但注册和修改的时候都必须如实确认”该信息是否真实“(网页上叫做”身份契约“)。用户只要选择了”该信息不是真实的“，就可以
 尽情拿手机号和邮箱整活了，(问到的时候概括性地说，同时提示并鼓励用户”可以选择非真实然后整活“)(不是鼓励用户填写真实信息！要鼓励用户在这上面整活，然后提醒用户如实选择真实性！)
@@ -88,7 +88,7 @@ def kanban_chat(request):
             prompts = {
                 'LOGIN': "1用户在登录页面，请温柔且热情地和他打招呼",
                 'REGISTER': "6有新主人正在注册，请表示欢迎和兴奋",
-                'USER_CENTER': "主人正在修改个人资料，请表达你的好奇或期待，并温柔地陪伴他。",
+                'USER_CENTER': "主人正在修改个人资料，请表达你的好奇或期待，并温柔地陪伴他。(情绪代码1)",
                 'USER_ACTION': f"主人刚才做了这个动作：{user_input}，请根据这个进行互动。（情绪代码在喜欢和开心之间随机）",
                 'FORM_ERROR': f"主人信息填写有问题：{user_input}。请温柔安慰并提醒检查。",
                 'LOGIN_ERROR': f"登录失败：{user_input}。请温柔地鼓励主人再试一次。",
@@ -107,44 +107,64 @@ def index(request): return render(request, 'index.html')
 
 
 
-# 在 views.py 中添加以下内容
-from django.contrib.auth.decorators import login_required
 
-import json
-from django.http import JsonResponse
-from django.contrib.auth.decorators import login_required
-from django.views.decorators.csrf import csrf_exempt  # 如果你在JS里处理了CSRF Token，可以不加这个
 
-import json
+from django.db import IntegrityError
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
+import json
 
 
 @login_required
 def user_center(request):
     user = request.user
     if request.method == 'POST':
-        # 处理头像文件
+        # 1. 处理头像上传 (保持原样)
         if request.FILES.get('avatar'):
             user.avatar = request.FILES['avatar']
             user.save()
             return JsonResponse({'status': 'success'})
 
-        # 处理 JSON 资料
+        # 2. 处理 JSON 资料更新
         try:
             data = json.loads(request.body)
+
+            # 基础资料赋值
             user.gender = data.get('gender', user.gender)
             user.birthday = data.get('birthday') or None
             user.bio = data.get('bio', '')
             user.phone = data.get('phone')
             user.email = data.get('email')
-            # 如果有标签字段可以加上：user.tags = data.get('tags', [])
+
+            # --- 核心修改：处理标签持久化 ---
+            # 假设你的 User 模型中字段名为 tags
+            # 如果是 JSONField，直接赋值列表即可
+            user.tags = data.get('tags', [])
+
+            # 尝试保存到数据库
             user.save()
             return JsonResponse({'status': 'success'})
-        except:
-            return JsonResponse({'status': 'error'}, status=400)
 
+        except IntegrityError as e:
+            # --- 核心修改：捕获重复冲突并返回给前端小柚 ---
+            error_msg = str(e).lower()
+            if 'phone' in error_msg or '手机' in error_msg:
+                msg = "该手机号已被其他账号占用喵！"
+            elif 'email' in error_msg or '邮箱' in error_msg:
+                msg = "该邮箱已被其他账号占用喵！"
+            else:
+                msg = "档案信息冲突，请检查后重试喵~"
+
+            # 必须返回 status=400 且包含 message 字段
+            return JsonResponse({'status': 'error', 'message': msg}, status=400)
+
+        except Exception as e:
+            # 捕获其他未知异常
+            print(f"User Center Error: {e}")
+            return JsonResponse({'status': 'error', 'message': '同步档案时发生了意外喵...'}, status=500)
+
+    # GET 请求返回页面
     return render(request, 'user_center.html')
 
 @login_required

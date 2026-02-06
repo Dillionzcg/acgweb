@@ -315,27 +315,29 @@
         showFieldError('email', validators.email(e.target.value));
     });
 
-    // --- 修改后的保存函数 ---
     async function saveProfile(btn) {
         const phoneVal = document.getElementById('phone-val').value;
         const emailVal = document.getElementById('email-val').value;
 
-        // 1. 提交前最后的格式检查
+        // 1. 每次点击先清空旧的错误显示
+        showFieldError('phone', "");
+        showFieldError('email', "");
+
+        // 2. 前端格式校验
         const phoneErr = validators.phone(phoneVal);
         const emailErr = validators.email(emailVal);
 
         if (phoneErr || emailErr) {
             showFieldError('phone', phoneErr);
             showFieldError('email', emailErr);
-            // 让小柚吐槽一下
-            safeAskXiaoYou('FORM_ERROR', '手机号或邮箱格式有误，提醒主人再检查一下喵~');
+            safeAskXiaoYou('FORM_ERROR', '格式还没填对呢，主人再检查一下喵~');
             return;
         }
 
         const originalText = btn.innerText;
         btn.innerText = "同步中...";
 
-        // ... 原有的 tags、birthday 获取逻辑 ...
+        // 准备提交数据
         const y = document.getElementById('birth-year').value;
         const m = document.getElementById('birth-month').value.padStart(2, '0');
         const d = document.getElementById('birth-day').value.padStart(2, '0');
@@ -353,24 +355,40 @@
         try {
             const res = await fetch('/user_center/', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
                 body: JSON.stringify(payload)
             });
 
+            // 获取后端返回的 JSON 数据
             const result = await res.json();
-            if (result.status === 'success') {
+
+            if (res.ok && result.status === 'success') {
+                // 成功：更新侧边栏并提示
                 document.getElementById('side-bio').innerText = `“ ${payload.bio || 'Master还没写简介呢～'} ”`;
                 document.getElementById('save-hint').style.opacity = '1';
-                safeAskXiaoYou('USER_ACTION', '用户修改并保存了档案资料');
+                safeAskXiaoYou('USER_ACTION', '档案同步成功了！');
                 setTimeout(() => document.getElementById('save-hint').style.opacity = '0', 2000);
             } else {
-                // 如果后端报错（例如手机号已被占用），直接显示在对应位置
-                if (result.message.includes('手机')) showFieldError('phone', result.message);
-                else if (result.message.includes('邮箱')) showFieldError('email', result.message);
-                else safeAskXiaoYou('FORM_ERROR', result.message);
+                // 失败：处理后端传回的业务错误（如重复）
+                const errorMsg = result.message || "档案同步失败了喵...";
+
+                // 判断错误类型并显示在对应框下方
+                if (errorMsg.includes('手机') || errorMsg.includes('phone')) {
+                    showFieldError('phone', errorMsg);
+                } else if (errorMsg.includes('邮箱') || errorMsg.includes('email')) {
+                    showFieldError('email', errorMsg);
+                }
+
+                // 让小柚读出具体的后端错误信息
+                safeAskXiaoYou('FORM_ERROR', errorMsg);
             }
         } catch (e) {
-            console.error(e);
+            // 只有当服务器彻底断开或 JSON 解析崩溃时才报网络错误
+            console.error("Fetch Exception:", e);
+            safeAskXiaoYou('FORM_ERROR', '网络次元波荡中，联系不上服务器了喵...');
         } finally {
             btn.innerText = originalText;
         }
