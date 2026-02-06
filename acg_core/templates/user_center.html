@@ -219,7 +219,7 @@
 
         if (shouldAsk) {
             const names = ["少年", "少女", "猫猫", "外星生命"];
-            safeAskXiaoYou('USER_UPDATE', `我把性别改成${names[index]}啦！（请温柔可爱地表达对主人性别的喜爱，(1或6)，若是猫猫请表现得非常兴奋）`);
+            safeAskXiaoYou('USER_UPDATE', `我把性别改成${names[index]}啦！（请温柔可爱地表达对主人性别的喜爱，若是猫猫请表现得非常兴奋）`);
         }
     }
 
@@ -239,7 +239,7 @@
             newTag.innerHTML = `<span># ${tag}</span><button onclick="removeTag(this)" class="ml-2 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"><i class="fa-solid fa-circle-xmark"></i></button>`;
             container.insertBefore(newTag, btn);
             input.value = ''; hideTagInput();
-            if(window.askXiaoYou) window.askXiaoYou('USER_ACTION', `用户添加了标签：${tag}，请注意一定要保持主人的称呼，不能更换`);
+            if(window.askXiaoYou) window.askXiaoYou('USER_ACTION', `用户添加了标签：${tag}`);
         }
     }
 
