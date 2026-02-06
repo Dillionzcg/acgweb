@@ -83,8 +83,8 @@ def kanban_chat(request):
             user_input = data.get('content', '')
 
             prompts = {
-                'LOGIN': "用户在登录页面，请温柔且热情地和他打招呼",
-                'REGISTER': "有新主人正在注册，请表示欢迎和兴奋",
+                'LOGIN': "1用户在登录页面，请温柔且热情地和他打招呼",
+                'REGISTER': "6有新主人正在注册，请表示欢迎和兴奋",
                 'USER_CENTER': "主人正在修改个人资料，请表达你的好奇或期待，并温柔地陪伴他。",
                 'USER_ACTION': f"主人刚才做了这个动作：{user_input}，请根据这个进行互动。（情绪代码在喜欢和开心之间随机）",
                 'FORM_ERROR': f"主人信息填写有问题：{user_input}。请温柔安慰并提醒检查。",
