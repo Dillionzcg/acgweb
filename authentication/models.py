@@ -30,6 +30,15 @@ class Friendship(models.Model):
     from_user = models.ForeignKey(User, related_name='friendship_sent', on_delete=models.CASCADE, verbose_name="申请人")
     to_user = models.ForeignKey(User, related_name='friendship_received', on_delete=models.CASCADE, verbose_name="接收人")
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending', verbose_name="状态")
+    
+    RELATIONSHIP_TYPES = (
+        ('normal', '普通好友'),
+        ('bestie', '基友/死党'),
+        ('lover', '情侣/CP'),
+        ('family', '家人'),
+    )
+    relationship_type = models.CharField(max_length=20, choices=RELATIONSHIP_TYPES, default='normal', verbose_name="关系类型")
+    
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="创建时间")
 
     class Meta:

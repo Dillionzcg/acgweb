@@ -11,6 +11,7 @@ urlpatterns = [
     path('api/search/', views.search_users, name='search_users'),
     path('api/friend/request/', views.send_friend_request, name='send_friend_request'),
     path('api/friend/handle/', views.handle_friend_request, name='handle_friend_request'),
+    path('api/friend/update_type/', views.update_relationship_type, name='update_relationship_type'),
     path('api/friends/', views.get_friends_data, name='get_friends_data'),
     path('api/users/', views.user_list_api, name='user_list_api'),
 ]
