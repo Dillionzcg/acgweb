@@ -1,147 +1,59 @@
-<div id="truth-modal" class="fixed inset-0 z-[999] hidden flex items-center justify-center bg-black/40 backdrop-blur-md transition-all duration-300">
+<div id="truth-hint-modal" class="fixed inset-0 z-[1000] hidden flex items-center justify-center bg-pink-100/20 backdrop-blur-md transition-all duration-300">
+    <div id="truth-hint-content" class="bg-white/95 w-full max-w-md mx-4 rounded-[3rem] p-10 shadow-[0_20px_50px_rgba(255,182,193,0.3)] border-4 border-pink-200 relative animate__animated animate__zoomIn animate__faster">
 
-    <div id="truth-modal-content" class="bg-white/95 w-full max-w-sm mx-4 rounded-[3rem] p-8 shadow-2xl border-4 border-pink-100 relative animate__animated animate__zoomIn animate__faster">
-
-        <div class="relative z-10">
-            <div class="flex justify-center mb-4">
-                <div class="bg-pink-500 w-14 h-14 rounded-full flex items-center justify-center shadow-lg shadow-pink-200">
-                    <i class="fa-solid fa-feather-pointed text-white text-xl"></i>
-                </div>
+        <div class="text-center">
+            <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-pink-400 to-rose-400 rounded-full mb-8 shadow-lg shadow-pink-200">
+                <i class="fa-solid fa-heart-circle-check text-white text-3xl"></i>
             </div>
 
-            <h3 class="text-xl font-bold text-center text-gray-800 mb-6 tracking-wider">身份契约确认</h3>
+            <h3 class="text-2xl font-black text-pink-500 mb-3 tracking-tighter">真实性契约确认</h3>
+            <p class="text-sm text-pink-300 font-bold mb-8 italic">—— 正在将 <span id="hint-target-name" class="text-rose-500 underline decoration-2 underline-offset-4">信息</span> 标记为真实属性 ——</p>
 
-            <div class="mb-6">
-                <p class="text-xs font-bold text-gray-500 mb-3 ml-1 flex items-center">
-                    <i class="fa-solid fa-mobile-screen mr-2 text-pink-400"></i>
-                    手机号信息属性：
-                </p>
-                <div class="grid grid-cols-2 gap-3">
-                    <button type="button" onclick="selectChoice('phone', true)" id="btn-phone-true" class="truth-btn-default py-2.5 rounded-2xl text-xs font-bold transition-all border-2">
-                        真实有效
-                    </button>
-                    <button type="button" onclick="selectChoice('phone', false)" id="btn-phone-false" class="truth-btn-default py-2.5 rounded-2xl text-xs font-bold transition-all border-2">
-                        整活/非真实
-                    </button>
-                </div>
-            </div>
-
-            <div class="mb-6">
-                <p class="text-xs font-bold text-gray-500 mb-3 ml-1 flex items-center">
-                    <i class="fa-solid fa-envelope mr-2 text-blue-400"></i>
-                    电子邮箱信息属性：
-                </p>
-                <div class="grid grid-cols-2 gap-3">
-                    <button type="button" onclick="selectChoice('email', true)" id="btn-email-true" class="truth-btn-default py-2.5 rounded-2xl text-xs font-bold transition-all border-2">
-                        真实有效
-                    </button>
-                    <button type="button" onclick="selectChoice('email', false)" id="btn-email-false" class="truth-btn-default py-2.5 rounded-2xl text-xs font-bold transition-all border-2">
-                        整活/非真实
-                    </button>
-                </div>
-            </div>
-
-            <div class="bg-gray-50/80 rounded-2xl p-4 mb-8 border border-gray-100">
-                <p class="text-[11px] text-gray-400 leading-relaxed italic text-center">
-                    柚子次元壁是开放自由的二次元资讯站！所以手机号和邮箱都是可以整活的！但如果所填手机号或者邮箱不是真实拥有的话，请务必在对应栏目选择”整活/非真实“，以确保安全性。
+            <div class="bg-pink-50/80 rounded-[2rem] p-6 mb-10 border-2 border-dashed border-pink-200">
+                <p class="text-base text-gray-600 leading-relaxed text-left font-medium">
+                    <i class="fa-solid fa-quote-left text-pink-300 mr-2 text-xl"></i>
+                    亲爱的 Master，选择 <span class="text-pink-500 font-black">“真实有效”</span> 意味着这份档案不仅是真实的，更是你我之间信任的契约喵！它将用于保护你的账号安全与信誉，请务必认真对待每一份真实信息。
                 </p>
             </div>
 
-            <div class="flex space-x-3">
-                <button type="button" onclick="closeTruthModal()" class="flex-1 py-3 bg-gray-100 text-gray-500 rounded-2xl font-bold text-sm hover:bg-gray-200 transition-all">
-                    返回修改
+            <div class="flex flex-col space-y-4">
+                <button type="button" id="hint-confirm-btn" class="w-full py-5 bg-gradient-to-r from-pink-400 to-rose-400 text-white rounded-full font-black text-lg shadow-lg hover:shadow-pink-200 hover:scale-[1.02] transition-all active:scale-95">
+                    我已确认该信息真实存在
                 </button>
-                <button type="button" id="final-submit-btn" disabled onclick="submitWithTruth()"
-                        class="flex-[1.5] py-3 bg-gray-300 text-white rounded-2xl font-bold text-sm cursor-not-allowed transition-all">
-                    同步确认
+                <button type="button" onclick="cancelTruthChange()" class="w-full py-2 text-pink-300 font-black text-sm hover:text-pink-500 transition-all">
+                    点错了，先取消
                 </button>
             </div>
         </div>
     </div>
 </div>
 
-<style>
-    /* 默认/未选中状态 */
-    .truth-btn-default {
-        background-color: #ffffff;
-        color: #9ca3af;
-        border-color: #f3f4f6;
-    }
-    /* 选中状态 */
-    .truth-btn-selected {
-        background-color: #fce7f3;
-        color: #ec4899;
-        border-color: #f472b6;
-    }
-    /* 确认键激活状态渐变色 */
-    .btn-pink-active {
-        background-image: linear-gradient(to right, #f472b6, #ec4899) !important;
-        box-shadow: 0 4px 15px rgba(236, 72, 153, 0.3);
-        cursor: pointer !important;
-    }
-</style>
-
 <script>
-    let choices = { phone: null, email: null };
+    let onConfirmCallback = null;
 
-    function selectChoice(type, isReal) {
-        choices[type] = isReal;
-        const trueBtn = document.getElementById(`btn-${type}-true`);
-        const falseBtn = document.getElementById(`btn-${type}-false`);
-
-        if (isReal) {
-            trueBtn.classList.replace('truth-btn-default', 'truth-btn-selected');
-            falseBtn.classList.replace('truth-btn-selected', 'truth-btn-default');
-        } else {
-            falseBtn.classList.replace('truth-btn-default', 'truth-btn-selected');
-            trueBtn.classList.replace('truth-btn-selected', 'truth-btn-default');
-        }
-        checkCompletion();
+    function openTruthHint(targetName, callback) {
+        document.getElementById('hint-target-name').innerText = targetName;
+        onConfirmCallback = callback;
+        document.getElementById('truth-hint-modal').classList.remove('hidden');
     }
 
-    function checkCompletion() {
-        const submitBtn = document.getElementById('final-submit-btn');
-        if (choices.phone !== null && choices.email !== null) {
-            submitBtn.disabled = false;
-            submitBtn.classList.add('btn-pink-active');
-            submitBtn.classList.remove('bg-gray-300');
-        }
+    function cancelTruthChange() {
+        closeTruthHint();
     }
 
-    // 返回键：执行缩小消失动画，不刷新页面
-    function closeTruthModal() {
-        const modal = document.getElementById('truth-modal');
-        const content = document.getElementById('truth-modal-content');
+    function confirmTruthChange() {
+        if (onConfirmCallback) onConfirmCallback();
+        closeTruthHint();
+    }
 
-        // 播放退出动画
+    document.getElementById('hint-confirm-btn').onclick = confirmTruthChange;
+
+    function closeTruthHint() {
+        const content = document.getElementById('truth-hint-content');
         content.classList.replace('animate__zoomIn', 'animate__zoomOut');
-
-        // 动画结束后隐藏整个遮罩并重置状态
         setTimeout(() => {
-            modal.classList.add('hidden');
-            // 重置动画类以便下次打开
+            document.getElementById('truth-hint-modal').classList.add('hidden');
             content.classList.replace('animate__zoomOut', 'animate__zoomIn');
-            // 重置内部按钮状态
-            resetTruthStatus();
-        }, 300);
-    }
-
-    function resetTruthStatus() {
-        choices = { phone: null, email: null };
-        document.querySelectorAll('.truth-btn-selected').forEach(el => {
-            el.classList.replace('truth-btn-selected', 'truth-btn-default');
-        });
-        const submitBtn = document.getElementById('final-submit-btn');
-        submitBtn.disabled = true;
-        submitBtn.classList.remove('btn-pink-active');
-        submitBtn.classList.add('bg-gray-300');
-    }
-
-    function submitWithTruth() {
-        // 关闭弹窗（直接关闭，因为后面紧跟页面跳转）
-        document.getElementById('truth-modal').classList.add('hidden');
-        if (typeof doFinalSubmit === "function") {
-            doFinalSubmit(choices);
-        }
+        }, 250);
     }
 </script>

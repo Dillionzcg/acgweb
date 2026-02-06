@@ -147,6 +147,25 @@
                         </div>
                         <p id="email-error" class="text-red-400 text-xs ml-4 italic hidden"></p>
                     </div>
+                    <div class="flex items-center justify-between px-4 py-2 bg-pink-50/50 rounded-full border border-pink-100 mb-2">
+                        <span class="text-sm font-black text-pink-500">手机号契约属性</span>
+                        <div class="relative flex items-center bg-pink-100/80 w-36 h-9 rounded-full p-1 cursor-pointer select-none" onclick="handleTruthClick('phone')">
+                            <div id="phone-truth-slider" class="absolute w-[calc(50%-4px)] h-7 bg-white rounded-full shadow-sm transition-all duration-300" style="left: 2px;"></div>
+                            <span id="phone-text-false" class="flex-1 text-center text-[13px] font-black z-10 text-pink-500">整活</span>
+                            <span id="phone-text-true" class="flex-1 text-center text-[13px] font-black z-10 text-gray-400">真实</span>
+                        </div>
+                        <input type="hidden" id="phone-truth-val" value="{{ user.is_phone_real|yesno:'true,false' }}">
+                    </div>
+
+                    <div class="flex items-center justify-between px-4 py-2 bg-pink-50/50 rounded-full border border-pink-100 mb-2">
+                        <span class="text-sm font-black text-pink-500">邮箱契约属性</span>
+                        <div class="relative flex items-center bg-pink-100/80 w-36 h-9 rounded-full p-1 cursor-pointer select-none" onclick="handleTruthClick('email')">
+                            <div id="email-truth-slider" class="absolute w-[calc(50%-4px)] h-7 bg-white rounded-full shadow-sm transition-all duration-300" style="left: 2px;"></div>
+                            <span id="email-text-false" class="flex-1 text-center text-[13px] font-black z-10 text-pink-500">整活</span>
+                            <span id="email-text-true" class="flex-1 text-center text-[13px] font-black z-10 text-gray-400">真实</span>
+                        </div>
+                        <input type="hidden" id="email-truth-val" value="{{ user.is_email_real|yesno:'true,false' }}">
+                    </div>
 
                     <div class="md:col-span-2 space-y-3">
                         <label class="block text-sm font-bold text-gray-600 ml-2">次元格言 (Bio)</label>
@@ -187,6 +206,8 @@
         </div>
     </div>
 </div>
+
+    {% include 'truth_hint_modal.html' %}
 
 <script>
     // 1. 日期选择器初始化逻辑
@@ -290,7 +311,7 @@
         },
         email: (val) => {
             if (!val) return "邮箱是必填项呢~";
-            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val) ? "" : "邮箱格式还没同步成功，检查一下吧？";
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val) ? "" : "邮箱格式好像不太对哦(っ°Д°;)っ";
         }
     };
 
@@ -306,7 +327,50 @@
             inputEl.classList.remove('border-red-200');
         }
     }
+    // 1. 点击处理：只有确认后才改变状态
+    function handleTruthClick(type) {
+        const valInput = document.getElementById(`${type}-truth-val`);
+        const isCurrentlyReal = valInput.value === 'true';
+        const targetName = type === 'phone' ? '手机号' : '电子邮箱';
 
+        if (!isCurrentlyReal) {
+            // 准备变真实：弹窗
+            openTruthHint(targetName, () => {
+                applyTruthUI(type, true);
+                safeAskXiaoYou('USER_ACTION', `Master同步了${targetName}真实契约喵！`);
+            });
+        } else {
+            // 变回整活：直接切
+            applyTruthUI(type, false);
+            safeAskXiaoYou('USER_ACTION', `哎呀，${targetName}变成整活属性了喵？`);
+        }
+    }
+
+    // 2. 视觉应用函数：控制滑块位置和颜色
+    function applyTruthUI(type, isReal) {
+        const valInput = document.getElementById(`${type}-truth-val`);
+        const slider = document.getElementById(`${type}-truth-slider`);
+        const textFalse = document.getElementById(`${type}-text-false`);
+        const textTrue = document.getElementById(`${type}-text-true`);
+
+        valInput.value = isReal ? 'true' : 'false';
+
+        if (isReal) {
+            slider.style.left = 'calc(50% + 2px)';
+            slider.classList.add('bg-gradient-to-r', 'from-pink-400', 'to-rose-400'); // 真实时滑块变粉
+            textFalse.classList.remove('text-pink-500');
+            textFalse.classList.add('text-gray-400');
+            textTrue.classList.remove('text-gray-400');
+            textTrue.classList.add('text-white');
+        } else {
+            slider.style.left = '2px';
+            slider.classList.remove('bg-gradient-to-r', 'from-pink-400', 'to-rose-400');
+            textFalse.classList.add('text-pink-500');
+            textFalse.classList.remove('text-gray-400');
+            textTrue.classList.add('text-gray-400');
+            textTrue.classList.remove('text-white');
+        }
+    }
     // 为输入框绑定实时验证
     document.getElementById('phone-val').addEventListener('input', (e) => {
         showFieldError('phone', validators.phone(e.target.value));
@@ -349,7 +413,9 @@
             phone: phoneVal,
             email: emailVal,
             bio: document.getElementById('bio-val').value,
-            tags: tags
+            tags: tags,
+            is_phone_real: document.getElementById('phone-truth-val').value === 'true',
+            is_email_real: document.getElementById('email-truth-val').value === 'true'
         };
 
         try {
@@ -400,6 +466,8 @@
 
     window.addEventListener('DOMContentLoaded', () => {
         initDateSelects();
+        applyTruthUI('phone', document.getElementById('phone-truth-val').value === 'true');
+        applyTruthUI('email', document.getElementById('email-truth-val').value === 'true');
         const currentGender = document.getElementById('gender-val').value;
         const indexMap = { 'male': 0, 'female': 1, 'cat': 2, 'alien': 3 };
         switchGender(indexMap[currentGender] || 1, currentGender, false);

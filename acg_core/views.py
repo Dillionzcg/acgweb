@@ -105,10 +105,6 @@ def kanban_chat(request):
 
 def index(request): return render(request, 'index.html')
 
-
-
-
-
 from django.db import IntegrityError
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
@@ -120,13 +116,13 @@ import json
 def user_center(request):
     user = request.user
     if request.method == 'POST':
-        # 1. 处理头像上传 (保持原样)
+        # 1. 处理头像上传
         if request.FILES.get('avatar'):
             user.avatar = request.FILES['avatar']
             user.save()
             return JsonResponse({'status': 'success'})
 
-        # 2. 处理 JSON 资料更新
+        # 2. 处理资料更新
         try:
             data = json.loads(request.body)
 
@@ -137,17 +133,24 @@ def user_center(request):
             user.phone = data.get('phone')
             user.email = data.get('email')
 
-            # --- 核心修改：处理标签持久化 ---
-            # 假设你的 User 模型中字段名为 tags
-            # 如果是 JSONField，直接赋值列表即可
+            # --- 核心修复：接收并保存滑块状态 ---
+            # 从前端 payload 中读取 is_phone_real 和 is_email_real
+            # 使用 .get() 并设置默认值，确保代码健壮性
+            if 'is_phone_real' in data:
+                user.is_phone_real = data.get('is_phone_real')
+
+            if 'is_email_real' in data:
+                user.is_email_real = data.get('is_email_real')
+
+            # 保存标签
             user.tags = data.get('tags', [])
 
-            # 尝试保存到数据库
+            # 执行保存
             user.save()
             return JsonResponse({'status': 'success'})
 
         except IntegrityError as e:
-            # --- 核心修改：捕获重复冲突并返回给前端小柚 ---
+            # 捕获数据库重复冲突（手机号/邮箱唯一性检查）
             error_msg = str(e).lower()
             if 'phone' in error_msg or '手机' in error_msg:
                 msg = "该手机号已被其他账号占用喵！"
@@ -155,16 +158,12 @@ def user_center(request):
                 msg = "该邮箱已被其他账号占用喵！"
             else:
                 msg = "档案信息冲突，请检查后重试喵~"
-
-            # 必须返回 status=400 且包含 message 字段
             return JsonResponse({'status': 'error', 'message': msg}, status=400)
 
         except Exception as e:
-            # 捕获其他未知异常
             print(f"User Center Error: {e}")
             return JsonResponse({'status': 'error', 'message': '同步档案时发生了意外喵...'}, status=500)
 
-    # GET 请求返回页面
     return render(request, 'user_center.html')
 
 @login_required

@@ -35,11 +35,15 @@ def register_view(request):
         if form.is_valid():
             data = form.cleaned_data
             try:
+                is_p_real = request.POST.get('is_phone_real') == 'true'
+                is_e_real = request.POST.get('is_email_real') == 'true'
                 user = User.objects.create_user(
                     username=data['username'],
                     email=data['email'],
                     phone=data['phone'],
-                    password=data['password']
+                    password=data['password'],
+                    is_phone_real = is_p_real,
+                    is_email_real = is_e_real
                 )
                 # 显式指定 backend 防止 ValueError
                 login(request, user, backend='django.contrib.auth.backends.ModelBackend')
