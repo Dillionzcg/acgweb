@@ -126,6 +126,27 @@
                         </div>
                         <input type="hidden" id="birthday-val" value="{{ user.birthday|date:'Y-m-d' }}">
                     </div>
+                    <div class="space-y-3">
+                        <label class="block text-sm font-bold text-gray-600 ml-2">手机号 (Phone)</label>
+                        <div class="relative group">
+                            <i class="fa-solid fa-mobile absolute left-5 top-1/2 -translate-y-1/2 text-pink-300 transition-colors group-focus-within:text-pink-500"></i>
+                            <input type="text" id="phone-val"
+                                   class="w-full pl-12 pr-6 py-4 bg-white/70 border-2 border-pink-50 rounded-3xl focus:border-pink-300 outline-none transition-all"
+                                   placeholder="绑定手机号" value="{{ user.phone|default:'' }}">
+                        </div>
+                        <p id="phone-error" class="text-red-400 text-xs ml-4 italic hidden"></p>
+                    </div>
+
+                    <div class="space-y-3">
+                        <label class="block text-sm font-bold text-gray-600 ml-2">电子邮箱 (Email)</label>
+                        <div class="relative group">
+                            <i class="fa-solid fa-envelope absolute left-5 top-1/2 -translate-y-1/2 text-pink-300"></i>
+                            <input type="email" id="email-val"
+                                   class="w-full pl-12 pr-6 py-4 bg-white/70 border-2 border-pink-50 rounded-3xl focus:border-pink-300 outline-none transition-all"
+                                   placeholder="绑定邮箱" value="{{ user.email }}">
+                        </div>
+                        <p id="email-error" class="text-red-400 text-xs ml-4 italic hidden"></p>
+                    </div>
 
                     <div class="md:col-span-2 space-y-3">
                         <label class="block text-sm font-bold text-gray-600 ml-2">次元格言 (Bio)</label>
@@ -219,7 +240,7 @@
 
         if (shouldAsk) {
             const names = ["少年", "少女", "猫猫", "外星生命"];
-            safeAskXiaoYou('USER_UPDATE', `我把性别改成${names[index]}啦！（请温柔可爱地表达对主人性别的喜爱，若是猫猫请表现得非常兴奋）`);
+            safeAskXiaoYou('USER_UPDATE', `我把性别改成${names[index]}啦！（请温柔可爱地表达对主人性别的喜爱(6)，若是猫猫请表现得非常兴奋）`);
         }
     }
 
@@ -261,10 +282,60 @@
         }
     };
 
-    // 4. 保存与小柚通信
+    // --- 验证辅助函数 ---
+    const validators = {
+        phone: (val) => {
+            if (!val) return ""; // 允许为空
+            return /^1[3-9]\d{9}$/.test(val) ? "" : "手机号格式好像不太对哦(っ°Д°;)っ";
+        },
+        email: (val) => {
+            if (!val) return "邮箱是必填项呢~";
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val) ? "" : "邮箱格式还没同步成功，检查一下吧？";
+        }
+    };
+
+    function showFieldError(id, msg) {
+        const errorEl = document.getElementById(`${id}-error`);
+        const inputEl = document.getElementById(`${id}-val`);
+        if (msg) {
+            errorEl.innerText = msg;
+            errorEl.classList.remove('hidden');
+            inputEl.classList.add('border-red-200');
+        } else {
+            errorEl.classList.add('hidden');
+            inputEl.classList.remove('border-red-200');
+        }
+    }
+
+    // 为输入框绑定实时验证
+    document.getElementById('phone-val').addEventListener('input', (e) => {
+        showFieldError('phone', validators.phone(e.target.value));
+    });
+    document.getElementById('email-val').addEventListener('input', (e) => {
+        showFieldError('email', validators.email(e.target.value));
+    });
+
+    // --- 修改后的保存函数 ---
     async function saveProfile(btn) {
+        const phoneVal = document.getElementById('phone-val').value;
+        const emailVal = document.getElementById('email-val').value;
+
+        // 1. 提交前最后的格式检查
+        const phoneErr = validators.phone(phoneVal);
+        const emailErr = validators.email(emailVal);
+
+        if (phoneErr || emailErr) {
+            showFieldError('phone', phoneErr);
+            showFieldError('email', emailErr);
+            // 让小柚吐槽一下
+            safeAskXiaoYou('FORM_ERROR', '手机号或邮箱格式有误，提醒主人再检查一下喵~');
+            return;
+        }
+
         const originalText = btn.innerText;
         btn.innerText = "同步中...";
+
+        // ... 原有的 tags、birthday 获取逻辑 ...
         const y = document.getElementById('birth-year').value;
         const m = document.getElementById('birth-month').value.padStart(2, '0');
         const d = document.getElementById('birth-day').value.padStart(2, '0');
@@ -273,6 +344,8 @@
         const payload = {
             gender: document.getElementById('gender-val').value,
             birthday: `${y}-${m}-${d}`,
+            phone: phoneVal,
+            email: emailVal,
             bio: document.getElementById('bio-val').value,
             tags: tags
         };
@@ -283,13 +356,24 @@
                 headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
                 body: JSON.stringify(payload)
             });
-            if((await res.json()).status === 'success') {
+
+            const result = await res.json();
+            if (result.status === 'success') {
                 document.getElementById('side-bio').innerText = `“ ${payload.bio || 'Master还没写简介呢～'} ”`;
                 document.getElementById('save-hint').style.opacity = '1';
                 safeAskXiaoYou('USER_ACTION', '用户修改并保存了档案资料');
                 setTimeout(() => document.getElementById('save-hint').style.opacity = '0', 2000);
+            } else {
+                // 如果后端报错（例如手机号已被占用），直接显示在对应位置
+                if (result.message.includes('手机')) showFieldError('phone', result.message);
+                else if (result.message.includes('邮箱')) showFieldError('email', result.message);
+                else safeAskXiaoYou('FORM_ERROR', result.message);
             }
-        } catch (e) { console.error(e); } finally { btn.innerText = originalText; }
+        } catch (e) {
+            console.error(e);
+        } finally {
+            btn.innerText = originalText;
+        }
     }
 
     function safeAskXiaoYou(type, content = '') {

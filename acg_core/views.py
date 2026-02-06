@@ -134,6 +134,8 @@ def user_center(request):
             user.gender = data.get('gender', user.gender)
             user.birthday = data.get('birthday') or None
             user.bio = data.get('bio', '')
+            user.phone = data.get('phone')
+            user.email = data.get('email')
             # 如果有标签字段可以加上：user.tags = data.get('tags', [])
             user.save()
             return JsonResponse({'status': 'success'})
