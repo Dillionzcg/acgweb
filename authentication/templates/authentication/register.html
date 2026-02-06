@@ -2,57 +2,195 @@
 {% block title %}注册 - 同步档案{% endblock %}
 
 {% block content %}
-<div class="flex justify-center items-center min-h-[85vh] py-12 relative">
+<div class="flex justify-center items-center min-h-[90vh] py-12 relative">
     <div class="absolute top-0 right-0 mt-4 mr-4 animate__animated animate__fadeIn">
         <a href="{% url 'index' %}" class="flex items-center space-x-2 bg-white/60 hover:bg-white text-pink-500 px-5 py-2 rounded-full shadow-sm transition-all hover:scale-105 border border-pink-100 backdrop-blur-md">
             <span class="font-bold">返回首页</span>
         </a>
     </div>
 
-    <div class="glass-card p-10 w-full max-w-2xl animate__animated animate__zoomIn"
-         style="border-radius: 40px; background: rgba(255, 255, 255, 0.5); border: 2px dashed rgba(255, 182, 193, 0.6); position: relative; z-index: 10;">
-
-        <div class="text-center mb-10">
-            <h2 class="text-3xl font-bold text-pink-500 mb-2">新成员档案同步</h2>
-            <p class="text-pink-300 text-sm">加入次元空间，开启你的 ACG 之旅</p>
-        </div>
-
-        <form method="post" class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+    <div class="w-full max-w-6xl px-4 animate__animated animate__fadeIn">
+        <form id="register-form" method="post" novalidate>
             {% csrf_token %}
-            {% for field in form %}
-            <div class="flex flex-col space-y-1">
-                <label class="text-pink-400 font-bold text-sm ml-4">{{ field.label }}</label>
-                <div class="custom-input-wrap">
-                    {{ field }}
+            <input type="hidden" name="is_phone_real" id="id_is_phone_real" value="">
+            <input type="hidden" name="is_email_real" id="id_is_email_real" value="">
+
+            <div class="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
+
+                <div class="lg:col-span-3 glass-card p-10"
+                     style="border-radius: 40px; background: rgba(255, 255, 255, 0.5); border: 2px dashed rgba(255, 182, 193, 0.6);">
+                    <div class="text-center mb-10">
+                        <h2 class="text-3xl font-bold text-pink-500 mb-2">新成员档案同步</h2>
+                        <p class="text-pink-300 text-sm">加入次元空间，开启你的 ACG 之旅</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                        {% for field in form %}
+                        <div class="flex flex-col space-y-1 field-container" data-fieldname="{{ field.name }}">
+                            <label class="text-pink-400 font-bold text-sm ml-4">{{ field.label }}</label>
+                            <div class="custom-input-wrap">
+                                {{ field }}
+                            </div>
+                            <p class="error-text text-red-400 text-xs ml-4 italic {% if not field.errors %}hidden{% endif %}">
+                                {% if field.errors %}{{ field.errors.0 }}{% endif %}
+                            </p>
+                        </div>
+                        {% endfor %}
+                    </div>
                 </div>
-                {# 新增：显示字段错误信息 #}
-                {% if field.errors %}
-                    <p class="text-red-400 text-xs ml-4 italic">{{ field.errors.0 }}</p>
-                {% endif %}
-            </div>
-            {% endfor %}
 
-            {# 新增：显示全局错误（如密码不一致） #}
-            {% if form.non_field_errors %}
-            <div class="md:col-span-2 bg-red-100/80 border border-red-200 text-red-600 px-6 py-3 rounded-2xl text-sm text-center">
-                {{ form.non_field_errors.0 }}
-            </div>
-            {% endif %}
+                <div class="lg:col-span-2 glass-card p-10 h-full flex flex-col justify-between"
+                     style="border-radius: 40px; background: rgba(255, 255, 255, 0.7); border: 3px solid #ffe4e6;">
 
-            <div class="md:col-span-2 mt-4">
-                <button type="submit" class="w-full py-4 bg-gradient-to-r from-pink-400 to-pink-500 text-white rounded-full font-bold text-lg shadow-lg hover:shadow-pink-200 transition-all active:scale-95">
-                    立即开启二次元新世界
-                </button>
+                    <div>
+                        <div class="flex items-center space-x-3 mb-6">
+                            <div class="bg-pink-500 w-12 h-12 rounded-full flex items-center justify-center shadow-lg shadow-pink-200">
+                                <i class="fa-solid fa-feather-pointed text-white text-xl"></i>
+                            </div>
+                            <h3 class="text-2xl font-bold text-gray-800 tracking-wider">身份契约</h3>
+                        </div>
+
+                        <div class="mb-8">
+                            <p class="text-sm font-bold text-gray-600 mb-4 ml-1 flex items-center">
+                                <i class="fa-solid fa-mobile mr-2 text-pink-400 text-lg"></i>
+                                手机号信息属性：
+                            </p>
+                            <div class="grid grid-cols-1 gap-4">
+                                <button type="button" onclick="selectChoice('phone', true)" id="btn-phone-true" class="truth-btn-default py-4 rounded-3xl text-sm font-bold transition-all border-2">
+                                    真实有效
+                                </button>
+                                <button type="button" onclick="selectChoice('phone', false)" id="btn-phone-false" class="truth-btn-default py-4 rounded-3xl text-sm font-bold transition-all border-2">
+                                    整活 / 非真实
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="mb-8">
+                            <p class="text-sm font-bold text-gray-600 mb-4 ml-1 flex items-center">
+                                <i class="fa-solid fa-envelope mr-2 text-blue-400 text-lg"></i>
+                                电子邮箱信息属性：
+                            </p>
+                            <div class="grid grid-cols-1 gap-4">
+                                <button type="button" onclick="selectChoice('email', true)" id="btn-email-true" class="truth-btn-default py-4 rounded-3xl text-sm font-bold transition-all border-2">
+                                    真实有效
+                                </button>
+                                <button type="button" onclick="selectChoice('email', false)" id="btn-email-false" class="truth-btn-default py-4 rounded-3xl text-sm font-bold transition-all border-2">
+                                    整活 / 非真实
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="bg-pink-50/50 rounded-3xl p-5 border border-pink-100">
+                            <p class="text-xs text-pink-400 leading-relaxed italic text-center">
+                                柚子次元壁是开放自由的二次元资讯站！所以手机号和邮箱都是可以整活的！但如果所填手机号或者邮箱不是真实拥有的话，请务必在对应栏目选择”整活/非真实“，以确保安全性。
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-5 mt-4 text-center">
+                    <p class="text-gray-400 text-xs font-medium mb-4">
+                        温馨提示：本站暂不设找回密码功能，请务必妥善保存您的档案信息。
+                    </p>
+                    <button type="button" id="final-reg-btn" onclick="validateAndSubmit()"
+                            class="w-full max-w-2xl py-5 bg-gray-300 text-white rounded-full font-bold text-xl shadow-lg transition-all active:scale-95 cursor-not-allowed">
+                        立即开启二次元新世界
+                    </button>
+                </div>
             </div>
         </form>
     </div>
 </div>
 
+<style>
+    /* 输入框样式 */
+    .custom-input-wrap input {
+        display: block !important;
+        width: 100% !important;
+        padding: 0.85rem 1.5rem !important;
+        border-radius: 9999px !important;
+        border: 2px solid white !important;
+        background: rgba(255, 255, 255, 0.8) !important;
+        outline: none !important;
+        color: #666 !important;
+        transition: all 0.3s ease !important;
+    }
+    .custom-input-wrap input:focus {
+        border-color: #ffb6c1 !important;
+        box-shadow: 0 0 15px rgba(255, 182, 193, 0.4) !important;
+    }
+
+    /* 右侧按钮样式 */
+    .truth-btn-default { background: white; color: #9ca3af; border-color: #f3f4f6; }
+    .truth-btn-selected { background: #fff1f2; color: #fb7185; border-color: #fda4af; box-shadow: 0 4px 12px rgba(251, 113, 133, 0.1); }
+
+    /* 注册按钮激活状态 */
+    .reg-btn-active {
+        background: linear-gradient(to right, #f472b6, #fb7185) !important;
+        box-shadow: 0 10px 25px rgba(251, 113, 133, 0.4) !important;
+        cursor: pointer !important;
+    }
+</style>
+
 <script>
+    let choices = { phone: null, email: null };
+
+    // 1. 选择属性
+    function selectChoice(type, isReal) {
+        choices[type] = isReal;
+        document.getElementById(`id_is_${type}_real`).value = isReal;
+
+        const trueBtn = document.getElementById(`btn-${type}-true`);
+        const falseBtn = document.getElementById(`btn-${type}-false`);
+
+        if (isReal) {
+            trueBtn.classList.add('truth-btn-selected'); trueBtn.classList.remove('truth-btn-default');
+            falseBtn.classList.add('truth-btn-default'); falseBtn.classList.remove('truth-btn-selected');
+        } else {
+            falseBtn.classList.add('truth-btn-selected'); falseBtn.classList.remove('truth-btn-default');
+            trueBtn.classList.add('truth-btn-default'); trueBtn.classList.remove('truth-btn-selected');
+        }
+        refreshButtonStatus();
+    }
+
+    // 2. 实时检查是否填完，决定按钮颜色
+    function refreshButtonStatus() {
+        const inputs = Array.from(document.querySelectorAll('#register-form input[required], #register-form input:not([type="hidden"])'));
+        const allFilled = inputs.every(input => input.value.trim() !== "");
+        const choicesMade = choices.phone !== null && choices.email !== null;
+
+        const btn = document.getElementById('final-reg-btn');
+        if (allFilled && choicesMade) {
+            btn.classList.add('reg-btn-active');
+            btn.classList.remove('bg-gray-300', 'cursor-not-allowed');
+        } else {
+            btn.classList.remove('reg-btn-active');
+            btn.classList.add('bg-gray-300', 'cursor-not-allowed');
+        }
+    }
+
+    // 监听所有输入框变化
+    document.querySelectorAll('#register-form input').forEach(input => {
+        input.addEventListener('input', refreshButtonStatus);
+    });
+
+    // 3. 点击按钮的逻辑
+    function validateAndSubmit() {
+        const btn = document.getElementById('final-reg-btn');
+        if (!btn.classList.contains('reg-btn-active')) {
+            if (typeof askXiaoYou === "function") {
+                askXiaoYou('FORM_ERROR', '档案还没填全，契约也还没选好呢喵！');
+            }
+            return;
+        }
+
+        // 如果激活了，直接提交（格式由 Django 后端统一校验，返回后触发小柚报错）
+        document.getElementById('register-form').submit();
+    }
+
+    // 4. 页面加载逻辑：处理 Django 传回的错误
     window.addEventListener('load', () => {
         let errorFromDjango = "";
-
-        // 1. 从 Django Messages 中提取错误
         {% if messages %}
             {% for message in messages %}
                 if ("{{ message }}".indexOf("FORM_INVALID") !== -1) {
@@ -62,35 +200,11 @@
         {% endif %}
 
         if (errorFromDjango) {
-            // 2. 核心修复：设置拦截标志位，告诉 waifu.html 不要说默认欢迎语
             sessionStorage.setItem('xiaoyou_handling_error', 'true');
-
-            // 3. 延迟设为 900ms，晚于 waifu.html 的 800ms 触发，确保覆盖效果
-            setTimeout(() => askXiaoYou('FORM_ERROR', errorFromDjango), 900);
+            setTimeout(() => { if(typeof askXiaoYou === "function") askXiaoYou('FORM_ERROR', errorFromDjango) }, 900);
         } else {
-            // 只有完全没错误时才由 register.html 主动触发欢迎语
-            setTimeout(() => askXiaoYou('REGISTER'), 900);
+            setTimeout(() => { if(typeof askXiaoYou === "function") askXiaoYou('REGISTER') }, 900);
         }
     });
 </script>
-
-
-<style>
-    .custom-input-wrap input {
-        display: block !important;
-        width: 100% !important;
-        padding: 0.75rem 1.5rem !important;
-        border-radius: 9999px !important;
-        border: 2px solid white !important;
-        background: rgba(255, 255, 255, 0.6) !important;
-        outline: none !important;
-        color: #666 !important;
-        transition: all 0.3s ease !important;
-    }
-    .custom-input-wrap input:focus {
-        border-color: #ffb6c1 !important;
-        background: white !important;
-        box-shadow: 0 0 12px rgba(255, 182, 193, 0.3) !important;
-    }
-</style>
 {% endblock %}
