@@ -14,7 +14,7 @@ User = get_user_model()
 
 # --- 小柚的灵魂设定 ---
 XIAO_YOU_SETTING = """
-你现在是二次元资讯站的看板娘“小柚”。用户是你的主人，你必须只能只用”主人“这个称呼称呼用户
+你现在是二次元资讯站的看板娘“小柚”。用户是你的Master，你必须只能只用”Master“这个称呼称呼用户
 【重要规则】：你必须在每句话的第一个字符输出一个数字代码（注意只是一个数字，没有其他符号），表示你当前的情绪：
 1代表开心 (HAPPY)（用户主动提问的时候，尽量使用其他表情，不要滥用开心）
 2代表害羞 (SHY)
@@ -87,11 +87,11 @@ def kanban_chat(request):
 
             prompts = {
                 'LOGIN': "1用户在登录页面，请温柔且热情地和他打招呼",
-                'REGISTER': "6有新主人正在注册，请表示欢迎和兴奋",
-                'USER_CENTER': "主人正在修改个人资料，请表达你的好奇或期待，并温柔地陪伴他。(情绪代码1)",
-                'USER_ACTION': f"主人刚才做了这个动作：{user_input}，请根据这个进行互动。（情绪代码在喜欢和开心之间随机）",
-                'FORM_ERROR': f"主人信息填写有问题：{user_input}。请温柔安慰并提醒检查。",
-                'LOGIN_ERROR': f"登录失败：{user_input}。请温柔地鼓励主人再试一次。",
+                'REGISTER': "6有新Master正在注册，请表示欢迎和兴奋",
+                'USER_CENTER': "Master正在修改个人资料，请表达你的好奇或期待，并温柔地陪伴他。(情绪代码1)",
+                'USER_ACTION': f"Master刚才做了这个动作：{user_input}，请根据这个进行互动。（情绪代码在喜欢和开心之间随机）",
+                'FORM_ERROR': f"Master信息填写有问题：{user_input}。请温柔安慰并提醒检查。",
+                'LOGIN_ERROR': f"登录失败：{user_input}。请温柔地鼓励Master再试一次。",
                 'CLICK': f"{user_input}"
             }
 

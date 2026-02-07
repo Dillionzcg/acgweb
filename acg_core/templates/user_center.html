@@ -261,7 +261,7 @@
 
         if (shouldAsk) {
             const names = ["少年", "少女", "猫猫", "外星生命"];
-            safeAskXiaoYou('USER_UPDATE', `我把性别改成${names[index]}啦！（请温柔可爱地表达对主人性别的喜爱(6)，若是猫猫请表现得非常兴奋）`);
+            safeAskXiaoYou('USER_UPDATE', `我把性别改成${names[index]}啦！（请温柔可爱地表达对Master性别的喜爱(6)，若是猫猫请表现得非常兴奋）`);
         }
     }
 
@@ -281,7 +281,7 @@
             newTag.innerHTML = `<span># ${tag}</span><button onclick="removeTag(this)" class="ml-2 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"><i class="fa-solid fa-circle-xmark"></i></button>`;
             container.insertBefore(newTag, btn);
             input.value = ''; hideTagInput();
-            if(window.askXiaoYou) window.askXiaoYou('USER_ACTION', `用户添加了标签：${tag}`);
+            if(window.askXiaoYou) window.askXiaoYou('USER_ACTION', `用户添加了标签：${tag}，请保持人设的前提下回应。(请注意不能改变Master的称呼)`);
         }
     }
 
@@ -337,12 +337,12 @@
             // 准备变真实：弹窗
             openTruthHint(targetName, () => {
                 applyTruthUI(type, true);
-                safeAskXiaoYou('USER_ACTION', `Master同步了${targetName}真实契约喵！`);
+                safeAskXiaoYou('USER_ACTION', `Master同步了${targetName}真实契约！`);
             });
         } else {
             // 变回整活：直接切
             applyTruthUI(type, false);
-            safeAskXiaoYou('USER_ACTION', `哎呀，${targetName}变成整活属性了喵？`);
+            safeAskXiaoYou('USER_ACTION', `Master把${targetName}变成整活属性了!`);
         }
     }
 
@@ -394,7 +394,7 @@
         if (phoneErr || emailErr) {
             showFieldError('phone', phoneErr);
             showFieldError('email', emailErr);
-            safeAskXiaoYou('FORM_ERROR', '格式还没填对呢，主人再检查一下喵~');
+            safeAskXiaoYou('FORM_ERROR', '格式还没填对呢，Master再检查一下喵~');
             return;
         }
 
