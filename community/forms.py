@@ -7,14 +7,15 @@ class TopicForm(forms.ModelForm):
         fields = ['title', 'category', 'content']
         widgets = {
             'title': forms.TextInput(attrs={
-                'class': 'w-full px-4 py-2 rounded-xl bg-white/50 border border-gray-200 focus:ring-2 focus:ring-pink-300 focus:border-pink-300 outline-none transition-all',
-                'placeholder': '请输入标题（最多50字）'
+                'class': 'w-full px-5 py-3 rounded-xl bg-gray-50/80 border-2 border-transparent focus:bg-white focus:border-pink-300 focus:ring-4 focus:ring-pink-100 outline-none transition-all duration-300 font-bold text-gray-700 placeholder-gray-400',
+                'placeholder': '请输入精彩的标题...'
             }),
             'category': forms.Select(attrs={
-                'class': 'w-full px-4 py-2 rounded-xl bg-white/50 border border-gray-200 focus:ring-2 focus:ring-pink-300 focus:border-pink-300 outline-none transition-all'
+                'class': 'w-full px-5 py-3 rounded-xl bg-gray-50/80 border-2 border-transparent focus:bg-white focus:border-pink-300 focus:ring-4 focus:ring-pink-100 outline-none transition-all duration-300 text-gray-700 cursor-pointer'
             }),
             'content': forms.Textarea(attrs={
-                'class': 'w-full px-4 py-3 rounded-xl bg-white/50 border border-gray-200 focus:ring-2 focus:ring-pink-300 focus:border-pink-300 outline-none transition-all h-64',
-                'placeholder': '在此输入正文内容...'
+                'class': 'w-full px-5 py-4 rounded-xl bg-gray-50/80 border-2 border-transparent focus:bg-white focus:border-pink-300 focus:ring-4 focus:ring-pink-100 outline-none transition-all duration-300 h-64 text-gray-700 placeholder-gray-400 leading-relaxed resize-none',
+                'placeholder': '在这里分享你的观点、吐槽或情报...
+支持Markdown语法'
             }),
         }

@@ -1,70 +1,171 @@
-<!-- 悬浮发布话题 Modal -->
+<!-- 悬浮发布话题 Modal (High-End UI) -->
 <div id="create-topic-modal" class="fixed inset-0 z-[100] hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-    <!-- 背景遮罩 -->
-    <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity backdrop-blur-sm" onclick="closeTopicModal()"></div>
+    
+    <!-- 动态模糊背景 -->
+    <div class="fixed inset-0 bg-slate-900/30 backdrop-blur-sm transition-opacity duration-500 ease-out opacity-0" 
+         id="modal-backdrop"
+         onclick="closeTopicModal()"></div>
 
     <!-- Modal 面板 -->
-    <div class="fixed inset-0 z-10 overflow-y-auto">
-        <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-            <div class="relative transform overflow-hidden rounded-2xl bg-white/90 backdrop-blur-md text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-2xl border border-white/50 animate__animated animate__zoomIn">
+    <div class="fixed inset-0 z-10 overflow-y-auto overflow-x-hidden p-4 sm:p-0 flex items-center justify-center pointer-events-none">
+        
+        <div class="relative w-full max-w-2xl pointer-events-auto transform scale-95 opacity-0 transition-all duration-500 ease-out" 
+             id="modal-panel">
+            
+            <!-- 装饰背景光斑 -->
+            <div class="absolute -top-20 -left-20 w-64 h-64 bg-pink-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
+            <div class="absolute -bottom-20 -right-20 w-64 h-64 bg-purple-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+
+            <!-- 主体卡片 -->
+            <div class="relative bg-white/80 backdrop-blur-2xl rounded-3xl shadow-[0_8px_32px_rgba(0,0,0,0.1)] border border-white/50 overflow-hidden">
                 
-                <!-- 头部 -->
-                <div class="bg-gradient-to-r from-pink-400 to-purple-500 px-6 py-4 flex items-center justify-between">
-                    <h3 class="text-lg font-bold text-white flex items-center" id="modal-title">
-                        <i class="fa-solid fa-pen-nib mr-2"></i> 发布新话题
-                    </h3>
-                    <button type="button" class="text-white/80 hover:text-white transition-colors focus:outline-none" onclick="closeTopicModal()">
-                        <i class="fa-solid fa-xmark text-xl"></i>
-                    </button>
-                </div>
+                <!-- 顶部关闭按钮 -->
+                <button type="button" 
+                        class="absolute top-4 right-4 z-20 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100/50 text-gray-400 hover:bg-red-50 hover:text-red-500 transition-all duration-300 focus:outline-none group" 
+                        onclick="closeTopicModal()">
+                    <i class="fa-solid fa-xmark text-lg group-hover:rotate-90 transition-transform duration-300"></i>
+                </button>
 
-                <!-- 表单内容 -->
-                <div class="px-6 py-6">
-                    <form action="{% url 'create_topic' %}" method="post" class="space-y-5">
-                        {% csrf_token %}
+                <div class="flex flex-col h-full">
+                    
+                    <!-- Header -->
+                    <div class="px-8 pt-8 pb-4 relative z-10">
+                        <h3 class="text-3xl acg-font bg-clip-text text-transparent bg-gradient-to-r from-pink-500 to-purple-600 drop-shadow-sm flex items-center">
+                            <i class="fa-solid fa-feather-pointed mr-3 text-2xl text-pink-400"></i>
+                            发布新话题
+                        </h3>
+                        <p class="text-sm text-gray-500 mt-2 pl-1">
+                            分享你的二次元见闻，与 <span class="text-pink-500 font-bold">12,340</span> 位同好交流
+                        </p>
+                    </div>
+
+                    <!-- Form Content -->
+                    <div class="px-8 py-4 overflow-y-auto max-h-[70vh] custom-scrollbar">
+                        <form action="{% url 'create_topic' %}" method="post" class="space-y-6" id="topic-form">
+                            {% csrf_token %}
+                            
+                            <!-- 标题 -->
+                            <div class="group">
+                                <label for="{{ topic_form.title.id_for_label }}" class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 ml-1 group-focus-within:text-pink-500 transition-colors">
+                                    Topic Title
+                                </label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                        <i class="fa-solid fa-heading text-gray-300 group-focus-within:text-pink-400 transition-colors"></i>
+                                    </div>
+                                    <div class="[&>input]:pl-11">
+                                        {{ topic_form.title }}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 板块 -->
+                            <div class="group">
+                                <label for="{{ topic_form.category.id_for_label }}" class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 ml-1 group-focus-within:text-pink-500 transition-colors">
+                                    Category
+                                </label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                        <i class="fa-solid fa-layer-group text-gray-300 group-focus-within:text-pink-400 transition-colors"></i>
+                                    </div>
+                                    <div class="[&>select]:pl-11 [&>select]:appearance-none">
+                                        {{ topic_form.category }}
+                                        <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-gray-400">
+                                            <i class="fa-solid fa-chevron-down text-xs"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 内容 -->
+                            <div class="group">
+                                <label for="{{ topic_form.content.id_for_label }}" class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 ml-1 group-focus-within:text-pink-500 transition-colors">
+                                    Content
+                                </label>
+                                <div class="relative">
+                                    {{ topic_form.content }}
+                                    <!-- 右下角字数统计/工具栏 Placeholder -->
+                                    <div class="absolute bottom-3 right-3 flex items-center space-x-2 text-gray-300 text-xs">
+                                        <i class="fa-brands fa-markdown hover:text-gray-500 cursor-pointer transition-colors" title="支持Markdown"></i>
+                                        <span class="w-px h-3 bg-gray-200"></span>
+                                        <span>0 / 5000</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </form>
+                    </div>
+
+                    <!-- Footer Action -->
+                    <div class="px-8 py-6 bg-gradient-to-t from-white/80 to-transparent flex items-center justify-between border-t border-white/40">
+                        <button type="button" class="text-sm text-gray-400 hover:text-gray-600 transition-colors font-medium flex items-center" onclick="closeTopicModal()">
+                            <i class="fa-solid fa-arrow-left-long mr-2"></i> 放弃发布
+                        </button>
                         
-                        <div>
-                            <label for="{{ topic_form.title.id_for_label }}" class="block text-sm font-bold text-gray-700 mb-1">标题</label>
-                            {{ topic_form.title }}
-                        </div>
+                        <button type="submit" form="topic-form" class="group relative px-8 py-3 rounded-2xl bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold shadow-lg shadow-pink-500/30 overflow-hidden transition-all hover:scale-105 hover:shadow-pink-500/40 active:scale-95">
+                            <span class="relative z-10 flex items-center">
+                                发布话题 <i class="fa-solid fa-paper-plane ml-2 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform"></i>
+                            </span>
+                            <!-- 按钮光效 -->
+                            <div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+                        </button>
+                    </div>
 
-                        <div>
-                            <label for="{{ topic_form.category.id_for_label }}" class="block text-sm font-bold text-gray-700 mb-1">板块</label>
-                            {{ topic_form.category }}
-                        </div>
-
-                        <div>
-                            <label for="{{ topic_form.content.id_for_label }}" class="block text-sm font-bold text-gray-700 mb-1">内容</label>
-                            {{ topic_form.content }}
-                        </div>
-
-                        <div class="pt-2 flex items-center justify-end gap-3">
-                            <button type="button" class="px-5 py-2 rounded-xl bg-gray-100 text-gray-600 font-bold hover:bg-gray-200 transition-all text-sm" onclick="closeTopicModal()">取消</button>
-                            <button type="submit" class="px-6 py-2 rounded-xl bg-gradient-to-r from-pink-400 to-pink-500 text-white font-bold shadow-md hover:shadow-lg hover:scale-105 transition-all text-sm">
-                                <i class="fa-solid fa-paper-plane mr-2"></i> 立即发布
-                            </button>
-                        </div>
-                    </form>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
+<style>
+    .animate-blob { animation: blob 7s infinite; }
+    .animation-delay-2000 { animation-delay: 2s; }
+    @keyframes blob {
+        0% { transform: translate(0px, 0px) scale(1); }
+        33% { transform: translate(30px, -50px) scale(1.1); }
+        66% { transform: translate(-20px, 20px) scale(0.9); }
+        100% { transform: translate(0px, 0px) scale(1); }
+    }
+    .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 10px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #d1d5db; }
+</style>
+
 <script>
     function openTopicModal() {
         const modal = document.getElementById('create-topic-modal');
+        const backdrop = document.getElementById('modal-backdrop');
+        const panel = document.getElementById('modal-panel');
+        
         modal.classList.remove('hidden');
-        document.body.style.overflow = 'hidden'; // 防止背景滚动
+        
+        // 简单的进入动画逻辑
+        requestAnimationFrame(() => {
+            backdrop.classList.remove('opacity-0');
+            panel.classList.remove('opacity-0', 'scale-95');
+            panel.classList.add('opacity-100', 'scale-100');
+        });
+        
+        document.body.style.overflow = 'hidden';
     }
 
     function closeTopicModal() {
         const modal = document.getElementById('create-topic-modal');
-        modal.classList.add('hidden');
-        document.body.style.overflow = ''; // 恢复背景滚动
+        const backdrop = document.getElementById('modal-backdrop');
+        const panel = document.getElementById('modal-panel');
+
+        // 退出动画
+        backdrop.classList.add('opacity-0');
+        panel.classList.remove('opacity-100', 'scale-100');
+        panel.classList.add('opacity-0', 'scale-95');
+
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            document.body.style.overflow = '';
+        }, 300); // 等待动画结束
     }
 
-    // 点击 ESC 关闭 Modal
     document.addEventListener('keydown', function(event) {
         if (event.key === "Escape") {
             closeTopicModal();
