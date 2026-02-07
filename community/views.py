@@ -1,5 +1,7 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required
 from .models import Topic, TopicCategory, News, NewsCategory
+from .forms import TopicForm
 
 def community_home(request):
     """社区主页，展示热门话题和最新资讯"""
@@ -43,6 +45,21 @@ def topic_detail(request, pk):
         'topic': topic
     }
     return render(request, 'community/topic_detail.html', context)
+
+@login_required
+def create_topic(request):
+    """发布新话题"""
+    if request.method == 'POST':
+        form = TopicForm(request.POST)
+        if form.is_valid():
+            topic = form.save(commit=False)
+            topic.author = request.user
+            topic.save()
+            return redirect('topic_detail', pk=topic.pk)
+    else:
+        form = TopicForm()
+    
+    return render(request, 'community/create_topic.html', {'form': form})
 
 def news_list(request):
     """资讯列表页"""
