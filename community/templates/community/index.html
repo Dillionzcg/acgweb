@@ -1,0 +1,195 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}次元社区 - 交流与资讯{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-12 gap-6 pb-8 animate__animated animate__fadeIn">
+    
+    <!-- 左侧导航/分类 -->
+    <aside class="col-span-12 lg:col-span-3 space-y-6">
+        <div class="glass-card p-6 shadow-xl border-l-4 border-pink-400">
+            <h2 class="text-xl acg-font text-pink-600 mb-4 flex items-center">
+                <i class="fa-solid fa-compass mr-2"></i> 社区导航
+            </h2>
+            <div class="space-y-2">
+                <a href="{% url 'community_home' %}" class="block px-4 py-2 rounded-lg bg-pink-50 text-pink-500 font-bold">
+                    <i class="fa-solid fa-house mr-2"></i> 综合大厅
+                </a>
+                <a href="{% url 'topic_list' %}" class="block px-4 py-2 rounded-lg hover:bg-white/50 text-gray-600 hover:text-pink-500 transition-colors">
+                    <i class="fa-solid fa-comments mr-2"></i> 讨论区
+                </a>
+                <a href="{% url 'news_list' %}" class="block px-4 py-2 rounded-lg hover:bg-white/50 text-gray-600 hover:text-blue-500 transition-colors">
+                    <i class="fa-solid fa-newspaper mr-2"></i> 资讯中心
+                </a>
+            </div>
+        </div>
+
+        <div class="glass-card p-6 shadow-xl border-l-4 border-blue-400">
+            <h2 class="text-xl acg-font text-blue-600 mb-4 flex items-center">
+                <i class="fa-solid fa-tags mr-2"></i> 热门板块
+            </h2>
+            <div class="flex flex-wrap gap-2">
+                {% for category in topic_categories %}
+                <a href="{% url 'topic_list' %}?category={{ category.id }}" class="px-3 py-1 bg-white/60 rounded-full text-xs text-gray-600 hover:bg-blue-100 hover:text-blue-500 transition-colors border border-gray-200">
+                    <i class="{{ category.icon|default:'fa-solid fa-hashtag' }} mr-1"></i> {{ category.name }}
+                </a>
+                {% empty %}
+                <p class="text-sm text-gray-400">暂无板块</p>
+                {% endfor %}
+            </div>
+        </div>
+    </aside>
+
+    <!-- 中间主要内容 -->
+    <section class="col-span-12 lg:col-span-6 space-y-6">
+        
+        <!-- 欢迎/公告 Banner -->
+        <div class="glass-card p-6 bg-gradient-to-r from-pink-100/50 to-blue-100/50 flex items-center justify-between">
+            <div>
+                <h1 class="text-2xl acg-font text-gray-800 mb-1">欢迎来到次元社区！</h1>
+                <p class="text-sm text-gray-500">这里是大家交流心得、获取资讯的温馨小屋~</p>
+            </div>
+            <i class="fa-solid fa-heart-circle-bolt text-4xl text-pink-300"></i>
+        </div>
+
+        <!-- 最新资讯 (Consultation Center Preview) -->
+        <div class="space-y-4">
+            <div class="flex items-center justify-between">
+                <h2 class="text-xl acg-font text-gray-800"><i class="fa-solid fa-bullhorn mr-2 text-blue-400"></i>最新资讯</h2>
+                <a href="{% url 'news_list' %}" class="text-xs text-blue-400 hover:text-blue-600">查看全部 <i class="fa-solid fa-angle-right"></i></a>
+            </div>
+            
+            <div class="grid grid-cols-1 gap-4">
+                {% for news in hot_news %}
+                <div class="glass-card p-0 flex h-32 overflow-hidden hover:shadow-lg transition-all group">
+                    <div class="w-48 bg-gray-200 relative overflow-hidden">
+                        {% if news.cover_image %}
+                        <img src="{{ news.cover_image.url }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                        {% else %}
+                        <div class="w-full h-full bg-blue-100 flex items-center justify-center text-blue-300">
+                            <i class="fa-solid fa-image text-3xl"></i>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="flex-1 p-4 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-[10px] bg-blue-100 text-blue-500 px-2 py-0.5 rounded-full">{{ news.category.name|default:"综合" }}</span>
+                                <span class="text-[10px] text-gray-400">{{ news.created_at|date:"m-d" }}</span>
+                            </div>
+                            <h3 class="font-bold text-gray-800 line-clamp-1 group-hover:text-blue-500 transition-colors">
+                                <a href="{% url 'news_detail' news.id %}">{{ news.title }}</a>
+                            </h3>
+                            <p class="text-xs text-gray-500 mt-1 line-clamp-2">{{ news.summary|default:news.content|striptags|truncatechars:50 }}</p>
+                        </div>
+                        <div class="flex items-center text-[10px] text-gray-400 space-x-3">
+                            <span><i class="fa-solid fa-eye mr-1"></i>{{ news.views }}</span>
+                            <span><i class="fa-solid fa-user mr-1"></i>{{ news.author.username }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="glass-card p-8 text-center text-gray-400">
+                    <i class="fa-solid fa-inbox text-4xl mb-2"></i>
+                    <p>暂时没有资讯哦~</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- 社区讨论 (Community Center Preview) -->
+        <div class="space-y-4">
+            <div class="flex items-center justify-between">
+                <h2 class="text-xl acg-font text-gray-800"><i class="fa-solid fa-comments mr-2 text-pink-400"></i>热门话题</h2>
+                <a href="{% url 'topic_list' %}" class="text-xs text-pink-400 hover:text-pink-600">进入讨论区 <i class="fa-solid fa-angle-right"></i></a>
+            </div>
+
+            <!-- 置顶话题 -->
+            {% if pinned_topics %}
+            <div class="space-y-2">
+                {% for topic in pinned_topics %}
+                <div class="glass-card px-4 py-3 flex items-center justify-between border-l-4 border-orange-400 hover:bg-white/80 transition-colors">
+                    <div class="flex items-center space-x-3 overflow-hidden">
+                        <span class="px-1.5 py-0.5 bg-orange-100 text-orange-500 text-[10px] font-bold rounded shrink-0">置顶</span>
+                        <a href="{% url 'topic_detail' topic.id %}" class="text-sm font-bold text-gray-700 truncate hover:text-orange-500">{{ topic.title }}</a>
+                    </div>
+                    <div class="flex items-center text-[10px] text-gray-400 space-x-2 shrink-0">
+                        <span><i class="fa-solid fa-fire text-orange-300"></i> {{ topic.views }}</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- 普通列表 -->
+            <div class="glass-card divide-y divide-gray-100">
+                {% for topic in recent_topics %}
+                <div class="p-4 hover:bg-white/50 transition-colors flex items-start space-x-4">
+                    <div class="shrink-0">
+                        {% if topic.author.avatar %}
+                        <img src="{{ topic.author.avatar.url }}" class="w-10 h-10 rounded-full border-2 border-white shadow-sm">
+                        {% else %}
+                        <img src="{% static 'images/default_head.png' %}" class="w-10 h-10 rounded-full border-2 border-white shadow-sm">
+                        {% endif %}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center justify-between mb-1">
+                            <h3 class="text-sm font-bold text-gray-800 truncate hover:text-pink-500">
+                                <a href="{% url 'topic_detail' topic.id %}">{{ topic.title }}</a>
+                            </h3>
+                            <span class="text-[10px] text-gray-400 shrink-0">{{ topic.created_at|timesince }}前</span>
+                        </div>
+                        <p class="text-xs text-gray-500 line-clamp-1 mb-2">{{ topic.content|striptags }}</p>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-2">
+                                {% if topic.category %}
+                                <span class="px-2 py-0.5 bg-gray-100 text-gray-500 text-[10px] rounded-full">{{ topic.category.name }}</span>
+                                {% endif %}
+                                <span class="text-[10px] text-blue-400">@{{ topic.author.username }}</span>
+                            </div>
+                            <div class="flex items-center space-x-3 text-[10px] text-gray-400">
+                                <span><i class="fa-regular fa-eye"></i> {{ topic.views }}</span>
+                                <span><i class="fa-regular fa-thumbs-up"></i> {{ topic.likes }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="p-8 text-center text-gray-400">
+                    <p>这里静悄悄的...</p>
+                    <a href="#" class="text-pink-400 text-sm mt-2 inline-block">发布第一个话题</a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <!-- 右侧：发布与活动 -->
+    <aside class="col-span-12 lg:col-span-3 space-y-6">
+        <div class="glass-card p-6 text-center border-t-4 border-purple-400">
+            <h3 class="font-bold text-gray-800 mb-2">分享你的二次元生活！</h3>
+            <p class="text-xs text-gray-500 mb-4">无论是番剧吐槽还是游戏攻略，这里都有人倾听</p>
+            <button class="w-full py-2 bg-gradient-to-r from-pink-400 to-purple-500 text-white rounded-lg shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all font-bold text-sm">
+                <i class="fa-solid fa-pen-nib mr-2"></i> 发布话题
+            </button>
+        </div>
+
+        <div class="glass-card p-4">
+            <h3 class="text-sm font-bold text-gray-700 mb-3 border-b border-gray-100 pb-2">活跃用户</h3>
+            <div class="grid grid-cols-4 gap-2">
+                <!-- Placeholder Users -->
+                {% for i in "12345678" %}
+                <div class="aspect-square rounded-lg bg-gray-100 overflow-hidden relative group cursor-pointer">
+                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ forloop.counter }}" class="w-full h-full object-cover">
+                    <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <i class="fa-solid fa-plus text-white text-xs"></i>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </aside>
+
+</div>
+{% endblock %}

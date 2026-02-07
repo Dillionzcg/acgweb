@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}资讯中心 - 二次元前线{% endblock %}
+
+{% block content %}
+<div class="animate__animated animate__fadeIn">
+    
+    <!-- Header Banner -->
+    <div class="relative h-64 rounded-3xl overflow-hidden shadow-2xl mb-8 group">
+        <div class="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 opacity-90"></div>
+        <img src="https://picsum.photos/1200/400?blur=2" class="absolute inset-0 w-full h-full object-cover mix-blend-overlay group-hover:scale-105 transition-transform duration-700">
+        <div class="relative h-full flex flex-col justify-center px-10 text-white">
+            <h1 class="text-4xl acg-font mb-2 drop-shadow-lg">资讯情报局</h1>
+            <p class="text-lg opacity-80">掌握第一手番剧、游戏、展会动态</p>
+        </div>
+        
+        <!-- Category Nav (Floating) -->
+        <div class="absolute bottom-6 left-10 flex gap-2">
+            <a href="{% url 'news_list' %}" class="px-4 py-1.5 rounded-full backdrop-blur-md border border-white/30 text-sm font-bold hover:bg-white hover:text-blue-600 transition-all {% if not current_category %}bg-white text-blue-600{% else %}bg-black/20 text-white{% endif %}">全部</a>
+            {% for cat in categories %}
+            <a href="{% url 'news_list' %}?category={{ cat.id }}" class="px-4 py-1.5 rounded-full backdrop-blur-md border border-white/30 text-sm font-bold hover:bg-white hover:text-blue-600 transition-all {% if current_category == cat.id %}bg-white text-blue-600{% else %}bg-black/20 text-white{% endif %}">
+                {{ cat.name }}
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- News Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for news in news_items %}
+        <article class="glass-card overflow-hidden hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 group flex flex-col h-full">
+            <a href="{% url 'news_detail' news.id %}" class="block h-48 overflow-hidden relative">
+                {% if news.cover_image %}
+                <img src="{{ news.cover_image.url }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                {% else %}
+                <div class="w-full h-full bg-gray-200 flex items-center justify-center text-gray-400 group-hover:bg-blue-50 transition-colors">
+                    <i class="fa-solid fa-newspaper text-4xl"></i>
+                </div>
+                {% endif %}
+                <div class="absolute top-3 left-3">
+                    <span class="px-2 py-1 bg-black/50 backdrop-blur text-white text-[10px] rounded font-bold">
+                        {{ news.category.name|default:"资讯" }}
+                    </span>
+                </div>
+            </a>
+            
+            <div class="p-5 flex-1 flex flex-col">
+                <h2 class="text-lg font-bold text-gray-800 mb-2 leading-snug group-hover:text-blue-500 transition-colors">
+                    <a href="{% url 'news_detail' news.id %}">{{ news.title }}</a>
+                </h2>
+                <p class="text-xs text-gray-500 line-clamp-3 mb-4 flex-1">
+                    {{ news.summary|default:news.content|striptags|truncatechars:100 }}
+                </p>
+                
+                <div class="flex items-center justify-between text-[10px] text-gray-400 border-t border-gray-100 pt-3">
+                    <div class="flex items-center gap-2">
+                        {% if news.author.avatar %}
+                        <img src="{{ news.author.avatar.url }}" class="w-5 h-5 rounded-full">
+                        {% else %}
+                        <div class="w-5 h-5 rounded-full bg-gray-300"></div>
+                        {% endif %}
+                        <span>{{ news.author.username }}</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span><i class="fa-regular fa-clock mr-1"></i>{{ news.created_at|date:"m-d" }}</span>
+                        <span><i class="fa-regular fa-eye mr-1"></i>{{ news.views }}</span>
+                    </div>
+                </div>
+            </div>
+        </article>
+        {% empty %}
+        <div class="col-span-full py-20 text-center text-gray-400">
+            <i class="fa-solid fa-satellite-dish text-5xl mb-4 text-blue-200"></i>
+            <p>暂无相关资讯，雷达正在扫描中...</p>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+{% endblock %}

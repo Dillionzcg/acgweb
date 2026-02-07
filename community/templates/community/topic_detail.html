@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ topic.title }} - 话题详情{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto animate__animated animate__fadeIn">
+    
+    <div class="mb-4">
+        <a href="{% url 'topic_list' %}" class="text-gray-500 hover:text-pink-500 transition-colors text-sm">
+            <i class="fa-solid fa-arrow-left mr-2"></i> 返回列表
+        </a>
+    </div>
+
+    <!-- 楼主内容 -->
+    <div class="glass-card overflow-hidden mb-6">
+        <div class="p-6 border-b border-gray-100 bg-white/40">
+            <div class="flex items-center gap-2 mb-3">
+                {% if topic.category %}
+                <span class="px-2 py-0.5 bg-blue-100 text-blue-500 text-xs rounded-full font-bold">{{ topic.category.name }}</span>
+                {% endif %}
+                <h1 class="text-2xl font-bold text-gray-800">{{ topic.title }}</h1>
+            </div>
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full overflow-hidden border border-white shadow-sm">
+                         {% if topic.author.avatar %}
+                        <img src="{{ topic.author.avatar.url }}" class="w-full h-full object-cover">
+                        {% else %}
+                        <img src="{% static 'images/default_head.png' %}" class="w-full h-full object-cover">
+                        {% endif %}
+                    </div>
+                    <div>
+                        <div class="text-sm font-bold text-gray-700">{{ topic.author.username }}</div>
+                        <div class="text-[10px] text-gray-400">楼主 · {{ topic.created_at|date:"Y-m-d H:i" }}</div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4 text-gray-400 text-sm">
+                    <span><i class="fa-solid fa-eye mr-1"></i> {{ topic.views }}</span>
+                    <span><i class="fa-solid fa-thumbs-up mr-1"></i> {{ topic.likes }}</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="p-8 text-gray-700 leading-relaxed min-h-[200px]">
+            {{ topic.content|linebreaks }}
+        </div>
+        
+        <div class="px-6 py-4 bg-gray-50/50 flex items-center justify-end gap-3">
+            <button class="px-4 py-2 bg-pink-100 text-pink-500 rounded-full text-sm font-bold hover:bg-pink-500 hover:text-white transition-all">
+                <i class="fa-regular fa-thumbs-up mr-1"></i> 点赞
+            </button>
+            <button class="px-4 py-2 bg-gray-100 text-gray-500 rounded-full text-sm font-bold hover:bg-gray-200 transition-all">
+                <i class="fa-regular fa-star mr-1"></i> 收藏
+            </button>
+        </div>
+    </div>
+
+    <!-- 评论区 (Placeholder) -->
+    <div class="glass-card p-6">
+        <h3 class="text-lg font-bold text-gray-800 mb-6 flex items-center">
+            <i class="fa-solid fa-comments mr-2 text-blue-400"></i> 全部评论 (0)
+        </h3>
+        
+        <div class="text-center py-10 text-gray-400 bg-gray-50/50 rounded-xl border-2 border-dashed border-gray-200">
+            <i class="fa-solid fa-pen-nib text-3xl mb-3 text-gray-300"></i>
+            <p>还没有人评论哦，快来抢沙发吧！</p>
+        </div>
+
+        <div class="mt-8 flex gap-4">
+            <div class="w-10 h-10 rounded-full bg-gray-200 shrink-0 overflow-hidden">
+                {% if user.is_authenticated and user.avatar %}
+                    <img src="{{ user.avatar.url }}" class="w-full h-full object-cover">
+                {% else %}
+                    <img src="{% static 'images/default_head.png' %}" class="w-full h-full object-cover">
+                {% endif %}
+            </div>
+            <div class="flex-1">
+                <textarea class="w-full bg-white/60 border border-gray-200 rounded-xl p-4 outline-none focus:ring-2 focus:ring-pink-200 transition-all" rows="3" placeholder="发表你的看法..."></textarea>
+                <div class="flex justify-end mt-2">
+                    <button class="px-6 py-2 bg-blue-500 text-white rounded-full font-bold shadow-md hover:bg-blue-600 transition-all">发表评论</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

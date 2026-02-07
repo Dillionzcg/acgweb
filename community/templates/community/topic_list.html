@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}话题列表 - 次元社区{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-12 gap-6 animate__animated animate__fadeIn">
+    
+    <aside class="col-span-12 lg:col-span-3 space-y-4">
+        <div class="glass-card p-4">
+            <a href="{% url 'community_home' %}" class="flex items-center text-gray-500 hover:text-pink-500 transition-colors mb-4 text-sm">
+                <i class="fa-solid fa-arrow-left mr-2"></i> 返回社区首页
+            </a>
+            <h2 class="text-lg font-bold text-gray-800 mb-4 px-2">板块分类</h2>
+            <nav class="space-y-1">
+                <a href="{% url 'topic_list' %}" class="flex items-center justify-between px-3 py-2 rounded-lg {% if not current_category %}bg-pink-50 text-pink-500 font-bold{% else %}text-gray-600 hover:bg-gray-50{% endif %} transition-colors">
+                    <span><i class="fa-solid fa-layer-group mr-2 w-5 text-center"></i>全部话题</span>
+                </a>
+                {% for cat in categories %}
+                <a href="{% url 'topic_list' %}?category={{ cat.id }}" class="flex items-center justify-between px-3 py-2 rounded-lg {% if current_category == cat.id %}bg-pink-50 text-pink-500 font-bold{% else %}text-gray-600 hover:bg-gray-50{% endif %} transition-colors">
+                    <span><i class="{{ cat.icon|default:'fa-solid fa-hashtag' }} mr-2 w-5 text-center"></i>{{ cat.name }}</span>
+                </a>
+                {% endfor %}
+            </nav>
+        </div>
+        
+        <button class="w-full py-3 bg-pink-500 text-white rounded-xl shadow-lg hover:bg-pink-600 transition-all font-bold">
+            <i class="fa-solid fa-plus mr-2"></i> 发布新话题
+        </button>
+    </aside>
+
+    <div class="col-span-12 lg:col-span-9">
+        <div class="glass-card min-h-[600px] flex flex-col">
+            <div class="p-4 border-b border-gray-100 flex items-center justify-between">
+                <h1 class="text-xl font-bold text-gray-800">
+                    {% if current_category %}
+                        {% for cat in categories %}
+                            {% if cat.id == current_category %}{{ cat.name }}{% endif %}
+                        {% endfor %}
+                    {% else %}
+                        全部话题
+                    {% endif %}
+                </h1>
+                <div class="flex space-x-2 text-xs">
+                    <button class="px-3 py-1 bg-gray-100 rounded-full text-gray-600 hover:bg-gray-200">最新</button>
+                    <button class="px-3 py-1 bg-white text-gray-400 hover:text-gray-600">最热</button>
+                </div>
+            </div>
+            
+            <div class="divide-y divide-gray-50">
+                {% for topic in topics %}
+                <div class="p-6 hover:bg-pink-50/30 transition-colors group">
+                    <div class="flex items-start gap-4">
+                        <div class="shrink-0">
+                            {% if topic.author.avatar %}
+                            <img src="{{ topic.author.avatar.url }}" class="w-12 h-12 rounded-full border-2 border-white shadow-sm">
+                            {% else %}
+                            <img src="{% static 'images/default_head.png' %}" class="w-12 h-12 rounded-full border-2 border-white shadow-sm">
+                            {% endif %}
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2 mb-1">
+                                {% if topic.is_pinned %}
+                                <span class="px-1.5 py-0.5 bg-orange-100 text-orange-500 text-[10px] font-bold rounded">置顶</span>
+                                {% endif %}
+                                {% if topic.category %}
+                                <span class="px-2 py-0.5 bg-gray-100 text-gray-500 text-[10px] rounded-full">{{ topic.category.name }}</span>
+                                {% endif %}
+                                <h3 class="text-lg font-bold text-gray-800 group-hover:text-pink-500 transition-colors truncate">
+                                    <a href="{% url 'topic_detail' topic.id %}" class="block">{{ topic.title }}</a>
+                                </h3>
+                            </div>
+                            <p class="text-sm text-gray-500 line-clamp-2 mb-3">{{ topic.content|striptags }}</p>
+                            
+                            <div class="flex items-center justify-between text-xs text-gray-400">
+                                <div class="flex items-center gap-4">
+                                    <span class="text-blue-400 font-bold">{{ topic.author.username }}</span>
+                                    <span>{{ topic.created_at|date:"Y-m-d H:i" }}</span>
+                                </div>
+                                <div class="flex items-center gap-4">
+                                    <span class="flex items-center"><i class="fa-regular fa-eye mr-1"></i> {{ topic.views }}</span>
+                                    <span class="flex items-center"><i class="fa-regular fa-thumbs-up mr-1"></i> {{ topic.likes }}</span>
+                                    <span class="flex items-center"><i class="fa-regular fa-comment-dots mr-1"></i> 0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="p-12 text-center flex flex-col items-center justify-center text-gray-400">
+                    <i class="fa-solid fa-wind text-4xl mb-4 text-gray-300"></i>
+                    <p>这里空空如也...</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
