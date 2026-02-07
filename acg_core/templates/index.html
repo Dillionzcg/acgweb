@@ -4,7 +4,7 @@
 {% block content %}
 <div class="grid grid-cols-12 gap-6 pb-8">
 
-    <aside class="col-span-12 lg:col-span-3 space-y-6 animate__animated animate__fadeInLeft">
+ <aside class="col-span-12 lg:col-span-3 space-y-6 animate__animated animate__fadeInLeft">
     <div class="glass-card p-6 shadow-xl border-l-4 border-pink-400">
         <h2 class="text-2xl acg-font text-pink-600 mb-4 flex items-center justify-between">
             <span><i class="fa-solid fa-fire-flame-curved mr-2"></i>番剧排行榜</span>
@@ -61,60 +61,64 @@
                 <span class="text-[10px] text-gray-400">4.5w</span>
             </li>
         </ul>
+        <button class="w-full mt-6 py-2 text-sm text-pink-500 border border-pink-200 rounded-xl hover:bg-pink-500 hover:text-white transition-all duration-300">
+            查看详情 <i class="fa-solid fa-chevron-right text-[10px]"></i>
+        </button>
     </div>
-        <div class="glass-card p-6 shadow-xl border-l-4 border-purple-400 mt-6">
-    <h2 class="text-2xl acg-font text-purple-600 mb-4 flex items-center">
-        <span><i class="fa-solid fa-trophy mr-2"></i>Galgame榜</span>
-    </h2>
-    <div class="space-y-4">
-        <div class="p-3 bg-white/50 rounded-xl hover:bg-white/80 transition-all border border-transparent hover:border-purple-200 cursor-pointer">
-            <p class="text-sm font-bold text-gray-800">1. CLANNAD</p>
-            <p class="text-[11px] text-purple-400 mt-1">写作“家族”，读作“人生”</p>
-        </div>
-        <div class="p-3 bg-white/50 rounded-xl hover:bg-white/80 transition-all border border-transparent hover:border-purple-200 cursor-pointer">
-            <p class="text-sm font-bold text-gray-800">2. 命运石之门</p>
-            <p class="text-[11px] text-purple-400 mt-1">这一切都是命运石之门的选择</p>
-        </div>
-        <div class="p-3 bg-white/50 rounded-xl hover:bg-white/80 transition-all border border-transparent hover:border-purple-200 cursor-pointer">
-            <p class="text-sm font-bold text-gray-800">3.白色相簿2</p>
-            <p class="text-[11px] text-purple-400 mt-1">“又到了白色相簿的季节。。。”</p>
-        </div>
 
-        <ul class="mt-4 space-y-3 px-1">
-            <li class="flex justify-between items-center group cursor-pointer">
-                <span class="text-sm text-gray-600 group-hover:text-purple-500">4. Muv-Luv Alternative</span>
-                <span class="text-[10px] text-gray-400 italic">9.6</span>
-            </li>
-            <li class="flex justify-between items-center group cursor-pointer">
-                <span class="text-sm text-gray-600 group-hover:text-purple-500">5. 魔法使之夜</span>
-                <span class="text-[10px] text-gray-400 italic">9.5</span>
-            </li>
-            <li class="flex justify-between items-center group cursor-pointer">
-                <span class="text-sm text-gray-600 group-hover:text-purple-500">6. Summer Pockets</span>
-                <span class="text-[10px] text-gray-400 italic">9.4</span>
-            </li>
-            <li class="flex justify-between items-center group cursor-pointer">
-                <span class="text-sm text-gray-600 group-hover:text-purple-500">7. 装甲恶鬼村正</span>
-                <span class="text-[10px] text-gray-400 italic">9.4</span>
-            </li>
-            <li class="flex justify-between items-center group cursor-pointer">
-                <span class="text-sm text-gray-600 group-hover:text-purple-500">8. 樱之刻</span>
-                <span class="text-[10px] text-gray-400 italic">9.3</span>
-            </li>
-            <li class="flex justify-between items-center group cursor-pointer">
-                <span class="text-sm text-gray-600 group-hover:text-purple-500">9. 拔作岛 (Nukitashi)</span>
-                <span class="text-[10px] text-gray-400 italic">9.2</span>
-            </li>
-            <li class="flex justify-between items-center group cursor-pointer">
-                <span class="text-sm text-gray-600 group-hover:text-purple-500">10. 命运停驻之夜 (FSN)</span>
-                <span class="text-[10px] text-gray-400 italic">9.2</span>
-            </li>
-        </ul>
+    <div class="glass-card p-6 shadow-xl border-l-4 border-purple-400 mt-6">
+        <h2 class="text-2xl acg-font text-purple-600 mb-4 flex items-center">
+            <span><i class="fa-solid fa-trophy mr-2"></i>Galgame榜</span>
+        </h2>
+        <div class="space-y-4">
+            <div class="p-3 bg-white/50 rounded-xl hover:bg-white/80 transition-all border border-transparent hover:border-purple-200 cursor-pointer">
+                <p class="text-sm font-bold text-gray-800">1. CLANNAD</p>
+                <p class="text-[11px] text-purple-400 mt-1">写作“家族”，读作“人生”</p>
+            </div>
+            <div class="p-3 bg-white/50 rounded-xl hover:bg-white/80 transition-all border border-transparent hover:border-purple-200 cursor-pointer">
+                <p class="text-sm font-bold text-gray-800">2. 命运石之门</p>
+                <p class="text-[11px] text-purple-400 mt-1">这一切都是命运石之门的选择</p>
+            </div>
+            <div class="p-3 bg-white/50 rounded-xl hover:bg-white/80 transition-all border border-transparent hover:border-purple-200 cursor-pointer">
+                <p class="text-sm font-bold text-gray-800">3. 白色相簿2</p>
+                <p class="text-[11px] text-purple-400 mt-1">“又到了白色相簿的季节。。。”</p>
+            </div>
+
+            <ul class="mt-4 space-y-3 px-1">
+                <li class="flex justify-between items-center group cursor-pointer">
+                    <span class="text-sm text-gray-600 group-hover:text-purple-500">4. Muv-Luv Alternative</span>
+                    <span class="text-[10px] text-gray-400 italic">9.6</span>
+                </li>
+                <li class="flex justify-between items-center group cursor-pointer">
+                    <span class="text-sm text-gray-600 group-hover:text-purple-500">5. 魔法使之夜</span>
+                    <span class="text-[10px] text-gray-400 italic">9.5</span>
+                </li>
+                <li class="flex justify-between items-center group cursor-pointer">
+                    <span class="text-sm text-gray-600 group-hover:text-purple-500">6. Summer Pockets</span>
+                    <span class="text-[10px] text-gray-400 italic">9.4</span>
+                </li>
+                <li class="flex justify-between items-center group cursor-pointer">
+                    <span class="text-sm text-gray-600 group-hover:text-purple-500">7. 装甲恶鬼村正</span>
+                    <span class="text-[10px] text-gray-400 italic">9.4</span>
+                </li>
+                <li class="flex justify-between items-center group cursor-pointer">
+                    <span class="text-sm text-gray-600 group-hover:text-purple-500">8. 樱之刻</span>
+                    <span class="text-[10px] text-gray-400 italic">9.3</span>
+                </li>
+                <li class="flex justify-between items-center group cursor-pointer">
+                    <span class="text-sm text-gray-600 group-hover:text-purple-500">9. 拔作岛 (Nukitashi)</span>
+                    <span class="text-[10px] text-gray-400 italic">9.2</span>
+                </li>
+                <li class="flex justify-between items-center group cursor-pointer">
+                    <span class="text-sm text-gray-600 group-hover:text-purple-500">10. 命运停驻之夜 (FSN)</span>
+                    <span class="text-[10px] text-gray-400 italic">9.2</span>
+                </li>
+            </ul>
+        </div>
+        <button class="w-full mt-6 py-2 text-sm text-purple-500 border border-purple-200 rounded-xl hover:bg-purple-500 hover:text-white transition-all duration-300">
+            查看详情 <i class="fa-solid fa-chevron-right text-[10px]"></i>
+        </button>
     </div>
-    <button class="w-full mt-6 py-2 text-sm text-purple-500 border border-purple-200 rounded-xl hover:bg-purple-500 hover:text-white transition-all duration-300">
-        查看详情 <i class="fa-solid fa-chevron-right text-[10px]"></i>
-    </button>
-</div>
 </aside>
 
     <section class="col-span-12 lg:col-span-6 space-y-8">
@@ -142,7 +146,7 @@
                 </div>
             </a>
 
-            <a href="#" class="col-span-2 h-48 relative group overflow-hidden rounded-2xl shadow-lg transition-all hover:-translate-y-1 bg-orange-900">
+            <a href="{% url 'masterpieces:works_center' %}" class="col-span-2 h-48 relative group overflow-hidden rounded-2xl shadow-lg transition-all hover:-translate-y-1 bg-orange-900">
                 <div class="absolute inset-0 bg-cover bg-center opacity-75 transition-all duration-700 group-hover:scale-110 group-hover:opacity-60"
                      style="background-image: url('/static/images/bg3.jpg');"></div>
                 <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
@@ -182,7 +186,7 @@
         <div class="space-y-4">
             <div class="flex items-center justify-between px-2">
                 <h2 class="text-2xl acg-font text-gray-800"><i class="fa-solid fa-heart mr-2 text-pink-400"></i>热门作品</h2>
-                <a href="#" class="text-sm text-pink-400 hover:text-pink-600">作品中心 <i class="fa-solid fa-angle-right"></i></a>
+                <a href="{% url 'masterpieces:works_center' %}" class="text-sm text-pink-400 hover:text-pink-600">作品中心 <i class="fa-solid fa-angle-right"></i></a>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="glass-card p-4 hover:shadow-2xl transition-all cursor-pointer group">

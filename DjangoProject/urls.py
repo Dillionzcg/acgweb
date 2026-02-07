@@ -9,6 +9,7 @@ urlpatterns = [
     path('', include('acg_core.urls')),
     path('auth/', include('authentication.urls')),
     path('chat/', include('chat.urls')),
+    path('works/', include('masterpieces.urls')),
 ]
 
 if settings.DEBUG:

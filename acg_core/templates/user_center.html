@@ -439,7 +439,7 @@
                 setTimeout(() => document.getElementById('save-hint').style.opacity = '0', 2000);
             } else {
                 // 失败：处理后端传回的业务错误（如重复）
-                const errorMsg = result.message || "档案同步失败了喵...";
+                const errorMsg = result.message || "档案同步失败了...";
 
                 // 判断错误类型并显示在对应框下方
                 if (errorMsg.includes('手机') || errorMsg.includes('phone')) {

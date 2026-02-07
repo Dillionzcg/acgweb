@@ -1,0 +1,292 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}作品中心 - 柚子次元壁{% endblock %}
+
+{% block content %}
+<style>
+    :root { --theme-color: #ff7675; }
+
+    /* 整体容器进入 */
+    .works-container { animation: slideUpIn 0.8s cubic-bezier(0.2, 0.8, 0.2, 1); }
+    @keyframes slideUpIn {
+        from { opacity: 0; transform: translateY(40px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* 1. 顶部滑块导航 */
+    .zone-selector-wrapper { position: relative; display: flex; justify-content: center; margin-bottom: 30px; }
+    .zone-selector {
+        position: relative; display: inline-flex; background: rgba(255, 255, 255, 0.5);
+        backdrop-filter: blur(10px); padding: 5px; border-radius: 50px;
+        border: 1px solid rgba(255, 255, 255, 0.8); z-index: 1;
+    }
+    .active-slider {
+        position: absolute; height: calc(100% - 10px); top: 5px; left: 5px;
+        background: var(--theme-color); border-radius: 50px;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: -1;
+        box-shadow: 0 5px 15px rgba(255, 118, 117, 0.3);
+    }
+    .zone-btn {
+        padding: 12px 35px; border-radius: 50px; color: #666; font-weight: bold;
+        cursor: pointer; transition: color 0.3s; border: none; background: transparent;
+    }
+    .zone-btn.active { color: white; }
+
+    /* 2. 主题大卡片 */
+    .recommend-hero {
+        position: relative; height: 180px; border-radius: 24px;
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 0 50px; margin-bottom: 40px; overflow: hidden;
+        border: 4px solid white; transition: background 0.6s ease;
+    }
+    .recommend-hero i.fa-star {
+        font-size: 80px; color: rgba(255, 255, 255, 0.4);
+        position: absolute; right: -10px; bottom: -10px; transform: rotate(-15deg);
+    }
+
+    /* 3. 核心滑动视口 */
+    .content-viewport { overflow: hidden; width: 100%; }
+    .content-slider {
+        display: flex; width: 300%;
+        transition: transform 0.6s cubic-bezier(0.65, 0, 0.35, 1);
+    }
+    .zone-content-pane { width: 33.3333%; padding: 0 10px; }
+
+    /* 4. 网格与卡片 */
+    .works-grid { display: grid; grid-template-columns: 1fr 320px; gap: 25px; }
+    .work-card {
+        background: white; border-radius: 18px; overflow: hidden;
+        transition: all 0.4s ease; border: 1px solid rgba(255, 182, 193, 0.2);
+        opacity: 0; transform: translateY(30px); /* 初始状态用于 JS 触发 */
+    }
+    .work-card.show { opacity: 1; transform: translateY(0); }
+    .work-card:hover { transform: translateY(-8px); box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
+
+    /* 5. 排行榜样式 */
+    .rank-list {
+        background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px);
+        border-radius: 20px; padding: 20px; border: 1px solid white;
+    }
+    .rank-num {
+        width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center;
+        border-radius: 6px; font-size: 12px; margin-right: 10px; font-weight: bold;
+    }
+
+    /* 空状态样式 */
+    /* 空状态样式 - 修正后的版本 */
+    .empty-state {
+        grid-column: span 3;
+        padding: 60px 0;
+        text-align: center;
+        /* 修改这里：将 white/40 改为标准 rgba */
+        background: rgba(255, 255, 255, 0.4);
+        backdrop-filter: blur(5px); /* 可选：增加磨砂玻璃感 */
+        border-radius: 24px;
+        border: 2px dashed #ffb6c1;
+        margin: 20px 0;
+    }
+
+/* 彻底修复：改用绝对定位，并放入内容流 */
+.back-home {
+    position: absolute; /* 改为绝对定位 */
+    left: 20px;
+    top: 20px; /* 这里的 20px 是相对于 content-area 的顶部 */
+    z-index: 10;
+
+    /* 保持优雅的进入动画 */
+    opacity: 0;
+    animation: slideInLeft 0.5s ease-out forwards;
+}
+
+@keyframes slideInLeft {
+    from { opacity: 0; transform: translateX(-10px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+/* 适配：确保在移动端也不会乱跑 */
+@media (max-width: 640px) {
+    .back-home {
+        left: 10px;
+        top: 10px;
+        padding: 4px 12px;
+        font-size: 13px;
+    }
+}
+
+
+</style>
+    <div class="works-container relative">
+        <a href="/" class="back-home px-4 py-2 bg-white/90 backdrop-blur rounded-full shadow-sm text-pink-500 hover:bg-pink-500 hover:text-white transition-all acg-font border border-pink-100 flex items-center">
+            <i class="fa-solid fa-house-chimney mr-1"></i> 返回首页
+        </a>
+
+    <div class="zone-selector-wrapper">
+        <div class="zone-selector">
+            <div class="active-slider" id="slider-bg"></div>
+            <button class="zone-btn active" onclick="switchZone('anime', 0, this)">番剧专区</button>
+            <button class="zone-btn" onclick="switchZone('galgame', 1, this)">Galgame专区</button>
+            <button class="zone-btn" onclick="switchZone('manga', 2, this)">小说和漫画</button>
+        </div>
+    </div>
+
+    <div class="recommend-hero" id="recommend-btn" style="background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);">
+        <div>
+            <h2 class="text-3xl font-bold text-white mb-2 acg-font">发现好作？快来安利！</h2>
+            <p class="text-white/80">点击进入推荐通道，分享你心中的神作</p>
+        </div>
+        <div class="bg-white/20 px-8 py-4 rounded-2xl text-white font-bold text-xl border border-white/30 backdrop-blur">
+            我要推荐作品 <i class="fa-solid fa-paper-plane ml-2"></i>
+        </div>
+        <i class="fa-solid fa-star"></i>
+    </div>
+
+    <div class="content-viewport">
+        <div class="content-slider" id="main-slider">
+            <div class="zone-content-pane">
+                <div class="works-grid">
+                    <div class="space-y-6">
+                        <h3 class="text-xl font-bold text-gray-700 flex items-center"><span class="w-2 h-6 bg-pink-400 rounded-full mr-3"></span>热门推荐</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="items-anime"></div>
+                    </div>
+                    <div class="space-y-6">
+                        <h3 class="text-xl font-bold text-gray-700 flex items-center"><span class="w-2 h-6 bg-yellow-400 rounded-full mr-3"></span>热度排行</h3>
+                        <div class="rank-list" id="rank-anime"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="zone-content-pane">
+                <div class="works-grid">
+                    <div class="space-y-6">
+                        <h3 class="text-xl font-bold text-gray-700 flex items-center"><span class="w-2 h-6 bg-blue-400 rounded-full mr-3"></span>热门推荐</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="items-galgame"></div>
+                    </div>
+                    <div class="space-y-6">
+                        <h3 class="text-xl font-bold text-gray-700 flex items-center"><span class="w-2 h-6 bg-blue-300 rounded-full mr-3"></span>热度排行</h3>
+                        <div class="rank-list" id="rank-galgame"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="zone-content-pane">
+                <div class="works-grid">
+                    <div class="space-y-6">
+                        <h3 class="text-xl font-bold text-gray-700 flex items-center"><span class="w-2 h-6 bg-green-400 rounded-full mr-3"></span>热门推荐</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="items-manga"></div>
+                    </div>
+                    <div class="space-y-6">
+                        <h3 class="text-xl font-bold text-gray-700 flex items-center"><span class="w-2 h-6 bg-green-300 rounded-full mr-3"></span>热度排行</h3>
+                        <div class="rank-list" id="rank-manga"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const zoneConfigs = {
+        anime: { theme: "linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)", color: "#ff7675" },
+        galgame: { theme: "linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%)", color: "#74b9ff" },
+        manga: { theme: "linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%)", color: "#55efc4" }
+    };
+
+    function renderSection(zone, items, ranks) {
+        const itemContainer = document.getElementById(`items-${zone}`);
+        const rankContainer = document.getElementById(`rank-${zone}`);
+
+        // 1. 渲染推荐卡片 (带动画效果)
+        if (!items || items.length === 0) {
+            itemContainer.innerHTML = `
+                <div class="empty-state">
+                    <i class="fa-solid fa-box-open text-4xl text-pink-200 mb-2"></i>
+                    <p class="text-gray-400">目前还没有作品哦~</p>
+                </div>`;
+        } else {
+            itemContainer.innerHTML = items.map((item, index) => `
+                <div class="work-card shadow-sm">
+                    <div class="relative group">
+                        <img src="${item.img}" class="w-full h-48 object-cover">
+                        <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <span class="px-3 py-1 bg-white/90 rounded-full text-pink-500 text-xs font-bold">查看详情</span>
+                        </div>
+                    </div>
+                    <div class="p-4">
+                        <span class="px-2 py-0.5 bg-pink-50 text-pink-400 text-[10px] font-bold rounded uppercase">${item.tag}</span>
+                        <h4 class="font-bold text-gray-800 mt-2 truncate">${item.title}</h4>
+                        <div class="flex justify-between items-center mt-3">
+                            <div class="flex items-center text-yellow-500">
+                                <i class="fa-solid fa-star text-[10px] mr-1"></i>
+                                <span class="text-sm font-mono font-bold">${item.hot}</span>
+                            </div>
+                            <i class="fa-solid fa-heart text-gray-200 hover:text-pink-500 cursor-pointer transition-colors"></i>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            // 触发升起动画
+            setTimeout(() => {
+                itemContainer.querySelectorAll('.work-card').forEach((card, i) => {
+                    setTimeout(() => card.classList.add('show'), i * 100);
+                });
+            }, 100);
+        }
+
+        // 2. 渲染排行榜 (带火苗)
+        if (!ranks || ranks.length === 0) {
+            rankContainer.innerHTML = '<p class="text-center text-gray-400 py-4">暂无排行</p>';
+        } else {
+            rankContainer.innerHTML = ranks.map((name, i) => `
+                <div class="flex items-center justify-between py-3 border-b border-pink-50/50 last:border-0 hover:bg-white/40 px-2 rounded-lg transition-colors">
+                    <div class="flex items-center overflow-hidden">
+                        <span class="rank-num ${i < 3 ? 'bg-gradient-to-br from-pink-400 to-red-400 text-white' : 'bg-gray-100 text-gray-400'}">${i+1}</span>
+                        <span class="text-sm font-medium text-gray-700 truncate">${name}</span>
+                    </div>
+                    <div class="flex items-center ml-2">
+                        <i class="fa-solid fa-fire text-[10px] text-orange-400 mr-1 animate-pulse"></i>
+                        <span class="text-xs text-orange-400 font-mono font-bold">${(99.9 - i * 4.2).toFixed(1)}w</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+    }
+
+    function switchZone(zone, index, btnElement) {
+        // 滑块位移
+        const sliderBg = document.getElementById('slider-bg');
+        sliderBg.style.width = btnElement.offsetWidth + 'px';
+        sliderBg.style.transform = `translateX(${btnElement.offsetLeft - 5}px)`;
+        sliderBg.style.background = zoneConfigs[zone].color;
+
+        // 按钮状态
+        document.querySelectorAll('.zone-btn').forEach(btn => btn.classList.remove('active'));
+        btnElement.classList.add('active');
+
+        // 内容平移
+        document.getElementById('main-slider').style.transform = `translateX(-${index * 33.3333}%)`;
+        document.getElementById('recommend-btn').style.background = zoneConfigs[zone].theme;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // 番剧数据渲染
+        renderSection('anime', [
+            {% for item in anime_list %}{ title: "{{ item.title|escapejs }}", tag: "{{ item.tag|escapejs }}", hot: "{{ item.hot_score }}", img: "{% if item.cover %}{{ item.cover.url }}{% else %}https://picsum.photos/seed/a{{forloop.counter}}/300/400{% endif %}" },{% endfor %}
+        ], [{% for r in anime_ranks %}"{{ r.title|escapejs }}",{% endfor %}]);
+
+        // Galgame数据渲染
+        renderSection('galgame', [
+            {% for item in galgame_list %}{ title: "{{ item.title|escapejs }}", tag: "{{ item.tag|escapejs }}", hot: "{{ item.hot_score }}", img: "{% if item.cover %}{{ item.cover.url }}{% else %}https://picsum.photos/seed/g{{forloop.counter}}/300/400{% endif %}" },{% endfor %}
+        ], [{% for r in galgame_ranks %}"{{ r.title|escapejs }}",{% endfor %}]);
+
+        // 漫画数据渲染
+        renderSection('manga', [
+            {% for item in manga_list %}{ title: "{{ item.title|escapejs }}", tag: "{{ item.tag|escapejs }}", hot: "{{ item.hot_score }}", img: "{% if item.cover %}{{ item.cover.url }}{% else %}https://picsum.photos/seed/m{{forloop.counter}}/300/400{% endif %}" },{% endfor %}
+        ], [{% for r in manga_ranks %}"{{ r.title|escapejs }}",{% endfor %}]);
+
+        // 初始滑块宽度
+        const firstBtn = document.querySelector('.zone-btn');
+        const sliderBg = document.getElementById('slider-bg');
+        sliderBg.style.width = firstBtn.offsetWidth + 'px';
+    });
+</script>
+{% endblock %}
