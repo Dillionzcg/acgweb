@@ -1,0 +1,73 @@
+<!-- 悬浮发布话题 Modal -->
+<div id="create-topic-modal" class="fixed inset-0 z-[100] hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <!-- 背景遮罩 -->
+    <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity backdrop-blur-sm" onclick="closeTopicModal()"></div>
+
+    <!-- Modal 面板 -->
+    <div class="fixed inset-0 z-10 overflow-y-auto">
+        <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+            <div class="relative transform overflow-hidden rounded-2xl bg-white/90 backdrop-blur-md text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-2xl border border-white/50 animate__animated animate__zoomIn">
+                
+                <!-- 头部 -->
+                <div class="bg-gradient-to-r from-pink-400 to-purple-500 px-6 py-4 flex items-center justify-between">
+                    <h3 class="text-lg font-bold text-white flex items-center" id="modal-title">
+                        <i class="fa-solid fa-pen-nib mr-2"></i> 发布新话题
+                    </h3>
+                    <button type="button" class="text-white/80 hover:text-white transition-colors focus:outline-none" onclick="closeTopicModal()">
+                        <i class="fa-solid fa-xmark text-xl"></i>
+                    </button>
+                </div>
+
+                <!-- 表单内容 -->
+                <div class="px-6 py-6">
+                    <form action="{% url 'create_topic' %}" method="post" class="space-y-5">
+                        {% csrf_token %}
+                        
+                        <div>
+                            <label for="{{ topic_form.title.id_for_label }}" class="block text-sm font-bold text-gray-700 mb-1">标题</label>
+                            {{ topic_form.title }}
+                        </div>
+
+                        <div>
+                            <label for="{{ topic_form.category.id_for_label }}" class="block text-sm font-bold text-gray-700 mb-1">板块</label>
+                            {{ topic_form.category }}
+                        </div>
+
+                        <div>
+                            <label for="{{ topic_form.content.id_for_label }}" class="block text-sm font-bold text-gray-700 mb-1">内容</label>
+                            {{ topic_form.content }}
+                        </div>
+
+                        <div class="pt-2 flex items-center justify-end gap-3">
+                            <button type="button" class="px-5 py-2 rounded-xl bg-gray-100 text-gray-600 font-bold hover:bg-gray-200 transition-all text-sm" onclick="closeTopicModal()">取消</button>
+                            <button type="submit" class="px-6 py-2 rounded-xl bg-gradient-to-r from-pink-400 to-pink-500 text-white font-bold shadow-md hover:shadow-lg hover:scale-105 transition-all text-sm">
+                                <i class="fa-solid fa-paper-plane mr-2"></i> 立即发布
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openTopicModal() {
+        const modal = document.getElementById('create-topic-modal');
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden'; // 防止背景滚动
+    }
+
+    function closeTopicModal() {
+        const modal = document.getElementById('create-topic-modal');
+        modal.classList.add('hidden');
+        document.body.style.overflow = ''; // 恢复背景滚动
+    }
+
+    // 点击 ESC 关闭 Modal
+    document.addEventListener('keydown', function(event) {
+        if (event.key === "Escape") {
+            closeTopicModal();
+        }
+    });
+</script>

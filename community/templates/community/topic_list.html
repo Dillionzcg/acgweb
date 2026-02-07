@@ -24,9 +24,9 @@
             </nav>
         </div>
         
-        <a href="{% url 'create_topic' %}" class="block w-full py-3 bg-pink-500 text-white rounded-xl shadow-lg hover:bg-pink-600 transition-all font-bold text-center">
+        <button onclick="openTopicModal()" class="block w-full py-3 bg-pink-500 text-white rounded-xl shadow-lg hover:bg-pink-600 transition-all font-bold text-center">
             <i class="fa-solid fa-plus mr-2"></i> 发布新话题
-        </a>
+        </button>
     </aside>
 
     <div class="col-span-12 lg:col-span-9">
@@ -97,4 +97,6 @@
     </div>
 
 </div>
+
+{% include 'community/create_topic_modal.html' %}
 {% endblock %}

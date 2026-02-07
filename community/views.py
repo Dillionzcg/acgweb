@@ -10,11 +10,15 @@ def community_home(request):
     hot_news = News.objects.all().order_by('-views')[:3]
     topic_categories = TopicCategory.objects.all()
     
+    # 实例化表单用于Modal
+    topic_form = TopicForm()
+
     context = {
         'pinned_topics': pinned_topics,
         'recent_topics': recent_topics,
         'hot_news': hot_news,
         'topic_categories': topic_categories,
+        'topic_form': topic_form, # 添加到上下文
     }
     return render(request, 'community/index.html', context)
 
@@ -28,10 +32,14 @@ def topic_list(request):
         
     categories = TopicCategory.objects.all()
     
+    # 实例化表单用于Modal
+    topic_form = TopicForm()
+    
     context = {
         'topics': topics,
         'categories': categories,
-        'current_category': int(category_id) if category_id else None
+        'current_category': int(category_id) if category_id else None,
+        'topic_form': topic_form, # 添加到上下文
     }
     return render(request, 'community/topic_list.html', context)
 
@@ -48,7 +56,7 @@ def topic_detail(request, pk):
 
 @login_required
 def create_topic(request):
-    """发布新话题"""
+    """发布新话题 (处理Modal提交)"""
     if request.method == 'POST':
         form = TopicForm(request.POST)
         if form.is_valid():
@@ -56,6 +64,8 @@ def create_topic(request):
             topic.author = request.user
             topic.save()
             return redirect('topic_detail', pk=topic.pk)
+    # 如果是GET请求或者表单无效，通常Modal会处理，
+    # 但为了兼容性，保留渲染独立页面的逻辑，或者重定向回上一页
     else:
         form = TopicForm()
     
