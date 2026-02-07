@@ -15,7 +15,6 @@ class TopicForm(forms.ModelForm):
             }),
             'content': forms.Textarea(attrs={
                 'class': 'w-full px-5 py-4 rounded-xl bg-gray-50/80 border-2 border-transparent focus:bg-white focus:border-pink-300 focus:ring-4 focus:ring-pink-100 outline-none transition-all duration-300 h-64 text-gray-700 placeholder-gray-400 leading-relaxed resize-none',
-                'placeholder': '在这里分享你的观点、吐槽或情报...
-支持Markdown语法'
+                'placeholder': '在这里分享你的观点、吐槽或情报...支持Markdown语法'
             }),
         }
