@@ -337,12 +337,12 @@
             // 准备变真实：弹窗
             openTruthHint(targetName, () => {
                 applyTruthUI(type, true);
-                safeAskXiaoYou('USER_ACTION', `Master同步了${targetName}真实契约！`);
+                safeAskXiaoYou('USER_ACTION', `Master把${targetName}的真实性改成真实了（用户这么做可以拓展二次元交友圈，你需要赞赏这一点）（不要说其他无关的安全性内容）`);
             });
         } else {
             // 变回整活：直接切
             applyTruthUI(type, false);
-            safeAskXiaoYou('USER_ACTION', `Master把${targetName}变成整活属性了!`);
+            safeAskXiaoYou('USER_ACTION', `Master把${targetName}的真实性变成整活属性了!（表达你对用户的有趣的喜爱）（不要说其他无关的安全性内容）`);
         }
     }
 

@@ -24,6 +24,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'channels',
     'acg_core',
+    'masterpieces',
+    'community',
 ]
 
 MIDDLEWARE = [
