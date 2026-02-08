@@ -27,16 +27,10 @@
 
         <div class="glass-card p-6 shadow-xl border-l-4 border-blue-400">
             <h2 class="text-xl acg-font text-blue-600 mb-4 flex items-center">
-                <i class="fa-solid fa-tags mr-2"></i> 热门板块
+                <i class="fa-solid fa-hashtag mr-2"></i> 活跃关键词
             </h2>
-            <div class="flex flex-wrap gap-2">
-                {% for category in topic_categories %}
-                <a href="{% url 'topic_list' %}?category={{ category.id }}" class="px-3 py-1 bg-white/60 rounded-full text-xs text-gray-600 hover:bg-blue-100 hover:text-blue-500 transition-colors border border-gray-200">
-                    <i class="{{ category.icon|default:'fa-solid fa-hashtag' }} mr-1"></i> {{ category.name }}
-                </a>
-                {% empty %}
-                <p class="text-sm text-gray-400">暂无板块</p>
-                {% endfor %}
+            <div class="flex flex-wrap gap-2 text-sm text-gray-500">
+                <p>分享你的二次元见解，让话题更精彩！</p>
             </div>
         </div>
     </aside>
@@ -143,10 +137,14 @@
                         <p class="text-xs text-gray-500 line-clamp-1 mb-2">{{ topic.content|striptags }}</p>
                         <div class="flex items-center justify-between">
                             <div class="flex items-center space-x-2">
-                                {% if topic.category %}
-                                <span class="px-2 py-0.5 bg-gray-100 text-gray-500 text-[10px] rounded-full">{{ topic.category.name }}</span>
+                                <span class="text-[10px] text-blue-400 font-bold">@{{ topic.author.username }}</span>
+                                {% if topic.keywords %}
+                                <div class="flex gap-1">
+                                    {% for keyword in topic.keywords.split|slice:":2" %}
+                                    <span class="px-1.5 py-0.5 bg-pink-50 text-pink-400 text-[9px] rounded-full border border-pink-100">#{{ keyword }}</span>
+                                    {% endfor %}
+                                </div>
                                 {% endif %}
-                                <span class="text-[10px] text-blue-400">@{{ topic.author.username }}</span>
                             </div>
                             <div class="flex items-center space-x-3 text-[10px] text-gray-400">
                                 <span><i class="fa-regular fa-eye"></i> {{ topic.views }}</span>

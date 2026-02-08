@@ -20,6 +20,7 @@ class Topic(models.Model):
     content = models.TextField(verbose_name="内容")
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="topics", verbose_name="作者")
     category = models.ForeignKey(TopicCategory, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="板块")
+    keywords = models.CharField(max_length=255, blank=True, verbose_name="关键词", help_text="用逗号或空格分隔")
     views = models.PositiveIntegerField(default=0, verbose_name="浏览量")
     likes = models.PositiveIntegerField(default=0, verbose_name="点赞数")
     is_pinned = models.BooleanField(default=False, verbose_name="置顶")

@@ -8,7 +8,6 @@ def community_home(request):
     pinned_topics = Topic.objects.filter(is_pinned=True).order_by('-created_at')[:3]
     recent_topics = Topic.objects.filter(is_pinned=False).order_by('-created_at')[:5]
     hot_news = News.objects.all().order_by('-views')[:3]
-    topic_categories = TopicCategory.objects.all()
     
     # 实例化表单用于Modal
     topic_form = TopicForm()
@@ -17,28 +16,19 @@ def community_home(request):
         'pinned_topics': pinned_topics,
         'recent_topics': recent_topics,
         'hot_news': hot_news,
-        'topic_categories': topic_categories,
         'topic_form': topic_form, # 添加到上下文
     }
     return render(request, 'community/index.html', context)
 
 def topic_list(request):
     """话题列表页"""
-    category_id = request.GET.get('category')
-    topics = Topic.objects.all()
-    
-    if category_id:
-        topics = topics.filter(category_id=category_id)
-        
-    categories = TopicCategory.objects.all()
+    topics = Topic.objects.all().order_by('-created_at')
     
     # 实例化表单用于Modal
     topic_form = TopicForm()
     
     context = {
         'topics': topics,
-        'categories': categories,
-        'current_category': int(category_id) if category_id else None,
         'topic_form': topic_form, # 添加到上下文
     }
     return render(request, 'community/topic_list.html', context)

@@ -7,9 +7,9 @@ class TopicCategoryAdmin(admin.ModelAdmin):
 
 @admin.register(Topic)
 class TopicAdmin(admin.ModelAdmin):
-    list_display = ('title', 'author', 'category', 'created_at', 'is_pinned')
-    list_filter = ('category', 'is_pinned', 'created_at')
-    search_fields = ('title', 'content')
+    list_display = ('title', 'author', 'keywords', 'created_at', 'is_pinned')
+    list_filter = ('is_pinned', 'created_at')
+    search_fields = ('title', 'content', 'keywords')
 
 @admin.register(NewsCategory)
 class NewsCategoryAdmin(admin.ModelAdmin):

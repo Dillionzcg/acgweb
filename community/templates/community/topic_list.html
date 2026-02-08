@@ -11,17 +11,16 @@
             <a href="{% url 'community_home' %}" class="flex items-center text-gray-500 hover:text-pink-500 transition-colors mb-4 text-sm">
                 <i class="fa-solid fa-arrow-left mr-2"></i> 返回社区首页
             </a>
-            <h2 class="text-lg font-bold text-gray-800 mb-4 px-2">板块分类</h2>
-            <nav class="space-y-1">
-                <a href="{% url 'topic_list' %}" class="flex items-center justify-between px-3 py-2 rounded-lg {% if not current_category %}bg-pink-50 text-pink-500 font-bold{% else %}text-gray-600 hover:bg-gray-50{% endif %} transition-colors">
-                    <span><i class="fa-solid fa-layer-group mr-2 w-5 text-center"></i>全部话题</span>
-                </a>
-                {% for cat in categories %}
-                <a href="{% url 'topic_list' %}?category={{ cat.id }}" class="flex items-center justify-between px-3 py-2 rounded-lg {% if current_category == cat.id %}bg-pink-50 text-pink-500 font-bold{% else %}text-gray-600 hover:bg-gray-50{% endif %} transition-colors">
-                    <span><i class="{{ cat.icon|default:'fa-solid fa-hashtag' }} mr-2 w-5 text-center"></i>{{ cat.name }}</span>
-                </a>
-                {% endfor %}
-            </nav>
+            <h2 class="text-lg font-bold text-gray-800 mb-4 px-2">话题墙</h2>
+            <div class="px-2 text-sm text-gray-500 mb-4">
+                在这里发现大家分享的二次元关键词
+            </div>
+            <div class="flex flex-wrap gap-2 px-2">
+                <!-- 简单的关键词聚合展示 (可选) -->
+                <span class="px-2 py-1 bg-pink-50 text-pink-500 rounded-lg text-xs"># 番剧</span>
+                <span class="px-2 py-1 bg-blue-50 text-blue-500 rounded-lg text-xs"># 游戏</span>
+                <span class="px-2 py-1 bg-purple-50 text-purple-500 rounded-lg text-xs"># 吐槽</span>
+            </div>
         </div>
         
         <button onclick="openTopicModal()" class="block w-full py-3 bg-pink-500 text-white rounded-xl shadow-lg hover:bg-pink-600 transition-all font-bold text-center">
@@ -33,13 +32,7 @@
         <div class="glass-card min-h-[600px] flex flex-col">
             <div class="p-4 border-b border-gray-100 flex items-center justify-between">
                 <h1 class="text-xl font-bold text-gray-800">
-                    {% if current_category %}
-                        {% for cat in categories %}
-                            {% if cat.id == current_category %}{{ cat.name }}{% endif %}
-                        {% endfor %}
-                    {% else %}
-                        全部话题
-                    {% endif %}
+                    全部话题
                 </h1>
                 <div class="flex space-x-2 text-xs">
                     <button class="px-3 py-1 bg-gray-100 rounded-full text-gray-600 hover:bg-gray-200">最新</button>
@@ -63,9 +56,6 @@
                                 {% if topic.is_pinned %}
                                 <span class="px-1.5 py-0.5 bg-orange-100 text-orange-500 text-[10px] font-bold rounded">置顶</span>
                                 {% endif %}
-                                {% if topic.category %}
-                                <span class="px-2 py-0.5 bg-gray-100 text-gray-500 text-[10px] rounded-full">{{ topic.category.name }}</span>
-                                {% endif %}
                                 <h3 class="text-lg font-bold text-gray-800 group-hover:text-pink-500 transition-colors truncate">
                                     <a href="{% url 'topic_detail' topic.id %}" class="block">{{ topic.title }}</a>
                                 </h3>
@@ -74,8 +64,15 @@
                             
                             <div class="flex items-center justify-between text-xs text-gray-400">
                                 <div class="flex items-center gap-4">
-                                    <span class="text-blue-400 font-bold">{{ topic.author.username }}</span>
+                                    <span class="text-blue-400 font-bold">@{{ topic.author.username }}</span>
                                     <span>{{ topic.created_at|date:"Y-m-d H:i" }}</span>
+                                    {% if topic.keywords %}
+                                    <div class="flex gap-2">
+                                        {% for keyword in topic.keywords.split %}
+                                        <span class="text-[10px] text-pink-400">#{{ keyword }}</span>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
                                 </div>
                                 <div class="flex items-center gap-4">
                                     <span class="flex items-center"><i class="fa-regular fa-eye mr-1"></i> {{ topic.views }}</span>

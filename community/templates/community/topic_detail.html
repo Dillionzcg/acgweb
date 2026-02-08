@@ -15,12 +15,14 @@
     <!-- 楼主内容 -->
     <div class="glass-card overflow-hidden mb-6">
         <div class="p-6 border-b border-gray-100 bg-white/40">
-            <div class="flex items-center gap-2 mb-3">
-                {% if topic.category %}
-                <span class="px-2 py-0.5 bg-blue-100 text-blue-500 text-xs rounded-full font-bold">{{ topic.category.name }}</span>
-                {% endif %}
-                <h1 class="text-2xl font-bold text-gray-800">{{ topic.title }}</h1>
+            <h1 class="text-2xl font-bold text-gray-800 mb-3">{{ topic.title }}</h1>
+            {% if topic.keywords %}
+            <div class="flex flex-wrap gap-2 mb-4">
+                {% for keyword in topic.keywords.split %}
+                <span class="px-2 py-0.5 bg-pink-50 text-pink-400 text-[10px] rounded-full border border-pink-100"><i class="fa-solid fa-hashtag mr-1"></i>{{ keyword }}</span>
+                {% endfor %}
             </div>
+            {% endif %}
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-full overflow-hidden border border-white shadow-sm">
