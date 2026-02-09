@@ -435,7 +435,7 @@
                 // 成功：更新侧边栏并提示
                 document.getElementById('side-bio').innerText = `“ ${payload.bio || 'Master还没写简介呢～'} ”`;
                 document.getElementById('save-hint').style.opacity = '1';
-                safeAskXiaoYou('USER_ACTION', '档案同步成功了！');
+                safeAskXiaoYou('USER_ACTION', '档案同步成功');
                 setTimeout(() => document.getElementById('save-hint').style.opacity = '0', 2000);
             } else {
                 // 失败：处理后端传回的业务错误（如重复）

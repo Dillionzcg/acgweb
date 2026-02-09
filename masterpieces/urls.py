@@ -6,5 +6,6 @@ app_name = 'masterpieces'
 
 urlpatterns = [
 
-    path('works/', views.works_center, name='works_center'),
+    path('', views.works_center, name='works_center'),
+    path('recommend/', views.recommend_work, name='recommend_work'),
 ]
