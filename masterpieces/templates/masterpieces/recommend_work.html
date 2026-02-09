@@ -68,6 +68,30 @@
         box-shadow: 0 10px 20px rgba(255, 118, 117, 0.3); cursor: pointer; border: none; transition: 0.3s;
     }
     .submit-btn:hover { transform: translateY(-3px); box-shadow: 0 15px 25px rgba(255, 118, 117, 0.4); }
+    /* 修改上传框：去掉固定高度，改为最小高度，确保初始状态大气 */
+    .upload-box {
+        border: 3px dashed #ffb6c1;
+        border-radius: 24px;
+        min-height: 520px; /* 初始的大气高度 */
+        height: auto;      /* 关键：上传后允许高度自适应 */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        background: rgba(255, 255, 255, 0.4);
+        position: relative;
+        overflow: hidden; /* 防止图片圆角溢出 */
+        transition: all 0.4s ease;
+    }
+
+    /* 预览图：横向 100% 撑满，纵向自适应，不裁剪 */
+    #preview-img {
+        width: 100%;       /* 横向长度固定撑满父容器 */
+        height: auto;      /* 纵向尺寸根据图片比例决定 */
+        display: block;
+        border-radius: 20px;
+    }
 </style>
 
 <div class="recommend-container">
@@ -99,6 +123,28 @@
                     <label class="block font-bold text-gray-600 mb-2 ml-1">作品完整名字</label>
                     <input type="text" name="title" class="standard-input" placeholder="请输入作品全称..." required>
                 </div>
+                <div>
+                    <label class="block font-bold text-gray-600 mb-2 ml-1">作品官方发布日期</label>
+                    <div class="flex gap-2">
+                        <select id="year-select" class="standard-input flex-1" required>
+                            <option value="">年</option>
+                        </select>
+                        <select id="month-select" class="standard-input flex-1" required>
+                            <option value="">月</option>
+                        </select>
+                        <select id="day-select" class="standard-input flex-1" required>
+                            <option value="">日</option>
+                        </select>
+                    </div>
+                    <input type="hidden" name="release_date" id="release-date-hidden">
+                </div>
+
+                <div>
+                    <label class="block font-bold text-gray-600 mb-2 ml-1">作品官方简介</label>
+                    <textarea name="description" class="standard-input" rows="4"
+                              placeholder="请在此粘贴作品官方对改作品的简介" required
+                              style="resize: none;"></textarea>
+                </div>
 
                 <div>
                     <label class="block font-bold text-gray-600 mb-2 ml-1">作品标签</label>
@@ -108,7 +154,7 @@
                     </div>
 
                     <div class="common-tags-box">
-                        <p class="text-[10px] text-pink-400 font-bold mb-2 ml-1 uppercase tracking-wider">大家都在用的标签：</p>
+                        <p class="text-[15px] text-pink-400 font-bold mb-2 ml-1 uppercase tracking-wider">常用标签：</p>
                         <div class="flex flex-wrap">
                             <span class="preset-tag" onclick="addPresetTag('恋爱')"># 恋爱</span>
                             <span class="preset-tag" onclick="addPresetTag('搞笑')"># 搞笑</span>
@@ -142,17 +188,32 @@
             </div>
 
             <div class="lg:col-span-2">
-                <label class="input-label">作品封面图</label>
-                <div class="upload-box" onclick="document.getElementById('cover-file').click()">
-                    <div id="upload-hint" class="text-center">
-                        <i class="fa-solid fa-image text-5xl text-pink-200 mb-3"></i>
-                        <p class="text-gray-400 text-sm">支持 PNG/JPG 格式</p>
+                <label class="block font-bold text-gray-600 mb-2 ml-1">作品官方封面图</label>
+
+                <div class="upload-box group" id="upload-container" onclick="document.getElementById('cover-file').click()">
+
+                    <div id="upload-hint" class="text-center p-6 transition group-hover:scale-110">
+                        <div class="w-24 h-24 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+                            <i class="fa-solid fa-cloud-arrow-up text-4xl text-pink-400"></i>
+                        </div>
+                        <p class="text-lg font-bold text-gray-500 mb-2">点击上传封面图</p>
+                        <p class="text-xs text-gray-400">横向长度固定，高度将按比例自动呈现</p>
                     </div>
-                    <img id="preview-img" src="">
+
+                    <img id="preview-img" src="" class="hidden">
+
+                    <div id="upload-overlay" class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center hidden">
+                        <div class="bg-white/90 backdrop-blur-sm px-6 py-3 rounded-2xl shadow-xl transform -translate-y-2 group-hover:translate-y-0 transition-transform">
+                            <p class="text-pink-500 font-bold flex items-center gap-2">
+                                <i class="fa-solid fa-sync"></i> 更换封面图片
+                            </p>
+                        </div>
+                    </div>
                 </div>
+
                 <input type="file" name="cover" id="cover-file" class="hidden" accept="image/*" onchange="previewImage(this)">
             </div>
-        </div>
+    </div>
 
         <div class="mt-12 text-center border-t border-pink-50 pt-10">
             <button type="submit" class="submit-btn acg-font tracking-widest">确认提交安利</button>
@@ -206,16 +267,81 @@
     }
 
     function previewImage(input) {
-        if (input.files && input.files[0]) {
-            const reader = new FileReader();
-            reader.onload = e => {
-                const img = document.getElementById('preview-img');
-                img.src = e.target.result;
-                img.style.display = 'block';
-                document.getElementById('upload-hint').style.display = 'none';
-            }
-            reader.readAsDataURL(input.files[0]);
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = e => {
+            const img = document.getElementById('preview-img');
+            const hint = document.getElementById('upload-hint');
+            const overlay = document.getElementById('upload-overlay');
+            const container = document.getElementById('upload-container');
+
+            // 1. 设置图片源
+            img.src = e.target.result;
+
+            // 2. 切换显示状态
+            img.classList.remove('hidden');
+            hint.classList.add('hidden');
+            overlay.classList.remove('hidden');
+
+            // 3. 样式微调：预览时去掉居中对齐，让图片从顶部开始展示
+            container.style.justifyContent = 'flex-start';
+            container.style.minHeight = 'auto'; // 上传后允许容器缩小到图片高度（若图片很扁）
         }
+        reader.readAsDataURL(input.files[0]);
     }
+}
+    // 3. 日期下拉框初始化与联动
+const yearSelect = document.getElementById('year-select');
+const monthSelect = document.getElementById('month-select');
+const daySelect = document.getElementById('day-select');
+const releaseDateHidden = document.getElementById('release-date-hidden');
+
+// 初始化年份 (从 1970 到 今年)
+const currentYear = new Date().getFullYear();
+for (let i = currentYear; i >= 1970; i--) {
+    yearSelect.options.add(new Option(i, i));
+}
+
+// 初始化月份
+for (let i = 1; i <= 12; i++) {
+    monthSelect.options.add(new Option(i, i));
+}
+
+// 更新日期函数 (根据年月自动计算该月有多少天)
+function updateDays() {
+    const year = parseInt(yearSelect.value);
+    const month = parseInt(monthSelect.value);
+    const dayVal = daySelect.value; // 保留当前选中的日
+
+    daySelect.innerHTML = '<option value="">日</option>';
+
+    if (year && month) {
+        // 获取该月天数：利用下个月的第0天
+        const daysInMonth = new Date(year, month, 0).getDate();
+        for (let i = 1; i <= daysInMonth; i++) {
+            daySelect.options.add(new Option(i, i));
+        }
+        // 尝试还原之前选中的日
+        if (dayVal <= daysInMonth) daySelect.value = dayVal;
+    }
+    syncDate();
+}
+
+// 合并日期为 YYYY-MM-DD 格式
+function syncDate() {
+    if (yearSelect.value && monthSelect.value && daySelect.value) {
+        const y = yearSelect.value;
+        const m = monthSelect.value.padStart(2, '0');
+        const d = daySelect.value.padStart(2, '0');
+        releaseDateHidden.value = `${y}-${m}-${d}`;
+    } else {
+        releaseDateHidden.value = "";
+    }
+}
+
+// 绑定事件
+yearSelect.addEventListener('change', updateDays);
+monthSelect.addEventListener('change', updateDays);
+daySelect.addEventListener('change', syncDate);
 </script>
 {% endblock %}

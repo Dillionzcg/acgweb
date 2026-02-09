@@ -44,26 +44,30 @@ def recommend_work(request):
         zone = request.POST.get('zone')
         cover = request.FILES.get('cover')
 
-        # 2. 获取前端 JSON 格式的标签数据 (对应之前 JS 写入的 tags_data)
+        # --- 新增：获取简介和日期 ---
+        description = request.POST.get('description')
+        release_date = request.POST.get('release_date') or None  # 如果没填则存为 None
+
+        # 2. 获取标签数据
         tags_json = request.POST.get('tags_data')
         tags_list = json.loads(tags_json) if tags_json else []
 
         # 3. 创建作品实例
-        # 注意：这里我们先不给 tags 赋值，因为它是 ManyToMany 关系
+        # 这里的 owner 使用 request.user (需要确保用户已登录)
         work = Work.objects.create(
             title=title,
             zone=zone,
-            cover=cover
+            cover=cover,
+            description=description,  # 存入简介
+            release_date=release_date,  # 存入发布日期
+            owner=request.user if request.user.is_authenticated else None  # 存入推荐者
         )
 
         # 4. 处理多对多标签关联
         for tag_name in tags_list:
-            # get_or_create 自动处理：如果标签已存在则获取，不存在则创建
             tag_obj, created = Tag.objects.get_or_create(name=tag_name.strip())
             work.tags.add(tag_obj)
 
-        # 5. 提交成功后跳转回作品中心
         return redirect('masterpieces:works_center')
 
-    # GET 请求则正常显示页面
     return render(request, 'masterpieces/recommend_work.html')

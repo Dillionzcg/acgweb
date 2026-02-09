@@ -127,13 +127,44 @@
         const rankContainer = document.getElementById(`rank-${zone}`);
         const accentClass = zoneConfigs[zone].accent;
 
+        // 1. 渲染主内容区 (为你推荐/热门/最新)
         mainContainer.innerHTML = `
             <div class="sub-section"><h3 class="text-xl font-bold text-gray-700 flex items-center mb-6"><span class="w-2 h-6 ${accentClass} rounded-full mr-3"></span>为你推荐</h3>${generateGridHtml(data.recommend)}</div>
             <div class="sub-section"><h3 class="text-xl font-bold text-gray-700 flex items-center mb-6"><span class="w-2 h-6 ${accentClass} rounded-full mr-3"></span>热门作品</h3>${generateGridHtml(data.hot)}</div>
             <div class="sub-section"><h3 class="text-xl font-bold text-gray-700 flex items-center mb-6"><span class="w-2 h-6 ${accentClass} rounded-full mr-3"></span>最新发布</h3>${generateGridHtml(data.latest)}</div>
         `;
-        setTimeout(() => { mainContainer.querySelectorAll('.work-card').forEach((card, i) => { setTimeout(() => card.classList.add('show'), i * 50); }); }, 100);
-        if (rankContainer) rankContainer.innerHTML = ranks.map((name, i) => `<div class="flex items-center justify-between py-3 border-b border-pink-50/50 last:border-0 hover:bg-white/40 px-2 rounded-lg transition-colors"><div class="flex items-center overflow-hidden"><span class="rank-num ${i < 3 ? 'bg-gradient-to-br from-pink-400 to-red-400 text-white' : 'bg-gray-100 text-gray-400'}">${i+1}</span><span class="text-sm font-medium text-gray-700 truncate">${name}</span></div><div class="flex items-center ml-2"><i class="fa-solid fa-fire text-[10px] text-orange-400 mr-1 animate-pulse"></i><span class="text-xs text-orange-400 font-mono font-bold">${(99.9 - i * 4.2).toFixed(1)}w</span></div></div>`).join('');
+
+        // 2. 渲染排行榜区 (新增空状态判断)
+        if (rankContainer) {
+            if (!ranks || ranks.length === 0) {
+                // 如果排行榜没有数据，显示提示文本
+                rankContainer.innerHTML = `
+                    <div class="py-10 text-center">
+                        <i class="fa-solid fa-layer-group text-gray-200 text-3xl mb-2"></i>
+                        <p class="text-gray-400 text-sm italic">目前排行榜还没有作品哦~</p>
+                    </div>`;
+            } else {
+                // 如果有数据，则正常渲染列表
+                rankContainer.innerHTML = ranks.map((name, i) => `
+                    <div class="flex items-center justify-between py-3 border-b border-pink-50/50 last:border-0 hover:bg-white/40 px-2 rounded-lg transition-colors">
+                        <div class="flex items-center overflow-hidden">
+                            <span class="rank-num ${i < 3 ? 'bg-gradient-to-br from-pink-400 to-red-400 text-white' : 'bg-gray-100 text-gray-400'}">${i+1}</span>
+                            <span class="text-sm font-medium text-gray-700 truncate">${name}</span>
+                        </div>
+                        <div class="flex items-center ml-2">
+                            <i class="fa-solid fa-fire text-[10px] text-orange-400 mr-1 animate-pulse"></i>
+                            <span class="text-xs text-orange-400 font-mono font-bold">${(99.9 - i * 4.2).toFixed(1)}w</span>
+                        </div>
+                    </div>`).join('');
+            }
+        }
+
+        // 动画延迟显示
+        setTimeout(() => {
+            mainContainer.querySelectorAll('.work-card').forEach((card, i) => {
+                setTimeout(() => card.classList.add('show'), i * 50);
+            });
+        }, 100);
     }
 
     function switchZone(zone, index, btnElement) {
