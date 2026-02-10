@@ -33,22 +33,14 @@ class LoginRequiredMiddleware:
                     path.startswith(settings.STATIC_URL) or \
                     (settings.MEDIA_URL and path.startswith(settings.MEDIA_URL))
 
-                if is_exempt:
+        if is_exempt:
+            return self.get_response(request)
 
-                    return self.get_response(request)
+        # 4. 否则对于普通请求跳转到登录页，对于 AJAX 请求返回 403
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest' or \
+           request.content_type == 'application/json':
+            return JsonResponse({'error': 'Login required'}, status=403)
 
-        
-
-                # 4. 否则对于普通请求跳转到登录页，对于 AJAX 请求返回 403
-
-                if request.headers.get('x-requested-with') == 'XMLHttpRequest' or \
-
-                   request.content_type == 'application/json':
-
-                    return JsonResponse({'error': 'Login required'}, status=403)
-
-        
-
-                return redirect(f"{reverse('login')}?next={path}")
+        return redirect(f"{reverse('login')}?next={path}")
 
         
