@@ -92,6 +92,38 @@
         display: block;
         border-radius: 20px;
     }
+    /* 自定义 Toast 提示框 */
+.toast-msg {
+    position: fixed;
+    top: 10%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255, 118, 117, 0.95); /* 少女粉背景 */
+    color: white;
+    padding: 12px 30px;
+    border-radius: 50px;
+    font-weight: bold;
+    z-index: 9999;
+    box-shadow: 0 10px 25px rgba(255, 118, 117, 0.3);
+    backdrop-filter: blur(5px);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    animation: toastIn 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+}
+
+@keyframes toastIn {
+    from { opacity: 0; transform: translate(-50%, -20px); }
+    to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+.toast-out {
+    animation: toastOut 0.4s forwards;
+}
+
+@keyframes toastOut {
+    to { opacity: 0; transform: translate(-50%, -20px); }
+}
 </style>
 
 <div class="recommend-container">
@@ -142,7 +174,7 @@
                 <div>
                     <label class="block font-bold text-gray-600 mb-2 ml-1">作品官方简介</label>
                     <textarea name="description" class="standard-input" rows="4"
-                              placeholder="请在此粘贴作品官方对改作品的简介" required
+                              placeholder="请在此粘贴作品官方对该作品的简介" required
                               style="resize: none;"></textarea>
                 </div>
 
@@ -326,7 +358,51 @@ function updateDays() {
     }
     syncDate();
 }
+// A. 定义提示弹窗函数
+function showToast(message) {
+    // 防止重复弹出
+    if (document.querySelector('.toast-msg')) return;
 
+    const toast = document.createElement('div');
+    toast.className = 'toast-msg acg-font';
+    toast.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> ${message}`;
+    document.body.appendChild(toast);
+
+    // 3秒后移除
+    setTimeout(() => {
+        toast.classList.add('toast-out');
+        setTimeout(() => toast.remove(), 400);
+    }, 3000);
+}
+
+// B. 修改提交校验逻辑
+document.getElementById('recommendForm').addEventListener('submit', function(e) {
+    const title = this.querySelector('[name="title"]').value.trim();
+    const releaseDate = document.getElementById('release-date-hidden').value;
+    const description = this.querySelector('[name="description"]').value.trim();
+    const tagsData = document.getElementById('tags-data-value').value;
+    const coverFile = document.getElementById('cover-file').files.length;
+
+    let errorMsg = "";
+
+    // 按优先级检查必填项
+    if (!title) {
+        errorMsg = "作品名称不能为空哦~";
+    } else if (!releaseDate) {
+        errorMsg = "请选择完整的作品发布日期 (○'◡'○)";
+    } else if (!description) {
+        errorMsg = "简介是必填项，让大家更了解它吧！";
+    } else if (!tagsData || tagsData === "[]") {
+        errorMsg = "请至少添加一个标签，比如“治愈”或“热血”~";
+    } else if (coverFile === 0) {
+        errorMsg = "请上传封面图";
+    }
+
+    if (errorMsg) {
+        e.preventDefault(); // 阻止提交
+        showToast(errorMsg); // 使用漂亮的 Toast 替代 alert
+    }
+});
 // 合并日期为 YYYY-MM-DD 格式
 function syncDate() {
     if (yearSelect.value && monthSelect.value && daySelect.value) {

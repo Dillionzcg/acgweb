@@ -9,8 +9,8 @@ class User(AbstractUser):
 
     # 新增：真实性自证字段
     # True 代表用户在弹窗中确认是真实的；False 代表用户承认是填写的非真实信息
-    is_phone_real = models.BooleanField(default=True, verbose_name="手机号是否真实")
-    is_email_real = models.BooleanField(default=True, verbose_name="邮箱是否真实")
+    is_phone_real = models.BooleanField(default=False, verbose_name="手机号是否真实")
+    is_email_real = models.BooleanField(default=False, verbose_name="邮箱是否真实")
 
     # 你完善用户信息功能所需的核心字段
     avatar = models.ImageField(upload_to='avatars/', null=True, blank=True, verbose_name="头像")

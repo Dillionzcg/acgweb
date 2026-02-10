@@ -26,12 +26,12 @@ class Work(models.Model):
         null=True,
         blank=True
     )
-    description = models.TextField('作品简介', help_text='简单介绍下这部作品吧...', blank=True)
-    release_date = models.DateField('作品官方发布日期', null=True, blank=True)
+    description = models.TextField('作品简介', help_text='简单介绍下这部作品吧...')
+    release_date = models.DateField('作品官方发布日期')
 
     hot_score = models.FloatField('评分', default=0.0)
     views = models.IntegerField('点击量/热度', default=0)
-    cover = models.ImageField('封面图', upload_to='works/covers/', null=True, blank=True)
+    cover = models.ImageField('封面图', upload_to='works/covers/')
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -40,7 +40,7 @@ class Work(models.Model):
 class Comment(models.Model):
     work = models.ForeignKey(Work, on_delete=models.CASCADE, related_name='comments')
     # 修改这里：同样使用 settings.AUTH_USER_MODEL
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)  # 修改这里
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     content = models.TextField('评论内容')
     created_at = models.DateTimeField(auto_now_add=True)
 
