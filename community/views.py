@@ -1,5 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.http import JsonResponse
 from .models import Topic, TopicCategory, News, NewsCategory
 from .forms import TopicForm, NewsForm
 
@@ -111,6 +112,16 @@ def news_detail(request, pk):
 
     
 
+    # 检查当前用户是否已点赞
+
+    user_liked = False
+
+    if request.user.is_authenticated:
+
+        user_liked = news.liked_by.filter(id=request.user.id).exists()
+
+    
+
     # 根据第一个标签推荐相关资讯
 
     related_news = []
@@ -133,8 +144,52 @@ def news_detail(request, pk):
 
         'news': news,
 
-        'related_news': related_news
+        'related_news': related_news,
+
+        'user_liked': user_liked
 
     }
 
     return render(request, 'community/news_detail.html', context)
+
+
+
+@login_required
+
+def like_news(request, pk):
+
+    """为资讯点赞/取消点赞 (AJAX)"""
+
+    if request.method == 'POST':
+
+        news = get_object_or_404(News, pk=pk)
+
+        if news.liked_by.filter(id=request.user.id).exists():
+
+            # 取消点赞
+
+            news.liked_by.remove(request.user)
+
+            news.likes = max(0, news.likes - 1)
+
+            liked = False
+
+        else:
+
+            # 点赞
+
+            news.liked_by.add(request.user)
+
+            news.likes += 1
+
+            liked = True
+
+        news.save()
+
+        return JsonResponse({'likes': news.likes, 'liked': liked})
+
+    return JsonResponse({'error': 'Invalid request'}, status=400)
+
+
+
+

@@ -54,6 +54,8 @@ class News(models.Model):
     tags = models.CharField(max_length=255, blank=True, verbose_name="标签", help_text="用逗号或空格分隔")
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name="发布者")
     views = models.PositiveIntegerField(default=0, verbose_name="阅读量")
+    likes = models.PositiveIntegerField(default=0, verbose_name="点赞数")
+    liked_by = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='liked_news', blank=True, verbose_name="点赞用户")
     created_at = models.DateTimeField(default=timezone.now, verbose_name="发布时间")
 
     class Meta:
