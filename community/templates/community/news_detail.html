@@ -21,13 +21,25 @@
                 <div class="h-64 lg:h-80 w-full overflow-hidden relative">
                     <img src="{{ news.cover_image.url }}" class="w-full h-full object-cover">
                     <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex flex-col justify-end p-8">
-                        <span class="w-fit px-3 py-1 bg-blue-500 text-white text-xs rounded-full mb-3 shadow-lg font-bold">{{ news.category.name|default:"资讯" }}</span>
+                        {% if news.tags %}
+                        <div class="flex gap-2 mb-3">
+                            {% for tag in news.tags.split %}
+                            <span class="px-3 py-1 bg-blue-500 text-white text-xs rounded-full shadow-lg font-bold">#{{ tag }}</span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
                         <h1 class="text-2xl lg:text-3xl font-bold text-white drop-shadow-md leading-tight">{{ news.title }}</h1>
                     </div>
                 </div>
                 {% else %}
                 <div class="p-8 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-white">
-                    <span class="w-fit px-3 py-1 bg-blue-100 text-blue-500 text-xs rounded-full mb-3 inline-block font-bold">{{ news.category.name|default:"资讯" }}</span>
+                    {% if news.tags %}
+                    <div class="flex gap-2 mb-3">
+                        {% for tag in news.tags.split %}
+                        <span class="px-3 py-1 bg-blue-100 text-blue-500 text-xs rounded-full font-bold">#{{ tag }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
                     <h1 class="text-3xl font-bold text-gray-800 leading-tight">{{ news.title }}</h1>
                 </div>
                 {% endif %}

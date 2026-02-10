@@ -78,31 +78,63 @@ def create_topic(request):
 
 def news_list(request):
     """资讯列表页"""
-    category_id = request.GET.get('category')
+    tag = request.GET.get('tag')
     news_items = News.objects.all()
     
-    if category_id:
-        news_items = news_items.filter(category_id=category_id)
+    if tag:
+        news_items = news_items.filter(tags__icontains=tag)
         
-    categories = NewsCategory.objects.all()
+    # 获取常用的几个标签用于展示
+    # 这里简单获取所有资讯的前 5 个不重复标签
+    all_tags = []
+    for n in News.objects.all():
+        if n.tags:
+            all_tags.extend(n.tags.split())
+    unique_tags = list(set(all_tags))[:5]
     
     context = {
         'news_items': news_items,
-        'categories': categories,
-        'current_category': int(category_id) if category_id else None
+        'tags': unique_tags,
+        'current_tag': tag
     }
     return render(request, 'community/news_list.html', context)
 
 def news_detail(request, pk):
+
     """资讯详情页"""
+
     news = get_object_or_404(News, pk=pk)
+
     news.views += 1
+
     news.save()
+
     
-    related_news = News.objects.filter(category=news.category).exclude(pk=pk)[:3]
+
+    # 根据第一个标签推荐相关资讯
+
+    related_news = []
+
+    if news.tags:
+
+        first_tag = news.tags.split()[0]
+
+        related_news = News.objects.filter(tags__icontains=first_tag).exclude(pk=pk)[:3]
+
     
+
+    if not related_news:
+
+        related_news = News.objects.exclude(pk=pk).order_by('-created_at')[:3]
+
+    
+
     context = {
+
         'news': news,
+
         'related_news': related_news
+
     }
+
     return render(request, 'community/news_detail.html', context)

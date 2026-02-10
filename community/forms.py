@@ -23,14 +23,15 @@ class TopicForm(forms.ModelForm):
 class NewsForm(forms.ModelForm):
     class Meta:
         model = News
-        fields = ['title', 'category', 'cover_image', 'summary', 'content']
+        fields = ['title', 'tags', 'cover_image', 'summary', 'content']
         widgets = {
             'title': forms.TextInput(attrs={
                 'class': 'w-full px-5 py-3 rounded-xl bg-gray-50/80 border-2 border-transparent focus:bg-white focus:border-blue-300 focus:ring-4 focus:ring-blue-100 outline-none transition-all duration-300 font-bold text-gray-700 placeholder-gray-400',
                 'placeholder': '请输入新闻标题...'
             }),
-            'category': forms.Select(attrs={
-                'class': 'w-full px-5 py-3 rounded-xl bg-gray-50/80 border-2 border-transparent focus:bg-white focus:border-blue-300 focus:ring-4 focus:ring-blue-100 outline-none transition-all duration-300 text-gray-700'
+            'tags': forms.TextInput(attrs={
+                'class': 'w-full px-5 py-3 rounded-xl bg-gray-50/80 border-2 border-transparent focus:bg-white focus:border-blue-300 focus:ring-4 focus:ring-blue-100 outline-none transition-all duration-300 text-gray-700',
+                'placeholder': '添加标签，用空格或逗号分隔'
             }),
             'cover_image': forms.FileInput(attrs={
                 'class': 'w-full px-5 py-3 rounded-xl bg-gray-50/80 border-2 border-transparent focus:bg-white focus:border-blue-300 focus:ring-4 focus:ring-blue-100 outline-none transition-all duration-300 text-gray-700'

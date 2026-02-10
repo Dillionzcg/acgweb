@@ -30,7 +30,7 @@
                         <p class="text-sm text-red-700 font-bold">请修正以下错误：</p>
                         <ul class="text-xs text-red-600 mt-1 list-disc list-inside">
                             {% for field, errors in form.errors.items %}
-                                <li>{{ field }}: {{ errors|strikethrough }}</li>
+                                <li>{{ field }}: {{ errors|striptags }}</li>
                             {% endfor %}
                         </ul>
                     </div>
@@ -45,10 +45,10 @@
                     {{ form.title }}
                 </div>
 
-                <!-- 分类 -->
+                <!-- 标签 -->
                 <div class="space-y-2">
-                    <label class="text-sm font-bold text-gray-700 ml-1">所属分类</label>
-                    {{ form.category }}
+                    <label class="text-sm font-bold text-gray-700 ml-1">资讯标签</label>
+                    {{ form.tags }}
                 </div>
 
                 <!-- 封面图 -->

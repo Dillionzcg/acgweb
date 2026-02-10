@@ -24,10 +24,10 @@
         
         <!-- Category Nav (Floating) -->
         <div class="absolute bottom-6 left-10 flex gap-2">
-            <a href="{% url 'news_list' %}" class="px-4 py-1.5 rounded-full backdrop-blur-md border border-white/30 text-sm font-bold hover:bg-white hover:text-blue-600 transition-all {% if not current_category %}bg-white text-blue-600{% else %}bg-black/20 text-white{% endif %}">全部</a>
-            {% for cat in categories %}
-            <a href="{% url 'news_list' %}?category={{ cat.id }}" class="px-4 py-1.5 rounded-full backdrop-blur-md border border-white/30 text-sm font-bold hover:bg-white hover:text-blue-600 transition-all {% if current_category == cat.id %}bg-white text-blue-600{% else %}bg-black/20 text-white{% endif %}">
-                {{ cat.name }}
+            <a href="{% url 'news_list' %}" class="px-4 py-1.5 rounded-full backdrop-blur-md border border-white/30 text-sm font-bold hover:bg-white hover:text-blue-600 transition-all {% if not current_tag %}bg-white text-blue-600{% else %}bg-black/20 text-white{% endif %}">全部</a>
+            {% for t in tags %}
+            <a href="{% url 'news_list' %}?tag={{ t }}" class="px-4 py-1.5 rounded-full backdrop-blur-md border border-white/30 text-sm font-bold hover:bg-white hover:text-blue-600 transition-all {% if current_tag == t %}bg-white text-blue-600{% else %}bg-black/20 text-white{% endif %}">
+                #{{ t }}
             </a>
             {% endfor %}
         </div>
@@ -45,11 +45,15 @@
                     <i class="fa-solid fa-newspaper text-4xl"></i>
                 </div>
                 {% endif %}
-                <div class="absolute top-3 left-3">
+                {% if news.tags %}
+                <div class="absolute top-3 left-3 flex gap-1">
+                    {% for tag in news.tags.split %}
                     <span class="px-2 py-1 bg-black/50 backdrop-blur text-white text-[10px] rounded font-bold">
-                        {{ news.category.name|default:"资讯" }}
+                        #{{ tag }}
                     </span>
+                    {% endfor %}
                 </div>
+                {% endif %}
             </a>
             
             <div class="p-5 flex-1 flex flex-col">
