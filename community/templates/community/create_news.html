@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}发布资讯 - 次元社区{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto py-8 px-4 animate__animated animate__fadeIn">
+    <div class="glass-card overflow-hidden">
+        <!-- 头部装饰 -->
+        <div class="h-24 bg-gradient-to-r from-blue-400 to-indigo-500 relative">
+            <div class="absolute inset-0 opacity-20" style="background-image: url('https://www.transparenttextures.com/patterns/cubes.png');"></div>
+            <div class="absolute bottom-4 left-8 text-white">
+                <h1 class="text-2xl font-bold flex items-center">
+                    <i class="fa-solid fa-paper-plane mr-3"></i> 发布资讯新闻
+                </h1>
+                <p class="text-blue-100 text-sm opacity-80 mt-1">仅限超级管理员发布的官方情报或新闻资讯</p>
+            </div>
+        </div>
+
+        <form method="post" enctype="multipart/form-data" class="p-8 space-y-6">
+            {% csrf_token %}
+
+            {% if form.errors %}
+            <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded-lg">
+                <div class="flex">
+                    <div class="shrink-0">
+                        <i class="fa-solid fa-circle-exclamation text-red-500"></i>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm text-red-700 font-bold">请修正以下错误：</p>
+                        <ul class="text-xs text-red-600 mt-1 list-disc list-inside">
+                            {% for field, errors in form.errors.items %}
+                                <li>{{ field }}: {{ errors|strikethrough }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- 标题 -->
+                <div class="md:col-span-2 space-y-2">
+                    <label class="text-sm font-bold text-gray-700 ml-1">资讯标题</label>
+                    {{ form.title }}
+                </div>
+
+                <!-- 分类 -->
+                <div class="space-y-2">
+                    <label class="text-sm font-bold text-gray-700 ml-1">所属分类</label>
+                    {{ form.category }}
+                </div>
+
+                <!-- 封面图 -->
+                <div class="space-y-2">
+                    <label class="text-sm font-bold text-gray-700 ml-1">封面图片</label>
+                    {{ form.cover_image }}
+                    <p class="text-[10px] text-gray-400 mt-1 ml-1">推荐尺寸 800x450px，支持 JPG/PNG/WEBP</p>
+                </div>
+            </div>
+
+            <!-- 摘要 -->
+            <div class="space-y-2">
+                <label class="text-sm font-bold text-gray-700 ml-1">资讯摘要</label>
+                {{ form.summary }}
+                <p class="text-[10px] text-gray-400 mt-1 ml-1">用于在列表页展示的简短描述（500字以内）</p>
+            </div>
+
+            <!-- 正文 -->
+            <div class="space-y-2">
+                <label class="text-sm font-bold text-gray-700 ml-1">资讯正文</label>
+                {{ form.content }}
+            </div>
+
+            <!-- 操作按钮 -->
+            <div class="flex items-center justify-between pt-6 border-t border-gray-100 mt-8">
+                <a href="{% url 'news_list' %}" class="px-6 py-3 text-gray-500 hover:text-gray-700 transition-colors flex items-center">
+                    <i class="fa-solid fa-chevron-left mr-2"></i> 取消并返回
+                </a>
+                <button type="submit" class="px-10 py-3 bg-blue-500 text-white rounded-xl shadow-lg shadow-blue-200 hover:bg-blue-600 hover:scale-105 active:scale-95 transition-all font-bold flex items-center">
+                    <i class="fa-solid fa-check mr-2"></i> 立即发布
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

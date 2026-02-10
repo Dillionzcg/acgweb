@@ -13,6 +13,13 @@
         <div class="relative h-full flex flex-col justify-center px-10 text-white">
             <h1 class="text-4xl acg-font mb-2 drop-shadow-lg">资讯情报局</h1>
             <p class="text-lg opacity-80">掌握第一手番剧、游戏、展会动态</p>
+            {% if user.is_superuser %}
+            <div class="mt-4">
+                <a href="{% url 'create_news' %}" class="inline-flex items-center px-4 py-2 bg-white/20 hover:bg-white/30 backdrop-blur-md border border-white/40 rounded-xl text-sm font-bold transition-all hover:scale-105 active:scale-95">
+                    <i class="fa-solid fa-plus-circle mr-2"></i> 发布资讯情报
+                </a>
+            </div>
+            {% endif %}
         </div>
         
         <!-- Category Nav (Floating) -->

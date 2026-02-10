@@ -1,7 +1,22 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from .models import Topic, TopicCategory, News, NewsCategory
-from .forms import TopicForm
+from .forms import TopicForm, NewsForm
+
+@user_passes_test(lambda u: u.is_superuser)
+def create_news(request):
+    """发布新资讯 (仅限超级用户)"""
+    if request.method == 'POST':
+        form = NewsForm(request.POST, request.FILES)
+        if form.is_valid():
+            news = form.save(commit=False)
+            news.author = request.user
+            news.save()
+            return redirect('news_detail', pk=news.pk)
+    else:
+        form = NewsForm()
+    
+    return render(request, 'community/create_news.html', {'form': form})
 
 def community_home(request):
     """社区主页，展示热门话题和最新资讯"""
