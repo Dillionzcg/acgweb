@@ -59,7 +59,7 @@
     </div>
 
     <!-- 评论区 -->
-    <div class="glass-card p-6">
+    <div id="comment-section" class="glass-card p-6">
         <h3 class="text-lg font-bold text-gray-800 mb-6 flex items-center">
             <i class="fa-solid fa-comments mr-2 text-pink-400"></i> 全部评论 ({{ comments.count }})
         </h3>
@@ -176,6 +176,117 @@
             form.classList.add('hidden');
         }
     }
+
+    // AJAX Comment Submission for Topics
+    document.addEventListener('DOMContentLoaded', function() {
+        document.body.addEventListener('submit', function(e) {
+            if (e.target.matches('form[action*="add_topic_comment"]')) {
+                e.preventDefault();
+                const form = e.target;
+                
+                const formData = new FormData(form);
+                const url = form.getAttribute('action');
+                const submitBtn = form.querySelector('button[type="submit"]');
+                const originalBtnText = submitBtn.innerText;
+                
+                submitBtn.disabled = true;
+                submitBtn.innerText = '发送中...';
+                
+                fetch(url, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = originalBtnText;
+                    
+                    if (data.status === 'success') {
+                        form.reset();
+                        
+                        let commentHtml = '';
+                        if (data.parent_id) {
+                            // Nested Reply HTML
+                            commentHtml = `
+                            <div class="flex gap-3 animate__animated animate__fadeIn">
+                                <div class="shrink-0">
+                                    <img src="${data.avatar_url}" class="w-8 h-8 rounded-full border border-white shadow-sm">
+                                </div>
+                                <div class="flex-1">
+                                    <div class="bg-gray-50 p-3 rounded-xl">
+                                        <div class="flex items-center gap-2 mb-1">
+                                            <span class="font-bold text-xs text-gray-700">${data.username}</span>
+                                            <span class="text-[10px] text-gray-400">${data.created_at}</span>
+                                        </div>
+                                        <p class="text-xs text-gray-600">${data.content.replace(/\n/g, '<br>')}</p>
+                                    </div>
+                                </div>
+                            </div>`;
+                            
+                            const parentForm = document.getElementById('topic-reply-form-' + data.parent_id);
+                            let repliesContainer = parentForm.nextElementSibling;
+                            
+                            if (!repliesContainer || !repliesContainer.classList.contains('border-l-2')) {
+                                repliesContainer = document.createElement('div');
+                                repliesContainer.className = 'mt-4 space-y-4 ml-4 pl-4 border-l-2 border-gray-100';
+                                parentForm.parentNode.insertBefore(repliesContainer, parentForm.nextSibling);
+                            }
+                            
+                            repliesContainer.insertAdjacentHTML('beforeend', commentHtml);
+                            toggleReplyForm('topic-reply-form-' + data.parent_id);
+                            
+                        } else {
+                            // Root Comment HTML (Append to end for topics as per existing order)
+                            commentHtml = `
+                            <div class="flex gap-4 group animate__animated animate__fadeInUp">
+                                <div class="shrink-0">
+                                    <img src="${data.avatar_url}" class="w-10 h-10 rounded-full border-2 border-white shadow-sm">
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 group-hover:border-pink-100 transition-colors relative">
+                                        <div class="flex items-center justify-between mb-2">
+                                            <span class="font-bold text-sm text-gray-700">${data.username}</span>
+                                            <span class="text-[10px] text-gray-400">${data.created_at}</span>
+                                        </div>
+                                        <p class="text-sm text-gray-600 leading-relaxed">${data.content.replace(/\n/g, '<br>')}</p>
+                                        
+                                        <button onclick="toggleReplyForm('topic-reply-form-${data.comment_id}')" class="absolute bottom-2 right-4 text-xs text-pink-400 hover:text-pink-600 font-bold opacity-0 group-hover:opacity-100 transition-opacity">
+                                            回复
+                                        </button>
+                                    </div>
+
+                                    <div id="topic-reply-form-${data.comment_id}" class="hidden mt-3 ml-4 animate__animated animate__fadeIn">
+                                        <form action="${url}" method="post" class="flex gap-2">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="parent_id" value="${data.comment_id}">
+                                            <textarea name="content" class="flex-1 px-4 py-2 rounded-xl bg-white border border-gray-200 text-sm focus:border-pink-300 focus:ring-2 focus:ring-pink-100 outline-none resize-none h-20" placeholder="回复 @${data.username}..."></textarea>
+                                            <button type="submit" class="px-4 py-2 bg-pink-500 text-white rounded-xl text-xs font-bold hover:bg-pink-600 h-fit self-end">
+                                                发送
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>`;
+                            
+                            const commentList = document.querySelector('.space-y-6');
+                            if (commentList.querySelector('.text-center')) {
+                                commentList.innerHTML = '';
+                            }
+                            commentList.insertAdjacentHTML('beforeend', commentHtml);
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = originalBtnText;
+                });
+            }
+        });
+    });
     </script>
 
 </div>

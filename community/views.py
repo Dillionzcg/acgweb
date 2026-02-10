@@ -88,6 +88,19 @@ def add_topic_comment(request, pk):
                     pass
             
             comment.save()
+
+            # 如果是 AJAX 请求，返回 JSON 数据
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'status': 'success',
+                    'username': comment.author.username,
+                    'avatar_url': comment.author.avatar.url if comment.author.avatar else '/static/images/default_head.png',
+                    'content': comment.content,
+                    'created_at': comment.created_at.strftime('%Y-%m-%d %H:%M'),
+                    'parent_id': parent_id,
+                    'comment_id': comment.id
+                })
+
     return redirect('topic_detail', pk=pk)
 
 @login_required
@@ -185,6 +198,19 @@ def add_news_comment(request, pk):
                     pass
             
             comment.save()
+
+            # 如果是 AJAX 请求，返回 JSON 数据
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'status': 'success',
+                    'username': comment.author.username,
+                    'avatar_url': comment.author.avatar.url if comment.author.avatar else '/static/images/default_head.png',
+                    'content': comment.content,
+                    'created_at': comment.created_at.strftime('%Y-%m-%d %H:%M'),
+                    'parent_id': parent_id,
+                    'comment_id': comment.id
+                })
+
     return redirect('news_detail', pk=pk)
 
 @login_required
