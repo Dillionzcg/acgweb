@@ -1,8 +1,8 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import JsonResponse
-from .models import Topic, TopicCategory, News, NewsCategory, NewsComment
-from .forms import TopicForm, NewsForm, NewsCommentForm
+from .models import Topic, TopicCategory, News, NewsCategory, NewsComment, TopicComment
+from .forms import TopicForm, NewsForm, NewsCommentForm, TopicCommentForm
 
 @user_passes_test(lambda u: u.is_superuser)
 def create_news(request):
@@ -55,10 +55,40 @@ def topic_detail(request, pk):
     topic.views += 1
     topic.save()
     
+    # 评论逻辑
+    comment_form = TopicCommentForm()
+    # 只获取顶级评论
+    comments = topic.comments.filter(parent__isnull=True).select_related('author').order_by('created_at')
+    
     context = {
-        'topic': topic
+        'topic': topic,
+        'comment_form': comment_form,
+        'comments': comments
     }
     return render(request, 'community/topic_detail.html', context)
+
+@login_required
+def add_topic_comment(request, pk):
+    """提交话题评论"""
+    topic = get_object_or_404(Topic, pk=pk)
+    if request.method == 'POST':
+        form = TopicCommentForm(request.POST)
+        if form.is_valid():
+            comment = form.save(commit=False)
+            comment.topic = topic
+            comment.author = request.user
+            
+            # 处理父评论
+            parent_id = request.POST.get('parent_id')
+            if parent_id:
+                try:
+                    parent_comment = TopicComment.objects.get(id=parent_id)
+                    comment.parent = parent_comment
+                except TopicComment.DoesNotExist:
+                    pass
+            
+            comment.save()
+    return redirect('topic_detail', pk=pk)
 
 @login_required
 def create_topic(request):
@@ -122,7 +152,8 @@ def news_detail(request, pk):
 
     # 评论逻辑
     comment_form = NewsCommentForm()
-    comments = news.comments.all().select_related('author').order_by('-created_at')
+    # 只获取顶级评论，子评论通过模板中的 comment.replies.all 获取
+    comments = news.comments.filter(parent__isnull=True).select_related('author').order_by('-created_at')
 
     context = {
         'news': news,
@@ -143,6 +174,16 @@ def add_news_comment(request, pk):
             comment = form.save(commit=False)
             comment.news = news
             comment.author = request.user
+            
+            # 处理父评论
+            parent_id = request.POST.get('parent_id')
+            if parent_id:
+                try:
+                    parent_comment = NewsComment.objects.get(id=parent_id)
+                    comment.parent = parent_comment
+                except NewsComment.DoesNotExist:
+                    pass
+            
             comment.save()
     return redirect('news_detail', pk=pk)
 

@@ -122,13 +122,62 @@
                                 {% endif %}
                             </div>
                             <div class="flex-1 min-w-0">
-                                <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 group-hover:border-blue-100 transition-colors">
+                                <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 group-hover:border-blue-100 transition-colors relative">
                                     <div class="flex items-center justify-between mb-2">
                                         <span class="font-bold text-sm text-gray-700">{{ comment.author.username }}</span>
                                         <span class="text-[10px] text-gray-400">{{ comment.created_at|date:"Y-m-d H:i" }}</span>
                                     </div>
                                     <p class="text-sm text-gray-600 leading-relaxed">{{ comment.content|linebreaksbr }}</p>
+                                    
+                                    <!-- Reply Button -->
+                                    <button onclick="toggleReplyForm('reply-form-{{ comment.id }}')" class="absolute bottom-2 right-4 text-xs text-blue-400 hover:text-blue-600 font-bold opacity-0 group-hover:opacity-100 transition-opacity">
+                                        回复
+                                    </button>
                                 </div>
+
+                                <!-- Reply Form -->
+                                <div id="reply-form-{{ comment.id }}" class="hidden mt-3 ml-4 animate__animated animate__fadeIn">
+                                    {% if user.is_authenticated %}
+                                    <form action="{% url 'add_news_comment' news.id %}" method="post" class="flex gap-2">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="parent_id" value="{{ comment.id }}">
+                                        <textarea name="content" class="flex-1 px-4 py-2 rounded-xl bg-white border border-gray-200 text-sm focus:border-blue-300 focus:ring-2 focus:ring-blue-100 outline-none resize-none h-20" placeholder="回复 @{{ comment.author.username }}..."></textarea>
+                                        <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-xl text-xs font-bold hover:bg-blue-600 h-fit self-end">
+                                            发送
+                                        </button>
+                                    </form>
+                                    {% else %}
+                                    <p class="text-xs text-gray-400 ml-2">请登录后回复</p>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Nested Replies -->
+                                {% if comment.replies.all %}
+                                <div class="mt-4 space-y-4 ml-4 pl-4 border-l-2 border-gray-100">
+                                    {% for reply in comment.replies.all %}
+                                    <div class="flex gap-3">
+                                        <div class="shrink-0">
+                                            {% if reply.author.avatar %}
+                                            <img src="{{ reply.author.avatar.url }}" class="w-8 h-8 rounded-full border border-white shadow-sm">
+                                            {% else %}
+                                            <div class="w-8 h-8 rounded-full bg-gray-200 border border-white shadow-sm flex items-center justify-center text-gray-400">
+                                                <i class="fa-solid fa-user text-xs"></i>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="flex-1">
+                                            <div class="bg-gray-50 p-3 rounded-xl">
+                                                <div class="flex items-center gap-2 mb-1">
+                                                    <span class="font-bold text-xs text-gray-700">{{ reply.author.username }}</span>
+                                                    <span class="text-[10px] text-gray-400">{{ reply.created_at|date:"m-d H:i" }}</span>
+                                                </div>
+                                                <p class="text-xs text-gray-600">{{ reply.content|linebreaksbr }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
                             </div>
                         </div>
                         {% empty %}
@@ -141,6 +190,14 @@
                 </div>
 
                 <script>
+                function toggleReplyForm(id) {
+                    const form = document.getElementById(id);
+                    if (form.classList.contains('hidden')) {
+                        form.classList.remove('hidden');
+                    } else {
+                        form.classList.add('hidden');
+                    }
+                }
                 function likeNews(newsId) {
                     const btn = document.getElementById('like-btn');
                     const countSpan = document.getElementById('like-count');

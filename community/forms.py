@@ -1,5 +1,5 @@
 from django import forms
-from .models import Topic, News, NewsComment
+from .models import Topic, News, NewsComment, TopicComment
 
 class TopicForm(forms.ModelForm):
     class Meta:
@@ -54,5 +54,16 @@ class NewsCommentForm(forms.ModelForm):
             'content': forms.Textarea(attrs={
                 'class': 'w-full px-5 py-4 rounded-xl bg-gray-50/80 border-2 border-transparent focus:bg-white focus:border-blue-300 focus:ring-4 focus:ring-blue-100 outline-none transition-all duration-300 h-32 text-gray-700 placeholder-gray-400 leading-relaxed resize-none',
                 'placeholder': '说说你的看法吧...'
+            }),
+        }
+
+class TopicCommentForm(forms.ModelForm):
+    class Meta:
+        model = TopicComment
+        fields = ['content']
+        widgets = {
+            'content': forms.Textarea(attrs={
+                'class': 'w-full px-5 py-4 rounded-xl bg-gray-50/80 border-2 border-transparent focus:bg-white focus:border-pink-300 focus:ring-4 focus:ring-pink-100 outline-none transition-all duration-300 h-32 text-gray-700 placeholder-gray-400 leading-relaxed resize-none',
+                'placeholder': '加入讨论...'
             }),
         }

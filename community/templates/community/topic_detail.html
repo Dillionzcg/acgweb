@@ -58,19 +58,15 @@
         </div>
     </div>
 
-    <!-- 评论区 (Placeholder) -->
+    <!-- 评论区 -->
     <div class="glass-card p-6">
         <h3 class="text-lg font-bold text-gray-800 mb-6 flex items-center">
-            <i class="fa-solid fa-comments mr-2 text-blue-400"></i> 全部评论 (0)
+            <i class="fa-solid fa-comments mr-2 text-pink-400"></i> 全部评论 ({{ comments.count }})
         </h3>
         
-        <div class="text-center py-10 text-gray-400 bg-gray-50/50 rounded-xl border-2 border-dashed border-gray-200">
-            <i class="fa-solid fa-pen-nib text-3xl mb-3 text-gray-300"></i>
-            <p>还没有人评论哦，快来抢沙发吧！</p>
-        </div>
-
-        <div class="mt-8 flex gap-4">
-            <div class="w-10 h-10 rounded-full bg-gray-200 shrink-0 overflow-hidden">
+        <!-- Comment Form -->
+        <div class="mb-10 flex gap-4">
+            <div class="w-10 h-10 rounded-full bg-gray-200 shrink-0 overflow-hidden border border-gray-100 shadow-sm">
                 {% if user.is_authenticated and user.avatar %}
                     <img src="{{ user.avatar.url }}" class="w-full h-full object-cover">
                 {% else %}
@@ -78,13 +74,109 @@
                 {% endif %}
             </div>
             <div class="flex-1">
-                <textarea class="w-full bg-white/60 border border-gray-200 rounded-xl p-4 outline-none focus:ring-2 focus:ring-pink-200 transition-all" rows="3" placeholder="发表你的看法..."></textarea>
-                <div class="flex justify-end mt-2">
-                    <button class="px-6 py-2 bg-blue-500 text-white rounded-full font-bold shadow-md hover:bg-blue-600 transition-all">发表评论</button>
+                {% if user.is_authenticated %}
+                <form action="{% url 'add_topic_comment' topic.id %}" method="post">
+                    {% csrf_token %}
+                    {{ comment_form.content }}
+                    <div class="flex justify-end mt-3">
+                        <button type="submit" class="px-6 py-2 bg-pink-500 text-white rounded-full font-bold shadow-md hover:bg-pink-600 hover:shadow-lg transition-all">发表评论</button>
+                    </div>
+                </form>
+                {% else %}
+                <div class="bg-gray-50 border border-gray-200 rounded-xl p-6 text-center text-gray-400">
+                    <p>请 <a href="{% url 'login' %}?next={{ request.path }}" class="text-pink-500 font-bold hover:underline">登录</a> 后参与讨论</p>
                 </div>
+                {% endif %}
             </div>
         </div>
+        
+        <!-- Comment List -->
+        <div class="space-y-6">
+            {% for comment in comments %}
+            <div class="flex gap-4 group">
+                <div class="shrink-0">
+                    {% if comment.author.avatar %}
+                    <img src="{{ comment.author.avatar.url }}" class="w-10 h-10 rounded-full border-2 border-white shadow-sm">
+                    {% else %}
+                    <img src="{% static 'images/default_head.png' %}" class="w-10 h-10 rounded-full border-2 border-white shadow-sm">
+                    {% endif %}
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 group-hover:border-pink-100 transition-colors relative">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="font-bold text-sm text-gray-700">{{ comment.author.username }}</span>
+                            <span class="text-[10px] text-gray-400">{{ comment.created_at|date:"Y-m-d H:i" }}</span>
+                        </div>
+                        <p class="text-sm text-gray-600 leading-relaxed">{{ comment.content|linebreaksbr }}</p>
+                        
+                        <!-- Reply Button -->
+                        <button onclick="toggleReplyForm('topic-reply-form-{{ comment.id }}')" class="absolute bottom-2 right-4 text-xs text-pink-400 hover:text-pink-600 font-bold opacity-0 group-hover:opacity-100 transition-opacity">
+                            回复
+                        </button>
+                    </div>
+
+                    <!-- Reply Form -->
+                    <div id="topic-reply-form-{{ comment.id }}" class="hidden mt-3 ml-4 animate__animated animate__fadeIn">
+                        {% if user.is_authenticated %}
+                        <form action="{% url 'add_topic_comment' topic.id %}" method="post" class="flex gap-2">
+                            {% csrf_token %}
+                            <input type="hidden" name="parent_id" value="{{ comment.id }}">
+                            <textarea name="content" class="flex-1 px-4 py-2 rounded-xl bg-white border border-gray-200 text-sm focus:border-pink-300 focus:ring-2 focus:ring-pink-100 outline-none resize-none h-20" placeholder="回复 @{{ comment.author.username }}..."></textarea>
+                            <button type="submit" class="px-4 py-2 bg-pink-500 text-white rounded-xl text-xs font-bold hover:bg-pink-600 h-fit self-end">
+                                发送
+                            </button>
+                        </form>
+                        {% else %}
+                        <p class="text-xs text-gray-400 ml-2">请登录后回复</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Nested Replies -->
+                    {% if comment.replies.all %}
+                    <div class="mt-4 space-y-4 ml-4 pl-4 border-l-2 border-gray-100">
+                        {% for reply in comment.replies.all %}
+                        <div class="flex gap-3">
+                            <div class="shrink-0">
+                                {% if reply.author.avatar %}
+                                <img src="{{ reply.author.avatar.url }}" class="w-8 h-8 rounded-full border border-white shadow-sm">
+                                {% else %}
+                                <img src="{% static 'images/default_head.png' %}" class="w-8 h-8 rounded-full border border-white shadow-sm">
+                                {% endif %}
+                            </div>
+                            <div class="flex-1">
+                                <div class="bg-gray-50 p-3 rounded-xl">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <span class="font-bold text-xs text-gray-700">{{ reply.author.username }}</span>
+                                        <span class="text-[10px] text-gray-400">{{ reply.created_at|date:"m-d H:i" }}</span>
+                                    </div>
+                                    <p class="text-xs text-gray-600">{{ reply.content|linebreaksbr }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% empty %}
+            <div class="text-center py-10 text-gray-400 bg-gray-50/50 rounded-xl border-2 border-dashed border-gray-200">
+                <i class="fa-solid fa-pen-nib text-3xl mb-3 text-gray-300"></i>
+                <p>还没有人评论哦，快来抢沙发吧！</p>
+            </div>
+            {% endfor %}
+        </div>
     </div>
+    
+    <script>
+    function toggleReplyForm(id) {
+        const form = document.getElementById(id);
+        if (form.classList.contains('hidden')) {
+            form.classList.remove('hidden');
+        } else {
+            form.classList.add('hidden');
+        }
+    }
+    </script>
 
 </div>
 {% endblock %}

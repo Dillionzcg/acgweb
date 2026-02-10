@@ -69,13 +69,29 @@ class News(models.Model):
 class NewsComment(models.Model):
     news = models.ForeignKey(News, on_delete=models.CASCADE, related_name='comments', verbose_name="所属资讯")
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name="评论者")
+    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='replies', verbose_name="父评论")
     content = models.TextField(verbose_name="评论内容")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="评论时间")
 
     class Meta:
         verbose_name = "资讯评论"
         verbose_name_plural = verbose_name
-        ordering = ['-created_at']
+        ordering = ['created_at'] # 按时间正序排列，方便楼层展示
 
     def __str__(self):
         return f"{self.author.username} 对 {self.news.title} 的评论"
+
+class TopicComment(models.Model):
+    topic = models.ForeignKey(Topic, on_delete=models.CASCADE, related_name='comments', verbose_name="所属话题")
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name="评论者")
+    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='replies', verbose_name="父评论")
+    content = models.TextField(verbose_name="评论内容")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="评论时间")
+
+    class Meta:
+        verbose_name = "话题评论"
+        verbose_name_plural = verbose_name
+        ordering = ['created_at']
+
+    def __str__(self):
+        return f"{self.author.username} 对 {self.topic.title} 的评论"
