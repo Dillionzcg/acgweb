@@ -10,4 +10,5 @@ urlpatterns = [
     path('news/create/', views.create_news, name='create_news'),
     path('news/<int:pk>/', views.news_detail, name='news_detail'),
     path('news/<int:pk>/like/', views.like_news, name='like_news'),
+    path('news/<int:pk>/comment/', views.add_news_comment, name='add_news_comment'),
 ]

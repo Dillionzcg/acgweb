@@ -1,8 +1,8 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import JsonResponse
-from .models import Topic, TopicCategory, News, NewsCategory
-from .forms import TopicForm, NewsForm
+from .models import Topic, TopicCategory, News, NewsCategory, NewsComment
+from .forms import TopicForm, NewsForm, NewsCommentForm
 
 @user_passes_test(lambda u: u.is_superuser)
 def create_news(request):
@@ -101,58 +101,50 @@ def news_list(request):
     return render(request, 'community/news_list.html', context)
 
 def news_detail(request, pk):
-
     """资讯详情页"""
-
     news = get_object_or_404(News, pk=pk)
-
     news.views += 1
-
     news.save()
 
-    
-
     # 检查当前用户是否已点赞
-
     user_liked = False
-
     if request.user.is_authenticated:
-
         user_liked = news.liked_by.filter(id=request.user.id).exists()
 
-    
-
     # 根据第一个标签推荐相关资讯
-
     related_news = []
-
     if news.tags:
-
         first_tag = news.tags.split()[0]
-
         related_news = News.objects.filter(tags__icontains=first_tag).exclude(pk=pk)[:3]
 
-    
-
     if not related_news:
-
         related_news = News.objects.exclude(pk=pk).order_by('-created_at')[:3]
 
-    
+    # 评论逻辑
+    comment_form = NewsCommentForm()
+    comments = news.comments.all().select_related('author').order_by('-created_at')
 
     context = {
-
         'news': news,
-
         'related_news': related_news,
-
-        'user_liked': user_liked
-
+        'user_liked': user_liked,
+        'comment_form': comment_form,
+        'comments': comments
     }
-
     return render(request, 'community/news_detail.html', context)
 
-
+@login_required
+def add_news_comment(request, pk):
+    """提交资讯评论"""
+    news = get_object_or_404(News, pk=pk)
+    if request.method == 'POST':
+        form = NewsCommentForm(request.POST)
+        if form.is_valid():
+            comment = form.save(commit=False)
+            comment.news = news
+            comment.author = request.user
+            comment.save()
+    return redirect('news_detail', pk=pk)
 
 @login_required
 

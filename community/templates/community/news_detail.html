@@ -82,6 +82,64 @@
                     </button>
                 </div>
 
+                <!-- Comment Section -->
+                <div class="p-8 border-t border-gray-100 bg-gray-50/30">
+                    <h3 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
+                        <i class="fa-solid fa-comments mr-3 text-blue-400"></i> 
+                        评论互动 ({{ comments.count }})
+                    </h3>
+
+                    <!-- Comment Form -->
+                    <div class="mb-10">
+                        {% if user.is_authenticated %}
+                        <form action="{% url 'add_news_comment' news.id %}" method="post" class="space-y-4">
+                            {% csrf_token %}
+                            {{ comment_form.content }}
+                            <div class="flex justify-end">
+                                <button type="submit" class="px-6 py-2 bg-blue-500 text-white rounded-xl font-bold hover:bg-blue-600 transition-all shadow-md">
+                                    提交评论
+                                </button>
+                            </div>
+                        </form>
+                        {% else %}
+                        <div class="p-8 bg-white border-2 border-dashed border-gray-200 rounded-2xl text-center text-gray-400">
+                            请先 <a href="{% url 'login' %}?next={{ request.path }}" class="text-blue-500 font-bold hover:underline">登录</a> 后发表评论
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Comment List -->
+                    <div class="space-y-6">
+                        {% for comment in comments %}
+                        <div class="flex gap-4 group">
+                            <div class="shrink-0">
+                                {% if comment.author.avatar %}
+                                <img src="{{ comment.author.avatar.url }}" class="w-10 h-10 rounded-full border-2 border-white shadow-sm">
+                                {% else %}
+                                <div class="w-10 h-10 rounded-full bg-gray-200 border-2 border-white shadow-sm flex items-center justify-center text-gray-400">
+                                    <i class="fa-solid fa-user text-sm"></i>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 group-hover:border-blue-100 transition-colors">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <span class="font-bold text-sm text-gray-700">{{ comment.author.username }}</span>
+                                        <span class="text-[10px] text-gray-400">{{ comment.created_at|date:"Y-m-d H:i" }}</span>
+                                    </div>
+                                    <p class="text-sm text-gray-600 leading-relaxed">{{ comment.content|linebreaksbr }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center py-10 text-gray-400">
+                            <i class="fa-solid fa-mug-hot text-3xl mb-3 opacity-20"></i>
+                            <p class="text-sm">暂无评论，快来抢沙发吧~</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
                 <script>
                 function likeNews(newsId) {
                     const btn = document.getElementById('like-btn');
