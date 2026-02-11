@@ -10,6 +10,7 @@ urlpatterns = [
     path('auth/', include('authentication.urls')),
     path('chat/', include('chat.urls')),
     path('works/', include('masterpieces.urls')),
+    path('community/', include('community.urls')),
 ]
 
 if settings.DEBUG:

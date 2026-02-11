@@ -1,0 +1,439 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ news.title }} - 资讯详情{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto animate__animated animate__fadeIn">
+    
+    <div class="mb-6">
+        <a href="{% url 'news_list' %}" class="text-gray-500 hover:text-blue-500 transition-colors text-sm">
+            <i class="fa-solid fa-arrow-left mr-2"></i> 返回资讯列表
+        </a>
+    </div>
+
+    <div class="grid grid-cols-12 gap-8">
+        
+        <!-- Main Article -->
+        <div class="col-span-12 lg:col-span-8">
+            <article class="glass-card overflow-hidden">
+                {% if news.cover_image %}
+                <div class="h-64 lg:h-80 w-full overflow-hidden relative">
+                    <img src="{{ news.cover_image.url }}" class="w-full h-full object-cover">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex flex-col justify-end p-8">
+                        {% if news.tags %}
+                        <div class="flex gap-2 mb-3">
+                            {% for tag in news.tags.split %}
+                            <span class="px-3 py-1 bg-blue-500 text-white text-xs rounded-full shadow-lg font-bold">#{{ tag }}</span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        <h1 class="text-2xl lg:text-3xl font-bold text-white drop-shadow-md leading-tight">{{ news.title }}</h1>
+                    </div>
+                </div>
+                {% else %}
+                <div class="p-8 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-white">
+                    {% if news.tags %}
+                    <div class="flex gap-2 mb-3">
+                        {% for tag in news.tags.split %}
+                        <span class="px-3 py-1 bg-blue-100 text-blue-500 text-xs rounded-full font-bold">#{{ tag }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    <h1 class="text-3xl font-bold text-gray-800 leading-tight">{{ news.title }}</h1>
+                </div>
+                {% endif %}
+
+                <div class="px-8 py-4 bg-gray-50/50 flex items-center justify-between text-xs text-gray-500 border-b border-gray-100">
+                    <div class="flex items-center gap-4">
+                        <span class="flex items-center gap-2 font-bold text-gray-700">
+                             {% if news.author.avatar %}
+                            <img src="{{ news.author.avatar.url }}" class="w-6 h-6 rounded-full border border-white shadow-sm">
+                            {% else %}
+                            <div class="w-6 h-6 rounded-full bg-gray-300 border border-white shadow-sm"></div>
+                            {% endif %}
+                            <div class="flex items-center gap-1">
+                                {{ news.author.username }}
+                                {% if news.author.is_superuser %}
+                                <span class="px-1 py-0.5 bg-red-100 text-red-500 text-[8px] font-bold rounded flex items-center gap-0.5">
+                                    <i class="fa-solid fa-crown text-[7px]"></i>
+                                    官方
+                                </span>
+                                {% endif %}
+                            </div>
+                        </span>
+                        <span>发布于 {{ news.created_at|date:"Y年m月d日 H:i" }}</span>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <span><i class="fa-solid fa-eye mr-1"></i> {{ news.views }} 阅读</span>
+                    </div>
+                </div>
+
+                <div class="p-8 lg:p-10 text-gray-700 leading-loose text-lg article-content">
+                    {% if news.summary %}
+                    <div class="p-4 bg-blue-50 rounded-xl text-blue-800 text-sm font-bold mb-6 border-l-4 border-blue-400">
+                        <i class="fa-solid fa-quote-left mr-2 text-blue-300"></i>
+                        {{ news.summary }}
+                    </div>
+                    {% endif %}
+                    
+                    {{ news.content|linebreaks }}
+                </div>
+                
+                <div class="p-8 border-t border-gray-100 flex justify-center">
+                     <button id="like-btn" onclick="likeNews({{ news.id }})" 
+                             class="px-8 py-3 rounded-full font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all flex items-center 
+                             {% if user_liked %}bg-gradient-to-r from-orange-400 to-orange-500 text-white{% else %}bg-gradient-to-r from-pink-400 to-pink-500 text-white{% endif %}">
+                        <i class="{% if user_liked %}fa-solid{% else %}fa-regular{% endif %} fa-thumbs-up mr-2"></i> 
+                        <span id="btn-text">{% if user_liked %}已点赞{% else %}很有用{% endif %}</span> 
+                        (<span id="like-count">{{ news.likes }}</span>)
+                    </button>
+                </div>
+
+                <!-- Comment Section -->
+                <div id="comment-section" class="p-8 border-t border-gray-100 bg-gray-50/30">
+                    <h3 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
+                        <i class="fa-solid fa-comments mr-3 text-blue-400"></i> 
+                        评论互动 ({{ comments.count }})
+                    </h3>
+
+                    <!-- Comment Form -->
+                    <div class="mb-10">
+                        {% if user.is_authenticated %}
+                        <form action="{% url 'add_news_comment' news.id %}" method="post" class="space-y-4">
+                            {% csrf_token %}
+                            {{ comment_form.content }}
+                            <div class="flex justify-end">
+                                <button type="submit" class="px-6 py-2 bg-blue-500 text-white rounded-xl font-bold hover:bg-blue-600 transition-all shadow-md">
+                                    提交评论
+                                </button>
+                            </div>
+                        </form>
+                        {% else %}
+                        <div class="p-8 bg-white border-2 border-dashed border-gray-200 rounded-2xl text-center text-gray-400">
+                            请先 <a href="{% url 'login' %}?next={{ request.path }}" class="text-blue-500 font-bold hover:underline">登录</a> 后发表评论
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Comment List -->
+                    <div class="space-y-6">
+                        {% for comment in comments %}
+                        <div class="flex gap-4 group">
+                            <div class="shrink-0">
+                                {% if comment.author.avatar %}
+                                <img src="{{ comment.author.avatar.url }}" class="w-10 h-10 rounded-full border-2 border-white shadow-sm">
+                                {% else %}
+                                <div class="w-10 h-10 rounded-full bg-gray-200 border-2 border-white shadow-sm flex items-center justify-center text-gray-400">
+                                    <i class="fa-solid fa-user text-sm"></i>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 group-hover:border-blue-100 transition-colors relative">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <div class="flex items-center gap-2">
+                                            <span class="font-bold text-sm text-gray-700">{{ comment.author.username }}</span>
+                                            {% if comment.author.is_superuser %}
+                                            <span class="px-1.5 py-0.5 bg-red-100 text-red-500 text-[10px] font-bold rounded flex items-center gap-0.5">
+                                                <i class="fa-solid fa-crown text-[8px]"></i>
+                                                官方
+                                            </span>
+                                            {% endif %}
+                                        </div>
+                                        <span class="text-[10px] text-gray-400">{{ comment.created_at|date:"Y-m-d H:i" }}</span>
+                                    </div>
+                                    <p class="text-sm text-gray-600 leading-relaxed">{{ comment.content|linebreaksbr }}</p>
+                                    
+                                    <!-- Reply Button -->
+                                    <button onclick="toggleReplyForm('reply-form-{{ comment.id }}')" class="absolute bottom-2 right-4 text-xs text-blue-400 hover:text-blue-600 font-bold opacity-0 group-hover:opacity-100 transition-opacity">
+                                        回复
+                                    </button>
+                                </div>
+
+                                <!-- Reply Form -->
+                                <div id="reply-form-{{ comment.id }}" class="hidden mt-3 ml-4 animate__animated animate__fadeIn">
+                                    {% if user.is_authenticated %}
+                                    <form action="{% url 'add_news_comment' news.id %}" method="post" class="flex gap-2">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="parent_id" value="{{ comment.id }}">
+                                        <textarea name="content" class="flex-1 px-4 py-2 rounded-xl bg-white border border-gray-200 text-sm focus:border-blue-300 focus:ring-2 focus:ring-blue-100 outline-none resize-none h-20" placeholder="回复 @{{ comment.author.username }}..."></textarea>
+                                        <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-xl text-xs font-bold hover:bg-blue-600 h-fit self-end">
+                                            发送
+                                        </button>
+                                    </form>
+                                    {% else %}
+                                    <p class="text-xs text-gray-400 ml-2">请登录后回复</p>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Nested Replies -->
+                                {% if comment.replies.all %}
+                                <div class="mt-4 space-y-4 ml-4 pl-4 border-l-2 border-gray-100">
+                                    {% for reply in comment.replies.all %}
+                                    <div class="flex gap-3">
+                                        <div class="shrink-0">
+                                            {% if reply.author.avatar %}
+                                            <img src="{{ reply.author.avatar.url }}" class="w-8 h-8 rounded-full border border-white shadow-sm">
+                                            {% else %}
+                                            <div class="w-8 h-8 rounded-full bg-gray-200 border border-white shadow-sm flex items-center justify-center text-gray-400">
+                                                <i class="fa-solid fa-user text-xs"></i>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                                                                    <div class="flex-1">
+                                                                                        <div class="bg-gray-50 p-3 rounded-xl">
+                                                                                            <div class="flex items-center gap-2 mb-1">
+                                                                                                <span class="font-bold text-xs text-gray-700">{{ reply.author.username }}</span>
+                                                                                                {% if reply.author.is_superuser %}
+                                                                                                <span class="px-1 py-0.5 bg-red-100 text-red-500 text-[8px] font-bold rounded flex items-center gap-0.5">
+                                                                                                    <i class="fa-solid fa-crown text-[7px]"></i>
+                                                                                                    官方
+                                                                                                </span>
+                                                                                                {% endif %}
+                                                                                                <span class="text-[10px] text-gray-400">{{ reply.created_at|date:"m-d H:i" }}</span>
+                                                                                            </div>                                                <p class="text-xs text-gray-600">{{ reply.content|linebreaksbr }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center py-10 text-gray-400">
+                            <i class="fa-solid fa-mug-hot text-3xl mb-3 opacity-20"></i>
+                            <p class="text-sm">暂无评论，快来抢沙发吧~</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <script>
+                function toggleReplyForm(id) {
+                    const form = document.getElementById(id);
+                    if (form.classList.contains('hidden')) {
+                        form.classList.remove('hidden');
+                    } else {
+                        form.classList.add('hidden');
+                    }
+                }
+
+                // AJAX Comment Submission
+                document.addEventListener('DOMContentLoaded', function() {
+                    // Use event delegation for dynamically added forms
+                    document.body.addEventListener('submit', function(e) {
+                        if (e.target.matches('form[action*="add_news_comment"]')) {
+                            e.preventDefault();
+                            const form = e.target;
+                            
+                            const formData = new FormData(form);
+                            const url = form.getAttribute('action');
+                            const submitBtn = form.querySelector('button[type="submit"]');
+                            const originalBtnText = submitBtn.innerText;
+                            
+                            submitBtn.disabled = true;
+                            submitBtn.innerText = '发送中...';
+                            
+                            fetch(url, {
+                                method: 'POST',
+                                body: formData,
+                                headers: {
+                                    'X-Requested-With': 'XMLHttpRequest'
+                                }
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                submitBtn.disabled = false;
+                                submitBtn.innerText = originalBtnText;
+                                
+                                if (data.status === 'success') {
+                                    form.reset();
+                                    
+                                    const officialBadge = data.is_superuser ? `
+                                        <span class="px-1 py-0.5 bg-red-100 text-red-500 text-[8px] font-bold rounded flex items-center gap-0.5">
+                                            <i class="fa-solid fa-crown text-[7px]"></i>
+                                            官方
+                                        </span>` : '';
+                                    const officialBadgeLarge = data.is_superuser ? `
+                                        <span class="px-1.5 py-0.5 bg-red-100 text-red-500 text-[10px] font-bold rounded flex items-center gap-0.5">
+                                            <i class="fa-solid fa-crown text-[8px]"></i>
+                                            官方
+                                        </span>` : '';
+
+                                    // Construct the new comment HTML
+                                    let commentHtml = '';
+                                    if (data.parent_id) {
+                                        // Nested Reply HTML
+                                        commentHtml = `
+                                        <div class="flex gap-3 animate__animated animate__fadeIn">
+                                            <div class="shrink-0">
+                                                <img src="${data.avatar_url}" class="w-8 h-8 rounded-full border border-white shadow-sm">
+                                            </div>
+                                            <div class="flex-1">
+                                                <div class="bg-gray-50 p-3 rounded-xl">
+                                                    <div class="flex items-center gap-2 mb-1">
+                                                        <span class="font-bold text-xs text-gray-700">${data.username}</span>
+                                                        ${officialBadge}
+                                                        <span class="text-[10px] text-gray-400">${data.created_at}</span>
+                                                    </div>
+                                                    <p class="text-xs text-gray-600">${data.content.replace(/\n/g, '<br>')}</p>
+                                                </div>
+                                            </div>
+                                        </div>`;
+                                        
+                                        // Find parent comment container and append
+                                        const parentForm = document.getElementById('reply-form-' + data.parent_id);
+                                        let repliesContainer = parentForm.nextElementSibling;
+                                        
+                                        // Create container if it doesn't exist (e.g. first reply)
+                                        if (!repliesContainer || !repliesContainer.classList.contains('border-l-2')) {
+                                            repliesContainer = document.createElement('div');
+                                            repliesContainer.className = 'mt-4 space-y-4 ml-4 pl-4 border-l-2 border-gray-100';
+                                            parentForm.parentNode.insertBefore(repliesContainer, parentForm.nextSibling);
+                                        }
+                                        
+                                        repliesContainer.insertAdjacentHTML('beforeend', commentHtml);
+                                        toggleReplyForm('reply-form-' + data.parent_id);
+                                        
+                                    } else {
+                                        // Root Comment HTML
+                                        commentHtml = `
+                                        <div class="flex gap-4 group animate__animated animate__fadeInUp">
+                                            <div class="shrink-0">
+                                                <img src="${data.avatar_url}" class="w-10 h-10 rounded-full border-2 border-white shadow-sm">
+                                            </div>
+                                            <div class="flex-1 min-w-0">
+                                                <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 group-hover:border-blue-100 transition-colors relative">
+                                                    <div class="flex items-center justify-between mb-2">
+                                                        <div class="flex items-center gap-2">
+                                                            <span class="font-bold text-sm text-gray-700">${data.username}</span>
+                                                            ${officialBadgeLarge}
+                                                        </div>
+                                                        <span class="text-[10px] text-gray-400">${data.created_at}</span>
+                                                    </div>
+                                                    <p class="text-sm text-gray-600 leading-relaxed">${data.content.replace(/\n/g, '<br>')}</p>
+                                                    
+                                                     <button onclick="toggleReplyForm('reply-form-${data.comment_id}')" class="absolute bottom-2 right-4 text-xs text-blue-400 hover:text-blue-600 font-bold opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        回复
+                                                    </button>
+                                                </div>
+
+                                                <div id="reply-form-${data.comment_id}" class="hidden mt-3 ml-4 animate__animated animate__fadeIn">
+                                                    <form action="${url}" method="post" class="flex gap-2">
+                                                        {% csrf_token %}
+                                                        <input type="hidden" name="parent_id" value="${data.comment_id}">
+                                                        <textarea name="content" class="flex-1 px-4 py-2 rounded-xl bg-white border border-gray-200 text-sm focus:border-blue-300 focus:ring-2 focus:ring-blue-100 outline-none resize-none h-20" placeholder="回复 @${data.username}..."></textarea>
+                                                        <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-xl text-xs font-bold hover:bg-blue-600 h-fit self-end">
+                                                            发送
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>`;
+                                        
+                                        // Prepend to comment list
+                                        const commentList = document.querySelector('.space-y-6');
+                                        // Remove empty state if it exists
+                                        if (commentList.querySelector('.text-center')) {
+                                            commentList.innerHTML = '';
+                                        }
+                                        commentList.insertAdjacentHTML('afterbegin', commentHtml);
+                                    }
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error:', error);
+                                submitBtn.disabled = false;
+                                submitBtn.innerText = originalBtnText;
+                            });
+                        }
+                    });
+                });
+                
+                function likeNews(newsId) {
+                    const btn = document.getElementById('like-btn');
+                    const countSpan = document.getElementById('like-count');
+                    const btnText = document.getElementById('btn-text');
+                    const icon = btn.querySelector('i');
+                    
+                    fetch(`/community/news/${newsId}/like/`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': '{{ csrf_token }}',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => {
+                        if (response.status === 403) {
+                            window.location.href = "{% url 'login' %}?next={{ request.path }}";
+                            return;
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data && data.likes !== undefined) {
+                            countSpan.innerText = data.likes;
+                            if (data.liked) {
+                                // 切换到已点赞样式
+                                btn.classList.remove('from-pink-400', 'to-pink-500');
+                                btn.classList.add('from-orange-400', 'to-orange-500');
+                                icon.classList.remove('fa-regular');
+                                icon.classList.add('fa-solid', 'animate__animated', 'animate__bounceIn');
+                                btnText.innerText = '已点赞';
+                            } else {
+                                // 切换回未点赞样式
+                                btn.classList.remove('from-orange-400', 'to-orange-500');
+                                btn.classList.add('from-pink-400', 'to-pink-500');
+                                icon.classList.remove('fa-solid', 'animate__animated', 'animate__bounceIn');
+                                icon.classList.add('fa-regular');
+                                btnText.innerText = '很有用';
+                            }
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+                }
+                </script>
+            </article>
+        </div>
+
+        <!-- Sidebar: Related News -->
+        <aside class="col-span-12 lg:col-span-4 space-y-6">
+            <div class="glass-card p-6 border-t-4 border-blue-400">
+                <h3 class="font-bold text-gray-800 mb-4 flex items-center">
+                    <i class="fa-solid fa-link mr-2 text-blue-400"></i> 相关推荐
+                </h3>
+                <div class="space-y-4">
+                    {% for item in related_news %}
+                    <a href="{% url 'news_detail' item.id %}" class="flex gap-3 group">
+                        <div class="w-20 h-16 rounded-lg bg-gray-200 overflow-hidden shrink-0">
+                            {% if item.cover_image %}
+                            <img src="{{ item.cover_image.url }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform">
+                            {% endif %}
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <h4 class="text-sm font-bold text-gray-700 line-clamp-2 group-hover:text-blue-500 transition-colors">{{ item.title }}</h4>
+                            <span class="text-[10px] text-gray-400 mt-1 block">{{ item.created_at|date:"m-d" }}</span>
+                        </div>
+                    </a>
+                    {% empty %}
+                    <p class="text-sm text-gray-400">暂无相关推荐</p>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <!-- Ad Placeholder -->
+            <div class="glass-card p-4 flex items-center justify-center min-h-[200px] bg-gradient-to-br from-purple-100 to-pink-100 text-center relative overflow-hidden group">
+                <div class="absolute inset-0 bg-white/30 backdrop-blur-sm z-0"></div>
+                <div class="relative z-10">
+                    <h4 class="acg-font text-purple-600 text-xl mb-2">广告位招租</h4>
+                    <p class="text-xs text-purple-400">联系管理员投放你的二次元广告</p>
+                </div>
+                <i class="fa-solid fa-rectangle-ad text-8xl text-purple-200 absolute -bottom-4 -right-4 rotate-12 group-hover:rotate-0 transition-transform duration-500"></i>
+            </div>
+        </aside>
+
+    </div>
+</div>
+{% endblock %}

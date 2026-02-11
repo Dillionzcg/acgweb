@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}发布新话题 - 次元社区{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto animate__animated animate__fadeIn">
+    
+    <div class="glass-card p-8">
+        <div class="flex items-center justify-between mb-8 border-b border-gray-100 pb-4">
+            <h1 class="text-2xl font-bold text-gray-800 flex items-center">
+                <i class="fa-solid fa-pen-to-square text-pink-500 mr-3"></i> 发布新话题
+            </h1>
+            <a href="{% url 'topic_list' %}" class="text-sm text-gray-500 hover:text-pink-500 transition-colors">
+                <i class="fa-solid fa-xmark mr-1"></i> 取消
+            </a>
+        </div>
+
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            
+            <div>
+                <label class="block text-sm font-bold text-gray-700 mb-2">话题标题</label>
+                {{ form.title }}
+                {% if form.title.errors %}
+                <p class="text-red-500 text-xs mt-1">{{ form.title.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <div>
+                <label class="block text-sm font-bold text-gray-700 mb-2">选择板块</label>
+                {{ form.category }}
+                {% if form.category.errors %}
+                <p class="text-red-500 text-xs mt-1">{{ form.category.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <div>
+                <label class="block text-sm font-bold text-gray-700 mb-2">话题内容</label>
+                {{ form.content }}
+                <p class="text-xs text-gray-400 mt-2 text-right">支持简单的文本排版</p>
+                {% if form.content.errors %}
+                <p class="text-red-500 text-xs mt-1">{{ form.content.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <div class="pt-4 flex items-center justify-end space-x-4">
+                <a href="{% url 'topic_list' %}" class="px-6 py-2 rounded-xl bg-gray-100 text-gray-600 font-bold hover:bg-gray-200 transition-all">取消</a>
+                <button type="submit" class="px-8 py-2 rounded-xl bg-gradient-to-r from-pink-400 to-pink-500 text-white font-bold shadow-lg hover:shadow-pink-200/50 hover:scale-105 transition-all">
+                    <i class="fa-solid fa-paper-plane mr-2"></i> 立即发布
+                </button>
+            </div>
+        </form>
+    </div>
+
+</div>
+{% endblock %}

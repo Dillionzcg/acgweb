@@ -116,7 +116,7 @@
                         <a href="/" class="hover:text-pink-600 transition">首页推荐</a>
                         <a href="{% url 'bond_system' %}" class="hover:text-pink-600 transition">羁绊系统</a>
                         <a href="#" class="hover:text-pink-600 transition">安利领航</a>
-                        <a href="#" class="hover:text-pink-600 transition">社区</a>
+                        <a href="{% url 'community_home' %}" class="hover:text-pink-600 transition">社区</a>
                     </div>
                 </div>
 
@@ -132,7 +132,15 @@
                         </a>
 
                         <div class="flex items-center hidden sm:block ml-2">
-                            <span class="text-sm font-bold text-gray-700">{{ user.username }}</span>
+                            <div class="flex items-center gap-1">
+                                <span class="text-sm font-bold text-gray-700">{{ user.username }}</span>
+                                {% if user.is_superuser %}
+                                <span class="px-1 py-0.5 bg-red-100 text-red-500 text-[8px] font-bold rounded flex items-center gap-0.5">
+                                    <i class="fa-solid fa-crown text-[7px]"></i>
+                                    官方
+                                </span>
+                                {% endif %}
+                            </div>
                         </div>
 
                         <button title="设置"
