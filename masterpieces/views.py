@@ -71,3 +71,38 @@ def recommend_work(request):
         return redirect('masterpieces:works_center')
 
     return render(request, 'masterpieces/recommend_work.html')
+
+
+from django.shortcuts import render, get_object_or_404
+from .models import Work
+
+
+from django.shortcuts import render, redirect, get_object_or_404
+from .models import Work
+
+def work_detail(request, work_id):
+    # 1. 获取作品，同时预加载标签、推荐者以及评论（为了显示精选评论）
+    work = get_object_or_404(Work.objects.prefetch_related('tags', 'owner', 'comments__user'), id=work_id)
+
+    # 2. 增加热度
+    work.views += 1
+    work.save()
+
+    # 3. 获取所有评论用于下方评论区展示
+    comments = work.comments.all().order_by('-created_at')
+
+    context = {
+        'work': work,
+        'comments': comments,
+    }
+    return render(request, 'masterpieces/work_detail.html', context)
+
+from django.contrib.admin.views.decorators import staff_member_required
+from django.views.decorators.http import require_POST
+
+@staff_member_required # 仅限管理员
+@require_POST          # 仅限 POST 请求（更安全）
+def delete_work(request, work_id):
+    work = get_object_or_404(Work, id=work_id)
+    work.delete()
+    return redirect('masterpieces:works_center') # 删除后返回作品中心

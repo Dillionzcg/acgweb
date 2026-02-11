@@ -115,12 +115,35 @@
         manga: { theme: "linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%)", color: "#55efc4", accent: "bg-green-400" }
     };
 
-    function generateGridHtml(items) {
-        if (!items || items.length === 0) return `<div class="empty-state"><p class="text-gray-400 text-sm italic">该栏目暂无作品~</p></div>`;
-        return `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            ${items.map(item => `<div class="work-card shadow-sm"><div class="relative group"><img src="${item.img}" class="w-full h-48 object-cover"><div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"><span class="px-3 py-1 bg-white/90 rounded-full text-pink-500 text-xs font-bold">查看详情</span></div></div><div class="p-4"><span class="px-2 py-0.5 bg-pink-50 text-pink-400 text-[10px] font-bold rounded uppercase">${item.tag}</span><h4 class="font-bold text-gray-800 mt-2 truncate">${item.title}</h4><div class="flex justify-between items-center mt-3"><div class="flex items-center text-yellow-500"><i class="fa-solid fa-star text-[10px] mr-1"></i><span class="text-sm font-mono font-bold">${item.hot}</span></div><i class="fa-solid fa-heart text-gray-200 hover:text-pink-500 cursor-pointer transition-colors"></i></div></div></div>`).join('')}
-        </div>`;
-    }
+    // works_center.html 里的 JavaScript 部分
+
+function generateGridHtml(items) {
+    if (!items || items.length === 0) return `<div class="empty-state"><p class="text-gray-400 text-sm italic">该栏目暂无作品~</p></div>`;
+
+    return `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        ${items.map(item => `
+            <a href="${item.url}" class="work-card shadow-sm block hover:no-underline">
+                <div class="relative group">
+                    <img src="${item.img}" class="w-full h-48 object-cover">
+                    <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <span class="px-3 py-1 bg-white/90 rounded-full text-pink-500 text-xs font-bold">查看详情</span>
+                    </div>
+                </div>
+                <div class="p-4">
+                    <span class="px-2 py-0.5 bg-pink-50 text-pink-400 text-[10px] font-bold rounded uppercase">${item.tag}</span>
+                    <h4 class="font-bold text-gray-800 mt-2 truncate">${item.title}</h4>
+                    <div class="flex justify-between items-center mt-3">
+                        <div class="flex items-center text-yellow-500">
+                            <i class="fa-solid fa-star text-[10px] mr-1"></i>
+                            <span class="text-sm font-mono font-bold">${item.hot}</span>
+                        </div>
+                        <i class="fa-solid fa-heart text-gray-200 hover:text-pink-500 cursor-pointer transition-colors"></i>
+                    </div>
+                </div>
+            </a>
+        `).join('')}
+    </div>`;
+}
 
     function renderSection(zone, data, ranks) {
         const mainContainer = document.getElementById(`items-${zone}`);
@@ -183,25 +206,31 @@
     renderSection('anime', {
         recommend: [
             {% for item in anime_list %}{
+                id: "{{ item.id }}",
+                url: "{% url 'masterpieces:work_detail' item.id %}",  // ✅ 正确的写法：在服务器端生成完整URL
                 title: "{{ item.title|escapejs }}",
                 tag: "{% for t in item.tags.all|slice:':3' %}{{ t.name }}{% if not forloop.last %}/{% endif %}{% endfor %}",
-                hot: "{{ item.hot_score }}",
+                hot: "{{ item.hot_score|default:'0' }}",
                 img: "{% if item.cover %}{{ item.cover.url }}{% else %}https://picsum.photos/seed/a{{item.id}}/300/400{% endif %}"
             },{% endfor %}
         ],
         hot: [
             {% for item in anime_hot %}{
+                id: "{{ item.id }}",
+                url: "{% url 'masterpieces:work_detail' item.id %}",
                 title: "{{ item.title|escapejs }}",
                 tag: "{% for t in item.tags.all|slice:':3' %}{{ t.name }}{% if not forloop.last %}/{% endif %}{% endfor %}",
-                hot: "{{ item.hot_score }}",
+                hot: "{{ item.hot_score|default:'0' }}",
                 img: "{% if item.cover %}{{ item.cover.url }}{% else %}https://picsum.photos/seed/ah{{item.id}}/300/400{% endif %}"
             },{% endfor %}
         ],
         latest: [
             {% for item in anime_list %}{
+                id: "{{ item.id }}",
+                url: "{% url 'masterpieces:work_detail' item.id %}",
                 title: "{{ item.title|escapejs }}",
                 tag: "{% for t in item.tags.all|slice:':3' %}{{ t.name }}{% if not forloop.last %}/{% endif %}{% endfor %}",
-                hot: "{{ item.hot_score }}",
+                hot: "{{ item.hot_score|default:'0' }}",
                 img: "{% if item.cover %}{{ item.cover.url }}{% else %}https://picsum.photos/seed/al{{item.id}}/300/400{% endif %}"
             },{% endfor %}
         ]
@@ -211,25 +240,31 @@
     renderSection('galgame', {
         recommend: [
             {% for item in galgame_list %}{
+                id: "{{ item.id }}",
+                url: "{% url 'masterpieces:work_detail' item.id %}",
                 title: "{{ item.title|escapejs }}",
                 tag: "{% for t in item.tags.all|slice:':3' %}{{ t.name }}{% if not forloop.last %}/{% endif %}{% endfor %}",
-                hot: "{{ item.hot_score }}",
+                hot: "{{ item.hot_score|default:'0' }}",
                 img: "{% if item.cover %}{{ item.cover.url }}{% else %}https://picsum.photos/seed/g{{item.id}}/300/400{% endif %}"
             },{% endfor %}
         ],
         hot: [
             {% for item in galgame_hot %}{
+                id: "{{ item.id }}",
+                url: "{% url 'masterpieces:work_detail' item.id %}",
                 title: "{{ item.title|escapejs }}",
                 tag: "{% for t in item.tags.all|slice:':3' %}{{ t.name }}{% if not forloop.last %}/{% endif %}{% endfor %}",
-                hot: "{{ item.hot_score }}",
+                hot: "{{ item.hot_score|default:'0' }}",
                 img: "{% if item.cover %}{{ item.cover.url }}{% else %}https://picsum.photos/seed/gh{{item.id}}/300/400{% endif %}"
             },{% endfor %}
         ],
         latest: [
             {% for item in galgame_list %}{
+                id: "{{ item.id }}",
+                url: "{% url 'masterpieces:work_detail' item.id %}",
                 title: "{{ item.title|escapejs }}",
                 tag: "{% for t in item.tags.all|slice:':3' %}{{ t.name }}{% if not forloop.last %}/{% endif %}{% endfor %}",
-                hot: "{{ item.hot_score }}",
+                hot: "{{ item.hot_score|default:'0' }}",
                 img: "{% if item.cover %}{{ item.cover.url }}{% else %}https://picsum.photos/seed/gl{{item.id}}/300/400{% endif %}"
             },{% endfor %}
         ]
@@ -239,25 +274,31 @@
     renderSection('manga', {
         recommend: [
             {% for item in manga_list %}{
+                id: "{{ item.id }}",
+                url: "{% url 'masterpieces:work_detail' item.id %}",
                 title: "{{ item.title|escapejs }}",
                 tag: "{% for t in item.tags.all|slice:':3' %}{{ t.name }}{% if not forloop.last %}/{% endif %}{% endfor %}",
-                hot: "{{ item.hot_score }}",
+                hot: "{{ item.hot_score|default:'0' }}",
                 img: "{% if item.cover %}{{ item.cover.url }}{% else %}https://picsum.photos/seed/m{{item.id}}/300/400{% endif %}"
             },{% endfor %}
         ],
         hot: [
             {% for item in manga_hot %}{
+                id: "{{ item.id }}",
+                url: "{% url 'masterpieces:work_detail' item.id %}",
                 title: "{{ item.title|escapejs }}",
                 tag: "{% for t in item.tags.all|slice:':3' %}{{ t.name }}{% if not forloop.last %}/{% endif %}{% endfor %}",
-                hot: "{{ item.hot_score }}",
+                hot: "{{ item.hot_score|default:'0' }}",
                 img: "{% if item.cover %}{{ item.cover.url }}{% else %}https://picsum.photos/seed/mh{{item.id}}/300/400{% endif %}"
             },{% endfor %}
         ],
         latest: [
             {% for item in manga_list %}{
+                id: "{{ item.id }}",
+                url: "{% url 'masterpieces:work_detail' item.id %}",
                 title: "{{ item.title|escapejs }}",
                 tag: "{% for t in item.tags.all|slice:':3' %}{{ t.name }}{% if not forloop.last %}/{% endif %}{% endfor %}",
-                hot: "{{ item.hot_score }}",
+                hot: "{{ item.hot_score|default:'0' }}",
                 img: "{% if item.cover %}{{ item.cover.url }}{% else %}https://picsum.photos/seed/ml{{item.id}}/300/400{% endif %}"
             },{% endfor %}
         ]

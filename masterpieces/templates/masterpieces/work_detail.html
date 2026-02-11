@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ work.title }} - 作品详情 - 柚子次元壁{% endblock %}
+
+{% block content %}
+<style>
+    .detail-container {
+        animation: fadeInSlide 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+        max-width: 1100px;
+        margin: 0 auto;
+        padding-bottom: 50px;
+    }
+    @keyframes fadeInSlide {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .detail-header-card {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(20px);
+        border-radius: 32px;
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        padding: 40px;
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        gap: 40px;
+        box-shadow: 0 20px 50px rgba(255, 182, 193, 0.15);
+    }
+
+    .detail-cover {
+        width: 100%;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+
+    /* 针对管理员删除按钮的样式 */
+    .admin-tools {
+        margin-bottom: 20px;
+        display: flex;
+        justify-content: flex-end;
+    }
+    .btn-delete {
+        background: #ff4757;
+        color: white;
+        padding: 8px 20px;
+        border-radius: 12px;
+        font-weight: bold;
+        transition: all 0.3s;
+        box-shadow: 0 4px 12px rgba(255, 71, 87, 0.2);
+    }
+    .btn-delete:hover {
+        background: #ff6b81;
+        transform: scale(1.05);
+    }
+</style>
+
+<div class="detail-container">
+
+    {% if user.is_staff %}
+    <div class="admin-tools">
+        <form action="{% url 'masterpieces:delete_work' work.id %}" method="post" onsubmit="return confirm('确定要删除这个二次元安利吗？此操作不可撤销哦 (´；ω；`)');">
+            {% csrf_token %}
+            <button type="submit" class="btn-delete">
+                <i class="fa-solid fa-trash-can mr-2"></i>删除该作品推荐
+            </button>
+        </form>
+    </div>
+    {% endif %}
+
+    <div class="mb-6 flex items-center justify-between">
+        <a href="{% url 'masterpieces:works_center' %}" class="flex items-center text-pink-500 hover:text-pink-600 font-bold transition">
+            <i class="fa-solid fa-chevron-left mr-2"></i> 返回作品中心
+        </a>
+    </div>
+
+    <div class="detail-header-card">
+        <div>
+            <img src="{{ work.cover.url }}" alt="{{ work.title }}" class="detail-cover">
+            <div class="mt-6 bg-white/50 rounded-2xl p-4 text-center border border-white">
+                <div class="text-gray-400 text-xs font-bold mb-1">次元评分</div>
+                <div class="text-4xl acg-font text-pink-500">{{ work.hot_score }}</div>
+            </div>
+        </div>
+
+        <div class="flex flex-col">
+            <h1 class="text-4xl font-bold text-gray-800 acg-font mb-4">{{ work.title }}</h1>
+
+            <div class="flex flex-wrap gap-2 mb-6">
+                {% for tag in work.tags.all %}
+                <span class="px-3 py-1 bg-pink-100 text-pink-500 rounded-full text-xs font-bold"># {{ tag.name }}</span>
+                {% endfor %}
+            </div>
+
+            <div class="grid grid-cols-2 gap-6 text-sm mb-8">
+                <div class="space-y-3">
+                    <p class="text-gray-500 flex items-center">
+                        <i class="fa-solid fa-user-tag w-6 text-pink-300"></i>
+                        安利人：<span class="text-gray-800 font-bold ml-1">{{ work.owner.username|default:"神秘住民" }}</span>
+                    </p>
+                    <p class="text-gray-500 flex items-center">
+                        <i class="fa-solid fa-calendar-day w-6 text-pink-300"></i>
+                        作品发布时间：<span class="text-gray-800 font-bold ml-1">{{ work.release_date|date:"Y-m-d" }}</span>
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex-1">
+                <h3 class="text-lg font-bold text-gray-700 mb-2 flex items-center">
+                    <i class="fa-solid fa-quote-left text-pink-200 mr-2"></i> 官方简介
+                </h3>
+                <p class="text-gray-700 leading-relaxed text-lg bg-white/40 p-5 rounded-2xl border border-white italic">
+                    {{ work.description|linebreaksbr }}
+                </p>
+
+
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-12 glass-card p-8">
+        <h3 class="text-xl acg-font text-gray-700 mb-6">全部评论</h3>
+        </div>
+</div>
+{% endblock %}
