@@ -52,7 +52,15 @@
                             {% else %}
                             <div class="w-6 h-6 rounded-full bg-gray-300 border border-white shadow-sm"></div>
                             {% endif %}
-                            {{ news.author.username }}
+                            <div class="flex items-center gap-1">
+                                {{ news.author.username }}
+                                {% if news.author.is_superuser %}
+                                <span class="px-1 py-0.5 bg-red-100 text-red-500 text-[8px] font-bold rounded flex items-center gap-0.5">
+                                    <i class="fa-solid fa-crown text-[7px]"></i>
+                                    官方
+                                </span>
+                                {% endif %}
+                            </div>
                         </span>
                         <span>发布于 {{ news.created_at|date:"Y年m月d日 H:i" }}</span>
                     </div>
@@ -124,7 +132,15 @@
                             <div class="flex-1 min-w-0">
                                 <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 group-hover:border-blue-100 transition-colors relative">
                                     <div class="flex items-center justify-between mb-2">
-                                        <span class="font-bold text-sm text-gray-700">{{ comment.author.username }}</span>
+                                        <div class="flex items-center gap-2">
+                                            <span class="font-bold text-sm text-gray-700">{{ comment.author.username }}</span>
+                                            {% if comment.author.is_superuser %}
+                                            <span class="px-1.5 py-0.5 bg-red-100 text-red-500 text-[10px] font-bold rounded flex items-center gap-0.5">
+                                                <i class="fa-solid fa-crown text-[8px]"></i>
+                                                官方
+                                            </span>
+                                            {% endif %}
+                                        </div>
                                         <span class="text-[10px] text-gray-400">{{ comment.created_at|date:"Y-m-d H:i" }}</span>
                                     </div>
                                     <p class="text-sm text-gray-600 leading-relaxed">{{ comment.content|linebreaksbr }}</p>
@@ -165,13 +181,18 @@
                                             </div>
                                             {% endif %}
                                         </div>
-                                        <div class="flex-1">
-                                            <div class="bg-gray-50 p-3 rounded-xl">
-                                                <div class="flex items-center gap-2 mb-1">
-                                                    <span class="font-bold text-xs text-gray-700">{{ reply.author.username }}</span>
-                                                    <span class="text-[10px] text-gray-400">{{ reply.created_at|date:"m-d H:i" }}</span>
-                                                </div>
-                                                <p class="text-xs text-gray-600">{{ reply.content|linebreaksbr }}</p>
+                                                                                    <div class="flex-1">
+                                                                                        <div class="bg-gray-50 p-3 rounded-xl">
+                                                                                            <div class="flex items-center gap-2 mb-1">
+                                                                                                <span class="font-bold text-xs text-gray-700">{{ reply.author.username }}</span>
+                                                                                                {% if reply.author.is_superuser %}
+                                                                                                <span class="px-1 py-0.5 bg-red-100 text-red-500 text-[8px] font-bold rounded flex items-center gap-0.5">
+                                                                                                    <i class="fa-solid fa-crown text-[7px]"></i>
+                                                                                                    官方
+                                                                                                </span>
+                                                                                                {% endif %}
+                                                                                                <span class="text-[10px] text-gray-400">{{ reply.created_at|date:"m-d H:i" }}</span>
+                                                                                            </div>                                                <p class="text-xs text-gray-600">{{ reply.content|linebreaksbr }}</p>
                                             </div>
                                         </div>
                                     </div>
@@ -230,6 +251,17 @@
                                 if (data.status === 'success') {
                                     form.reset();
                                     
+                                    const officialBadge = data.is_superuser ? `
+                                        <span class="px-1 py-0.5 bg-red-100 text-red-500 text-[8px] font-bold rounded flex items-center gap-0.5">
+                                            <i class="fa-solid fa-crown text-[7px]"></i>
+                                            官方
+                                        </span>` : '';
+                                    const officialBadgeLarge = data.is_superuser ? `
+                                        <span class="px-1.5 py-0.5 bg-red-100 text-red-500 text-[10px] font-bold rounded flex items-center gap-0.5">
+                                            <i class="fa-solid fa-crown text-[8px]"></i>
+                                            官方
+                                        </span>` : '';
+
                                     // Construct the new comment HTML
                                     let commentHtml = '';
                                     if (data.parent_id) {
@@ -243,6 +275,7 @@
                                                 <div class="bg-gray-50 p-3 rounded-xl">
                                                     <div class="flex items-center gap-2 mb-1">
                                                         <span class="font-bold text-xs text-gray-700">${data.username}</span>
+                                                        ${officialBadge}
                                                         <span class="text-[10px] text-gray-400">${data.created_at}</span>
                                                     </div>
                                                     <p class="text-xs text-gray-600">${data.content.replace(/\n/g, '<br>')}</p>
@@ -274,7 +307,10 @@
                                             <div class="flex-1 min-w-0">
                                                 <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 group-hover:border-blue-100 transition-colors relative">
                                                     <div class="flex items-center justify-between mb-2">
-                                                        <span class="font-bold text-sm text-gray-700">${data.username}</span>
+                                                        <div class="flex items-center gap-2">
+                                                            <span class="font-bold text-sm text-gray-700">${data.username}</span>
+                                                            ${officialBadgeLarge}
+                                                        </div>
                                                         <span class="text-[10px] text-gray-400">${data.created_at}</span>
                                                     </div>
                                                     <p class="text-sm text-gray-600 leading-relaxed">${data.content.replace(/\n/g, '<br>')}</p>

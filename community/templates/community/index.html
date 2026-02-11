@@ -79,7 +79,15 @@
                         </div>
                         <div class="flex items-center text-[10px] text-gray-400 space-x-3">
                             <span><i class="fa-solid fa-eye mr-1"></i>{{ news.views }}</span>
-                            <span><i class="fa-solid fa-user mr-1"></i>{{ news.author.username }}</span>
+                            <div class="flex items-center gap-1">
+                                <span><i class="fa-solid fa-user mr-1"></i>{{ news.author.username }}</span>
+                                {% if news.author.is_superuser %}
+                                <span class="px-1 py-0.5 bg-red-100 text-red-500 text-[8px] font-bold rounded flex items-center gap-0.5">
+                                    <i class="fa-solid fa-crown text-[7px]"></i>
+                                    官方
+                                </span>
+                                {% endif %}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -137,7 +145,15 @@
                         <p class="text-xs text-gray-500 line-clamp-1 mb-2">{{ topic.content|striptags }}</p>
                         <div class="flex items-center justify-between">
                             <div class="flex items-center space-x-2">
-                                <span class="text-[10px] text-blue-400 font-bold">@{{ topic.author.username }}</span>
+                                <div class="flex items-center gap-1">
+                                    <span class="text-[10px] text-blue-400 font-bold">@{{ topic.author.username }}</span>
+                                    {% if topic.author.is_superuser %}
+                                    <span class="px-1 py-0.5 bg-red-100 text-red-500 text-[8px] font-bold rounded flex items-center gap-0.5">
+                                        <i class="fa-solid fa-crown text-[7px]"></i>
+                                        官方
+                                    </span>
+                                    {% endif %}
+                                </div>
                                 {% if topic.keywords %}
                                 <div class="flex gap-1">
                                     {% for keyword in topic.keywords.split|slice:":2" %}

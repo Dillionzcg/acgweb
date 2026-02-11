@@ -64,7 +64,15 @@
                             
                             <div class="flex items-center justify-between text-xs text-gray-400">
                                 <div class="flex items-center gap-4">
-                                    <span class="text-blue-400 font-bold">@{{ topic.author.username }}</span>
+                                    <div class="flex items-center gap-1">
+                                        <span class="text-blue-400 font-bold">@{{ topic.author.username }}</span>
+                                        {% if topic.author.is_superuser %}
+                                        <span class="px-1.5 py-0.5 bg-red-100 text-red-500 text-[10px] font-bold rounded flex items-center gap-0.5">
+                                            <i class="fa-solid fa-crown text-[8px]"></i>
+                                            官方
+                                        </span>
+                                        {% endif %}
+                                    </div>
                                     <span>{{ topic.created_at|date:"Y-m-d H:i" }}</span>
                                     {% if topic.keywords %}
                                     <div class="flex gap-2">

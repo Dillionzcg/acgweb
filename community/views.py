@@ -94,6 +94,7 @@ def add_topic_comment(request, pk):
                 return JsonResponse({
                     'status': 'success',
                     'username': comment.author.username,
+                    'is_superuser': comment.author.is_superuser,
                     'avatar_url': comment.author.avatar.url if comment.author.avatar else '/static/images/default_head.png',
                     'content': comment.content,
                     'created_at': comment.created_at.strftime('%Y-%m-%d %H:%M'),
@@ -204,6 +205,7 @@ def add_news_comment(request, pk):
                 return JsonResponse({
                     'status': 'success',
                     'username': comment.author.username,
+                    'is_superuser': comment.author.is_superuser,
                     'avatar_url': comment.author.avatar.url if comment.author.avatar else '/static/images/default_head.png',
                     'content': comment.content,
                     'created_at': comment.created_at.strftime('%Y-%m-%d %H:%M'),

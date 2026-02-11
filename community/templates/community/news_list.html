@@ -64,16 +64,23 @@
                     {{ news.summary|default:news.content|striptags|truncatechars:100 }}
                 </p>
                 
-                <div class="flex items-center justify-between text-[10px] text-gray-400 border-t border-gray-100 pt-3">
-                    <div class="flex items-center gap-2">
-                        {% if news.author.avatar %}
-                        <img src="{{ news.author.avatar.url }}" class="w-5 h-5 rounded-full">
-                        {% else %}
-                        <div class="w-5 h-5 rounded-full bg-gray-300"></div>
-                        {% endif %}
-                        <span>{{ news.author.username }}</span>
-                    </div>
-                    <div class="flex items-center gap-3">
+                                    <div class="flex items-center justify-between text-[10px] text-gray-400 border-t border-gray-100 pt-3">
+                                        <div class="flex items-center gap-2">
+                                            {% if news.author.avatar %}
+                                            <img src="{{ news.author.avatar.url }}" class="w-5 h-5 rounded-full">
+                                            {% else %}
+                                            <div class="w-5 h-5 rounded-full bg-gray-300"></div>
+                                            {% endif %}
+                                            <div class="flex items-center gap-1">
+                                                <span>{{ news.author.username }}</span>
+                                                {% if news.author.is_superuser %}
+                                                <span class="px-1 py-0.5 bg-red-100 text-red-500 text-[8px] font-bold rounded flex items-center gap-0.5">
+                                                    <i class="fa-solid fa-crown text-[7px]"></i>
+                                                    官方
+                                                </span>
+                                                {% endif %}
+                                            </div>
+                                        </div>                    <div class="flex items-center gap-3">
                         <span><i class="fa-regular fa-clock mr-1"></i>{{ news.created_at|date:"m-d" }}</span>
                         <span><i class="fa-regular fa-eye mr-1"></i>{{ news.views }}</span>
                     </div>
