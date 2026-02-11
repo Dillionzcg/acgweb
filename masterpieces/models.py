@@ -36,14 +36,21 @@ class Work(models.Model):
 
     def __str__(self):
         return self.title
+# models.py
+
+class WorkGallery(models.Model):
+    work = models.ForeignKey(Work, on_delete=models.CASCADE, related_name='gallery')
+    image = models.ImageField('图集图片', upload_to='works/gallery/')
+    created_at = models.DateTimeField(auto_now_add=True)
 
 class Comment(models.Model):
     work = models.ForeignKey(Work, on_delete=models.CASCADE, related_name='comments')
-    # 修改这里：同样使用 settings.AUTH_USER_MODEL
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     content = models.TextField('评论内容')
+    score = models.IntegerField('评分', default=5) # 1-10分
+    likes = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='liked_comments', blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
-    class Meta:
-        verbose_name = '作品评论'
-        verbose_name_plural = verbose_name
+    @property
+    def like_count(self):
+        return self.likes.count()
