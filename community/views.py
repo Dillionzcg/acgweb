@@ -216,7 +216,24 @@ def add_news_comment(request, pk):
     return redirect('news_detail', pk=pk)
 
 @login_required
+def delete_topic(request, pk):
+    """删除话题 (仅限作者或超级用户)"""
+    topic = get_object_or_404(Topic, pk=pk)
+    if topic.author == request.user or request.user.is_superuser:
+        topic.delete()
+        return redirect('topic_list')
+    return redirect('topic_detail', pk=pk)
 
+@login_required
+def delete_news(request, pk):
+    """删除资讯 (仅限作者或超级用户)"""
+    news = get_object_or_404(News, pk=pk)
+    if news.author == request.user or request.user.is_superuser:
+        news.delete()
+        return redirect('news_list')
+    return redirect('news_detail', pk=pk)
+
+@login_required
 def like_news(request, pk):
 
     """为资讯点赞/取消点赞 (AJAX)"""

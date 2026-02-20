@@ -66,6 +66,11 @@
                     </div>
                     <div class="flex items-center gap-4">
                         <span><i class="fa-solid fa-eye mr-1"></i> {{ news.views }} 阅读</span>
+                        {% if user == news.author or user.is_superuser %}
+                        <a href="{% url 'delete_news' news.id %}" onclick="return confirm('确定要删除这篇资讯吗？此操作不可撤销。')" class="text-red-400 hover:text-red-600 font-bold transition-colors">
+                            <i class="fa-solid fa-trash-can mr-1"></i> 删除
+                        </a>
+                        {% endif %}
                     </div>
                 </div>
 

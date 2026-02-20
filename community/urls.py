@@ -6,10 +6,12 @@ urlpatterns = [
     path('topics/', views.topic_list, name='topic_list'),
     path('topics/create/', views.create_topic, name='create_topic'),  # 新增
     path('topics/<int:pk>/', views.topic_detail, name='topic_detail'),
+    path('topics/<int:pk>/delete/', views.delete_topic, name='delete_topic'),
     path('topics/<int:pk>/comment/', views.add_topic_comment, name='add_topic_comment'),
     path('news/', views.news_list, name='news_list'),
     path('news/create/', views.create_news, name='create_news'),
     path('news/<int:pk>/', views.news_detail, name='news_detail'),
+    path('news/<int:pk>/delete/', views.delete_news, name='delete_news'),
     path('news/<int:pk>/like/', views.like_news, name='like_news'),
     path('news/<int:pk>/comment/', views.add_news_comment, name='add_news_comment'),
 ]
