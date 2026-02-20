@@ -4,36 +4,69 @@
 {% block title %}资讯中心 - 二次元前线{% endblock %}
 
 {% block content %}
-<div class="animate__animated animate__fadeIn">
-    
-    <!-- Header Banner -->
-    <div class="relative h-64 rounded-3xl overflow-hidden shadow-2xl mb-8 group">
-        <div class="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 opacity-90"></div>
-        <img src="https://picsum.photos/1200/400?blur=2" class="absolute inset-0 w-full h-full object-cover mix-blend-overlay group-hover:scale-105 transition-transform duration-700">
-        <div class="relative h-full flex flex-col justify-center px-10 text-white">
+
+    <style>
+@keyframes shimmer {
+    100% { transform: translateX(100%); }
+}
+</style>
+<div class="animate__animated animate__fadeIn space-y-6">
+
+    <div class="flex flex-col md:flex-row gap-4 mb-2">
+        <a href="/" class="flex items-center justify-center px-6 py-4 glass-card hover:bg-white/50 transition-all duration-300 group">
+            <i class="fa-solid fa-house-chimney text-pink-500 mr-2 group-hover:-translate-x-1 transition-transform"></i>
+            <span class="acg-font text-gray-700">返回首页</span>
+        </a>
+
+        <a href="{% url 'create_news' %}"
+           class="flex-1 flex items-center justify-between px-8 py-4 glass-card
+                  bg-white/30 border border-white/60 shadow-[0_8px_32px_rgba(255,182,193,0.1)]
+                  hover:bg-white/60 hover:shadow-[0_8px_32px_rgba(255,182,193,0.3)]
+                  hover:-translate-y-0.5 transition-all duration-500 group overflow-hidden relative">
+
+            <div class="absolute -inset-full bg-gradient-to-r from-transparent via-pink-200/20 to-transparent -skew-x-12 translate-x-[-100%] group-hover:animate-[shimmer_2s_infinite]"></div>
+
+            <div class="flex items-center relative z-10">
+                <div class="w-10 h-10 bg-white/80 rounded-full flex items-center justify-center mr-4 shadow-sm group-hover:scale-110 group-hover:bg-pink-500 transition-all duration-500">
+                    <i class="fa-solid fa-pen-nib text-pink-400 group-hover:text-white transition-colors"></i>
+                </div>
+                <div>
+                    <h3 class="text-gray-800 font-bold text-lg acg-font tracking-wide">撰写情报资讯</h3>
+                    <p class="text-gray-500 text-xs opacity-70 group-hover:opacity-100 transition-opacity">分享你发现的最前线二次元动态...</p>
+                </div>
+            </div>
+
+            <div class="relative z-10 flex items-center text-pink-300 group-hover:text-pink-500 transition-colors">
+                <span class="text-xs font-bold mr-2 opacity-0 group-hover:opacity-100 translate-x-4 group-hover:translate-x-0 transition-all duration-500">GO!</span>
+                <i class="fa-solid fa-chevron-right text-sm group-hover:translate-x-2 transition-transform duration-300"></i>
+            </div>
+        </a>
+    </div>
+
+    <div class="relative h-64 rounded-3xl overflow-hidden shadow-2xl group">
+        <img src="{% static 'images/bg2.jpg' %}"
+             class="absolute inset-0 w-full h-full object-cover transition-all duration-700 group-hover:scale-110"
+             alt="资讯中心背景">
+
+        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+
+        <div class="relative h-full flex flex-col justify-end p-8 text-white">
+            <i class="fa-solid fa-newspaper text-5xl opacity-30 absolute top-6 right-8 group-hover:rotate-12 transition-transform"></i>
+
             <h1 class="text-4xl acg-font mb-2 drop-shadow-lg">资讯情报局</h1>
             <p class="text-lg opacity-80">掌握第一手番剧、游戏、展会动态</p>
-            {% if user.is_superuser %}
-            <div class="mt-4">
-                <a href="{% url 'create_news' %}" class="inline-flex items-center px-4 py-2 bg-white/20 hover:bg-white/30 backdrop-blur-md border border-white/40 rounded-xl text-sm font-bold transition-all hover:scale-105 active:scale-95">
-                    <i class="fa-solid fa-plus-circle mr-2"></i> 发布资讯情报
-                </a>
-            </div>
-            {% endif %}
         </div>
-        
-        <!-- Category Nav (Floating) -->
-        <div class="absolute bottom-6 left-10 flex gap-2">
-            <a href="{% url 'news_list' %}" class="px-4 py-1.5 rounded-full backdrop-blur-md border border-white/30 text-sm font-bold hover:bg-white hover:text-blue-600 transition-all {% if not current_tag %}bg-white text-blue-600{% else %}bg-black/20 text-white{% endif %}">全部</a>
+
+        <div class="absolute bottom-8 right-8 flex gap-2">
+            <a href="{% url 'news_list' %}" class="px-4 py-1.5 rounded-full backdrop-blur-md border border-white/30 text-xs font-bold hover:bg-white hover:text-blue-600 transition-all {% if not current_tag %}bg-white text-blue-600{% else %}bg-black/20 text-white{% endif %}">全部</a>
             {% for t in tags %}
-            <a href="{% url 'news_list' %}?tag={{ t }}" class="px-4 py-1.5 rounded-full backdrop-blur-md border border-white/30 text-sm font-bold hover:bg-white hover:text-blue-600 transition-all {% if current_tag == t %}bg-white text-blue-600{% else %}bg-black/20 text-white{% endif %}">
+            <a href="{% url 'news_list' %}?tag={{ t }}" class="px-4 py-1.5 rounded-full backdrop-blur-md border border-white/30 text-xs font-bold hover:bg-white hover:text-blue-600 transition-all {% if current_tag == t %}bg-white text-blue-600{% else %}bg-black/20 text-white{% endif %}">
                 #{{ t }}
             </a>
             {% endfor %}
         </div>
     </div>
 
-    <!-- News Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {% for news in news_items %}
         <article class="glass-card overflow-hidden hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 group flex flex-col h-full">
@@ -55,7 +88,7 @@
                 </div>
                 {% endif %}
             </a>
-            
+
             <div class="p-5 flex-1 flex flex-col">
                 <h2 class="text-lg font-bold text-gray-800 mb-2 leading-snug group-hover:text-blue-500 transition-colors">
                     <a href="{% url 'news_detail' news.id %}">{{ news.title }}</a>
@@ -63,24 +96,25 @@
                 <p class="text-xs text-gray-500 line-clamp-3 mb-4 flex-1">
                     {{ news.summary|default:news.content|striptags|truncatechars:100 }}
                 </p>
-                
-                                    <div class="flex items-center justify-between text-[10px] text-gray-400 border-t border-gray-100 pt-3">
-                                        <div class="flex items-center gap-2">
-                                            {% if news.author.avatar %}
-                                            <img src="{{ news.author.avatar.url }}" class="w-5 h-5 rounded-full">
-                                            {% else %}
-                                            <div class="w-5 h-5 rounded-full bg-gray-300"></div>
-                                            {% endif %}
-                                            <div class="flex items-center gap-1">
-                                                <span>{{ news.author.username }}</span>
-                                                {% if news.author.is_superuser %}
-                                                <span class="px-1 py-0.5 bg-red-100 text-red-500 text-[8px] font-bold rounded flex items-center gap-0.5">
-                                                    <i class="fa-solid fa-crown text-[7px]"></i>
-                                                    官方
-                                                </span>
-                                                {% endif %}
-                                            </div>
-                                        </div>                    <div class="flex items-center gap-3">
+
+                <div class="flex items-center justify-between text-[10px] text-gray-400 border-t border-gray-100 pt-3">
+                    <div class="flex items-center gap-2">
+                        {% if news.author.avatar %}
+                        <img src="{{ news.author.avatar.url }}" class="w-5 h-5 rounded-full">
+                        {% else %}
+                        <div class="w-5 h-5 rounded-full bg-gray-300"></div>
+                        {% endif %}
+                        <div class="flex items-center gap-1">
+                            <span class="font-medium">{{ news.author.username }}</span>
+                            {% if news.author.is_superuser %}
+                            <span class="px-1 py-0.5 bg-red-100 text-red-500 text-[8px] font-bold rounded flex items-center gap-0.5">
+                                <i class="fa-solid fa-crown text-[7px]"></i>
+                                官方
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
                         <span><i class="fa-regular fa-clock mr-1"></i>{{ news.created_at|date:"m-d" }}</span>
                         <span><i class="fa-regular fa-eye mr-1"></i>{{ news.views }}</span>
                     </div>
