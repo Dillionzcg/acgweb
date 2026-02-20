@@ -4,9 +4,9 @@ from django.http import JsonResponse
 from .models import Topic, TopicCategory, News, NewsCategory, NewsComment, TopicComment
 from .forms import TopicForm, NewsForm, NewsCommentForm, TopicCommentForm
 
-@user_passes_test(lambda u: u.is_superuser)
+@login_required
 def create_news(request):
-    """发布新资讯 (仅限超级用户)"""
+    """发布新资讯"""
     if request.method == 'POST':
         form = NewsForm(request.POST, request.FILES)
         if form.is_valid():

@@ -4,6 +4,17 @@
 {% block title %}次元社区 - 交流与资讯{% endblock %}
 
 {% block content %}
+<style>
+    .back-home { position: absolute; left: 20px; top: 20px; z-index: 10; opacity: 0; animation: slideInLeft 0.5s ease-out forwards; }
+    @keyframes slideInLeft { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+    .community-container { position: relative; }
+</style>
+
+<div class="community-container">
+    <a href="/" class="back-home px-4 py-2 bg-white/90 backdrop-blur rounded-full shadow-sm text-pink-500 hover:bg-pink-500 hover:text-white transition-all acg-font border border-pink-100 flex items-center">
+        <i class="fa-solid fa-house-chimney mr-1"></i> 返回首页
+    </a>
+
 <div class="grid grid-cols-12 gap-6 pb-8 animate__animated animate__fadeIn">
     
     <!-- 左侧导航/分类 -->
