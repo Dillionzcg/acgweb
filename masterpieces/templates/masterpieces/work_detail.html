@@ -85,6 +85,14 @@
     .text-4xl.text-pink-500.font-bold {
         /* 保持原样，无需额外定义，仅作标记 */
     }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-5px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fadeIn {
+        animation: fadeIn 0.3s ease-out;
+
+}
 </style>
 
 <div class="detail-container">
@@ -141,26 +149,41 @@
                 <div class="text-4xl text-pink-500 font-bold">{{ work.hot_score }}</div>
             </div>
 
-            <!-- 用户标签区域 -->
-            <div class="bg-white/60 rounded-3xl p-6 border border-white shadow-sm">
+            <div class="bg-white/60 rounded-3xl p-6 border border-white shadow-sm mt-6">
                 <div class="flex justify-between items-center mb-4">
-                    <h4 class="text-gray-700 text-sm font-black">用户标签展示</h4>
-                    <a href="#" class="group text-pink-500 text-xs font-bold flex items-center">
+                    <h4 class="text-gray-700 text-sm font-black flex items-center">
+                        <i class="fa-solid fa-tags text-pink-400 mr-2"></i>用户标签展示
+                    </h4>
+                    <button id="add-tag-btn" onclick="showTagInput()" class="group text-pink-500 text-xs font-bold flex items-center hover:text-pink-600 transition-colors">
                         我要添加标签 <i class="fa-solid fa-circle-plus ml-1 group-hover:rotate-90 transition-transform"></i>
-                    </a>
+                    </button>
                 </div>
 
-                <div class="flex flex-wrap gap-3 min-h-[80px] p-2">
+                <div id="tag-input-wrapper" class="hidden mb-6 animate-fadeIn">
+                    <div class="flex gap-2 p-1 bg-pink-50/50 rounded-2xl border border-pink-100">
+                        <input type="text" id="new-tag-name"
+                               class="flex-1 px-4 py-2 bg-transparent border-none text-xs focus:outline-none placeholder:text-pink-300 text-pink-600"
+                               placeholder="输入新标签..."
+                               maxlength="10">
+                        <button onclick="submitUserTag({{ work.id }})"
+                                class="px-5 py-2 bg-gradient-to-r from-pink-400 to-rose-400 text-white rounded-xl text-xs font-bold shadow-sm hover:shadow-pink-200 hover:scale-105 transition-all">
+                            提交
+                        </button>
+                        <button onclick="hideTagInput()" class="px-3 py-2 text-gray-400 hover:text-pink-500 transition-colors">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="user-tags-container" class="flex flex-wrap gap-2 min-h-[40px]">
                     {% if work.user_tags.all %}
                         {% for tag in work.user_tags.all %}
-                        <span class="px-4 py-2 bg-white text-gray-600 rounded-xl text-xs border border-pink-100 shadow-sm hover:border-pink-300 transition-colors">
-                            {{ tag.name }}
-                        </span>
+                        <span class="inline-flex items-center justify-center px-3 py-1 bg-pink-100 text-pink-500 rounded-full text-xs font-bold"># {{ tag.name }}</span>
                         {% endfor %}
                     {% else %}
-                        <div class="flex flex-col items-center justify-center w-full text-gray-300">
-                            <i class="fa-solid fa-tags text-2xl mb-2"></i>
-                            <p class="text-[10px]">暂无用户标签，快来抢首发！</p>
+                        <div class="flex flex-col items-center justify-center w-full py-6 border-2 border-dashed border-pink-50 rounded-3xl">
+                            <i class="fa-solid fa-wand-magic-sparkles text-pink-200 text-2xl mb-2"></i>
+                            <p class="text-[11px] text-pink-300 tracking-widest font-bold">暂时还没有用户标签，快来留下你的印象吧~</p>
                         </div>
                     {% endif %}
                 </div>
@@ -201,69 +224,88 @@
                     {{ work.description|linebreaksbr }}
                 </p>
 
-                {% with top_comment=comments.first %}
-                {% if top_comment %}
-                <div class="mt-6 bg-gradient-to-r from-pink-50 to-transparent p-4 rounded-xl border-l-4 border-pink-300">
-                    <h4 class="text-sm font-bold text-pink-400 mb-2"><i class="fa-solid fa-star mr-1"></i> 精选评论</h4>
-                    <p class="text-gray-600 text-sm">{{ top_comment.content }}</p>
-                </div>
-                {% endif %}
-                {% endwith %}
+
             </div>
         </div>
     </div>
 
-    <!-- ========== 下方评论区 + 评分表单 ========== -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <!-- 左侧：全部评论列表 -->
-        <div class="md:col-span-2 space-y-6">
-            <div class="glass-card p-8 bg-white/60 rounded-3xl border border-white">
-                <h3 class="text-xl font-bold text-gray-700 mb-6">全部居民评论 ({{ comments.count }})</h3>
-                <div class="space-y-6">
-                    {% for comment in comments %}
-                    <div class="flex gap-4 pb-6 border-b border-pink-50 last:border-0">
-                        <div class="flex-1">
-                            <div class="flex justify-between items-center mb-2">
-                                <span class="font-bold text-gray-700">{{ comment.user.username }}</span>
-                                <span class="text-xs text-yellow-500 font-bold">评分: {{ comment.score }}</span>
-                            </div>
-                            <p class="text-gray-600 text-sm leading-relaxed">{{ comment.content }}</p>
-                            <div class="mt-3 flex items-center gap-4">
-                                <button onclick="likeComment({{ comment.id }}, this)" class="text-xs {% if user in comment.likes.all %}text-pink-500{% else %}text-gray-400{% endif %} flex items-center gap-1">
-                                    <i class="fa-solid fa-heart"></i> <span>{{ comment.likes.count }}</span>
-                                </button>
-                                <span class="text-[10px] text-gray-300">{{ comment.created_at|date:"Y-m-d" }}</span>
-                            </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
+
+    <div class="md:col-span-2 space-y-6">
+        <div class="glass-card p-8 bg-white/60 rounded-3xl border border-white shadow-sm">
+            <h3 class="text-xl font-black text-gray-700 mb-8 flex items-center">
+                <i class="fa-solid fa-comments text-pink-400 mr-3"></i>
+                全部居民评论 <span class="ml-2 text-sm font-normal text-gray-400">({{ comments.count }})</span>
+            </h3>
+
+            <div class="space-y-8">
+                {% for comment in comments %}
+                <div class="flex gap-4 group">
+                    <div class="flex-shrink-0">
+                        <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-pink-100 to-rose-100 flex items-center justify-center text-pink-400 border-2 border-white shadow-sm">
+                            <i class="fa-solid fa-user text-lg"></i>
                         </div>
                     </div>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
 
-        <!-- 右侧：评价表单（粘性） -->
-        <div class="md:col-span-1">
-            <div class="sticky top-24">
-                <div class="glass-card p-6 bg-white/80 rounded-3xl border border-white shadow-xl">
-                    <h4 class="font-bold text-gray-700 mb-4 text-center">评价并安利</h4>
-                    <form action="{% url 'masterpieces:submit_comment' work.id %}" method="post">
-                        {% csrf_token %}
-                        <!-- 星星评分 -->
-                        <div class="flex justify-center gap-2 mb-4 text-2xl text-gray-200" id="star-rating">
-                            {% for i in "12345"|make_list %}
-                            <i class="fa-solid fa-star cursor-pointer transition-colors" data-val="{{ forloop.counter }}"></i>
-                            {% endfor %}
-                            <input type="hidden" name="score" id="score-input" required>
+                    <div class="flex-1 pb-6 border-b border-pink-50 group-last:border-0">
+                        <div class="flex justify-between items-center mb-2">
+                            <div>
+                                <span class="font-bold text-gray-800">{{ comment.user.username }}</span>
+                                <span class="ml-2 px-2 py-0.5 bg-yellow-50 text-yellow-600 text-[10px] rounded-lg font-bold border border-yellow-100">
+                                    <i class="fa-solid fa-star mr-0.5"></i>{{ comment.score }}
+                                </span>
+                            </div>
+                            <span class="text-[11px] text-gray-300">{{ comment.created_at|date:"Y-m-d H:i" }}</span>
                         </div>
-                        <textarea name="content" required placeholder="分享你的观看感受..." class="w-full p-4 bg-white/50 rounded-2xl border border-pink-100 focus:outline-none focus:ring-2 focus:ring-pink-200 text-sm mb-4" rows="4"></textarea>
-                        <button type="submit" class="w-full py-3 bg-pink-500 text-white rounded-xl font-bold shadow-lg hover:bg-pink-600 transition">
-                            同步发布
-                        </button>
-                    </form>
+
+                        <p class="text-gray-600 text-sm leading-relaxed mb-4">
+                            {{ comment.content }}
+                        </p>
+
+                        <div class="flex items-center">
+                            <button
+                                class="comment-like-btn flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-colors {% if user in comment.likes.all %}text-pink-500 bg-pink-50{% else %}text-gray-400 hover:bg-gray-50{% endif %}"
+                                data-url="{% url 'masterpieces:like_comment' comment.id %}">
+                                <i class="fa-{% if user in comment.likes.all %}solid{% else %}regular{% endif %} fa-heart"></i>
+                                <span class="text-xs font-bold">{{ comment.likes.count }}</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
+                {% empty %}
+                <div class="text-center py-12">
+                    <i class="fa-solid fa-feather text-4xl text-gray-100 mb-4 block"></i>
+                    <p class="text-gray-400 text-sm">还没有人评论，快来抢沙发吧~</p>
+                </div>
+                {% endfor %}
             </div>
         </div>
     </div>
+
+    <div class="md:col-span-1">
+        <div class="sticky top-24"> <div class="glass-card p-6 bg-white/80 rounded-3xl border border-white shadow-xl">
+                <h4 class="font-bold text-gray-700 mb-4 text-center">评价并安利</h4>
+                <form action="{% url 'masterpieces:submit_comment' work.id %}" method="post">
+                    {% csrf_token %}
+                    <div class="flex justify-center gap-2 mb-4 text-2xl text-gray-200" id="star-rating">
+                        {% for i in "12345"|make_list %}
+                        <i class="fa-solid fa-star cursor-pointer transition-colors hover:text-yellow-300" data-val="{{ forloop.counter }}"></i>
+                        {% endfor %}
+                        <input type="hidden" name="score" id="score-input" required>
+                    </div>
+                    <textarea name="content" required placeholder="分享你的观看感受..." class="w-full p-4 bg-white/50 rounded-2xl border border-pink-100 focus:outline-none focus:ring-2 focus:ring-pink-200 text-sm mb-4" rows="4"></textarea>
+                    <button type="submit" class="w-full py-3 bg-pink-500 text-white rounded-xl font-bold shadow-lg hover:bg-pink-600 transition-all active:scale-95">
+                        同步发布
+                    </button>
+                </form>
+            </div>
+
+            <div class="mt-4 p-4 text-[11px] text-gray-400 leading-relaxed italic text-center">
+                温馨提示：请文明发言，共同维护次元壁和谐氛围哦~
+            </div>
+        </div>
+    </div>
+</div>
 
     <!-- ========== 上传图片模态框 ========== -->
     <div id="uploadModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -301,82 +343,131 @@
     </div>
 </div>
 
-<!-- ========== JavaScript ========== -->
 <script>
-    (function() {
-        // ---------- 星星评分交互 ----------
-        const stars = document.querySelectorAll('#star-rating i');
-        const scoreInput = document.getElementById('score-input');
+(function() {
+    // ---------- 点赞：事件委托 ----------
+    document.addEventListener('click', function(e) {
+        const likeBtn = e.target.closest('.comment-like-btn');
+        if (!likeBtn) return;
 
-        if (stars.length && scoreInput) {
-            stars.forEach(star => {
-                star.onclick = function() {
-                    const val = parseInt(this.dataset.val);
-                    scoreInput.value = val;
+        e.preventDefault();
+        const url = likeBtn.dataset.url;
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
 
-                    stars.forEach(s => {
-                        const sVal = parseInt(s.dataset.val);
-                        if (sVal <= val) {
-                            s.classList.remove('text-gray-200');
-                            s.classList.add('text-yellow-400');
-                        } else {
-                            s.classList.remove('text-yellow-400');
-                            s.classList.add('text-gray-200');
-                        }
-                    });
-                };
-            });
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            const icon = likeBtn.querySelector('i');
+            const countSpan = likeBtn.querySelector('span');
+            if (data.liked) {
+                likeBtn.classList.add('text-pink-500');
+                icon.className = 'fa-solid fa-heart';
+            } else {
+                likeBtn.classList.remove('text-pink-500');
+                icon.className = 'fa-regular fa-heart';
+            }
+            countSpan.innerText = data.count;
+        });
+    });
+
+    // ---------- 补充缺失的完整函数 ----------
+    window.toggleUploadModal = function() {
+        const modal = document.getElementById('uploadModal');
+        modal.classList.toggle('hidden');
+    };
+
+    window.previewImage = function(input) {
+        const preview = document.getElementById('imagePreview');
+        const previewImg = preview.querySelector('img');
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewImg.src = e.target.result;
+                preview.classList.remove('hidden');
+            };
+            reader.readAsDataURL(input.files[0]);
         }
+    };
 
-        // ---------- 点赞功能（全局函数，供onclick调用） ----------
-        window.likeComment = function(commentId, btn) {
-            fetch(`/masterpieces/comment/${commentId}/like/`)
-                .then(res => res.json())
-                .then(data => {
-                    btn.classList.toggle('text-pink-500', data.liked);
-                    btn.classList.toggle('text-gray-400', !data.liked);
-                    btn.querySelector('span').innerText = data.count;
-                })
-                .catch(err => console.error('点赞失败:', err));
-        };
+    window.showTagInput = function() {
+        document.getElementById('tag-input-wrapper').classList.remove('hidden');
+    };
 
-        // ---------- 模态框切换（全局函数） ----------
-        window.toggleUploadModal = function() {
-            const modal = document.getElementById('uploadModal');
-            if (!modal) return;
-            modal.classList.toggle('hidden');
-            // 隐藏时重置预览
-            if (modal.classList.contains('hidden')) {
-                const preview = document.getElementById('imagePreview');
-                if (preview) preview.classList.add('hidden');
-            }
-        };
+    window.hideTagInput = function() {
+        document.getElementById('tag-input-wrapper').classList.add('hidden');
+    };
 
-        // ---------- 图片预览（全局函数） ----------
-        window.previewImage = function(input) {
-            const preview = document.getElementById('imagePreview');
-            if (!preview) return;
-            const img = preview.querySelector('img');
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    img.src = e.target.result;
-                    preview.classList.remove('hidden');
-                };
-                reader.readAsDataURL(input.files[0]);
-            }
-        };
+    window.submitUserTag = function(workId) {
+        const input = document.getElementById('new-tag-name');
+        const tagName = input.value.trim();
+        if (!tagName) return;
 
-        // ---------- ESC 关闭模态框 ----------
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                const modal = document.getElementById('uploadModal');
-                if (modal && !modal.classList.contains('hidden')) {
-                    toggleUploadModal();
-                }
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+        const formData = new FormData();
+        formData.append('tag_name', tagName);
+
+        fetch(`/masterpieces/work/${workId}/add_tag/`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': csrfToken },
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                location.reload(); // 简单处理：添加成功后刷新页面显示新标签
+            } else {
+                alert(data.message);
             }
         });
+    };
 
-    })();
+document.addEventListener('DOMContentLoaded', function() {
+    const stars = document.querySelectorAll('#star-rating i');
+    const scoreInput = document.getElementById('score-input');
+    let currentSelected = 0; // 记录当前点击锁定的分数
+
+    if (stars.length && scoreInput) {
+        // 定义一个高亮星星的辅助函数
+        const highlightStars = (rating) => {
+            stars.forEach(s => {
+                const sVal = parseInt(s.dataset.val);
+                if (sVal <= rating) {
+                    s.classList.add('text-yellow-400');
+                    s.classList.remove('text-gray-200');
+                } else {
+                    s.classList.add('text-gray-200');
+                    s.classList.remove('text-yellow-400');
+                }
+            });
+        };
+
+        stars.forEach(star => {
+            // 1. 鼠标移入：根据当前经过的星星，让前面的全部亮起
+            star.onmouseenter = function() {
+                const hoverVal = parseInt(this.dataset.val);
+                highlightStars(hoverVal);
+            };
+
+            // 2. 鼠标移出：恢复到之前已经点击选择的分数（如果没有点击，则全灭）
+            star.onmouseleave = function() {
+                highlightStars(currentSelected);
+            };
+
+            // 3. 点击：锁定数值并同步到表单
+            star.onclick = function() {
+                currentSelected = parseInt(this.dataset.val);
+                scoreInput.value = currentSelected;
+                highlightStars(currentSelected);
+            };
+        });
+    }
+});
+})();
 </script>
 {% endblock %}
