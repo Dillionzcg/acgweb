@@ -144,3 +144,32 @@ def upload_work_image(request, work_id):
     if image:
         WorkGallery.objects.create(work=work, image=image)
     return redirect('masterpieces:work_detail', work_id=work.id)
+
+# views.py
+from .models import Work, UserTag # 确保导入新模型
+
+@login_required
+@require_POST
+def add_user_tag(request, work_id):
+    work = get_object_or_404(Work, id=work_id)
+    tag_name = request.POST.get('tag_name', '').strip()
+
+    if not tag_name:
+        return JsonResponse({'status': 'error', 'message': '标签内容不能为空'}, status=400)
+
+    # 1. 检查是否与官方标签重复
+    if work.tags.filter(name__iexact=tag_name).exists():
+        return JsonResponse({'status': 'error', 'message': '该标签已存在于官方标签中'}, status=400)
+
+    # 2. 检查是否与其他用户添加的标签重复
+    if UserTag.objects.filter(work=work, name__iexact=tag_name).exists():
+        return JsonResponse({'status': 'error', 'message': '该标签已被其他用户添加过了'}, status=400)
+
+    # 3. 创建新标签
+    UserTag.objects.create(
+        work=work,
+        name=tag_name,
+        user=request.user
+    )
+
+    return JsonResponse({'status': 'success', 'message': '添加成功'})

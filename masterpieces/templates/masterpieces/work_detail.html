@@ -5,6 +5,7 @@
 
 {% block content %}
 <style>
+    /* ---------- 全局动画 ---------- */
     .detail-container {
         animation: fadeInSlide 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
         max-width: 1100px;
@@ -13,9 +14,10 @@
     }
     @keyframes fadeInSlide {
         from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
+        to   { opacity: 1; transform: translateY(0); }
     }
 
+    /* ---------- 作品头部卡片 ---------- */
     .detail-header-card {
         background: rgba(255, 255, 255, 0.7);
         backdrop-filter: blur(20px);
@@ -28,13 +30,24 @@
         box-shadow: 0 20px 50px rgba(255, 182, 193, 0.15);
     }
 
-    .detail-cover { width: 100%; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+    .detail-cover {
+        width: 100%;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
 
-    /* 强制作品标题使用简洁字体 */
-    /* 标题：既不花哨也不呆板，高级质感 */
+    /* ---------- 作品标题（简洁但高级） ---------- */
+    .work-title-clean {
+        font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+        background: linear-gradient(135deg, #ff7eb3 0%, #ff758c 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        letter-spacing: 1px;
+        text-shadow: 3px 3px 0px rgba(255, 182, 193, 0.2);
+        margin-bottom: 24px !important; /* 强制下方间距 */
+    }
 
-    /* 图集：放大展示 */
-    /* 修改：由 4 列变为 2 列，增加间距 */
+    /* ---------- 图集区域 ---------- */
     .gallery-grid {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
@@ -42,7 +55,6 @@
         margin-top: 20px;
     }
 
-    /* 修改：不再使用 aspect-ratio: 1，改为更有设计感的 4:3 比例 */
     .gallery-item {
         aspect-ratio: 4/3;
         border-radius: 12px;
@@ -51,27 +63,16 @@
         box-shadow: 0 4px 10px rgba(0,0,0,0.05);
         transition: transform 0.3s ease;
     }
-
     .gallery-item:hover {
         transform: scale(1.05);
     }
-
     .gallery-item img {
         width: 100%;
         height: 100%;
         object-fit: cover;
     }
-    /* 修改：增强标题视觉冲击力 */
-    .work-title-clean {
-        font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
-        background: linear-gradient(135deg, #ff7eb3 0%, #ff758c 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        letter-spacing: 1px;
-        text-shadow: 3px 3px 0px rgba(255, 182, 193, 0.2);
-        margin-bottom: 24px !important; /* 强制增加下方间距 */
-    }
-    /* 按钮呼吸灯效果（可选） */
+
+    /* ---------- 按钮通用呼吸效果 ---------- */
     .btn-animate {
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
@@ -79,9 +80,15 @@
         transform: translateY(-2px);
         box-shadow: 0 10px 20px -5px rgba(244, 114, 182, 0.4);
     }
+
+    /* 评分卡片内数字 */
+    .text-4xl.text-pink-500.font-bold {
+        /* 保持原样，无需额外定义，仅作标记 */
+    }
 </style>
 
 <div class="detail-container">
+    <!-- 管理员删除按钮 -->
     {% if user.is_staff %}
     <div class="flex justify-end mb-4">
         <form action="{% url 'masterpieces:delete_work' work.id %}" method="post" onsubmit="return confirm('确定要删除吗？');">
@@ -93,71 +100,85 @@
     </div>
     {% endif %}
 
+    <!-- 返回链接 -->
     <div class="mb-6">
         <a href="{% url 'masterpieces:works_center' %}" class="text-pink-500 hover:text-pink-600 font-bold transition">
             <i class="fa-solid fa-chevron-left mr-2"></i> 返回作品中心
         </a>
     </div>
 
+    <!-- ========== 头部卡片 ========== -->
     <div class="detail-header-card mb-8">
+        <!-- 左侧：封面 + 图集缩略 + 评分 + 标签区域 -->
         <div>
             <img src="{{ work.cover.url }}" alt="{{ work.title }}" class="detail-cover">
 
+            <!-- 图集缩略网格（封面+3张） -->
             <div class="gallery-grid bg-white/50 p-2 rounded-xl border border-white mt-4">
                 <a href="{{ work.cover.url }}" target="_blank" class="gallery-item border-2 border-pink-200">
-                    <img src="{{ work.cover.url }}">
+                    <img src="{{ work.cover.url }}" alt="封面">
                 </a>
                 {% for item in work.gallery.all|slice:":3" %}
                 <a href="{{ item.image.url }}" target="_blank" class="gallery-item">
-                    <img src="{{ item.image.url }}">
+                    <img src="{{ item.image.url }}" alt="图集">
                 </a>
                 {% endfor %}
             </div>
+
+            <!-- 查看全部图集按钮 -->
             <a href="#" class="flex items-center justify-center w-full py-4 mt-3 bg-gradient-to-r from-pink-400 to-rose-400 text-white rounded-2xl font-bold shadow-lg hover:shadow-pink-200/50 hover:scale-[1.02] transition-all mb-3">
                 <i class="fa-solid fa-images mr-2"></i> 查看全部图集 ({{ work.gallery.count|add:1 }})
             </a>
 
+            <!-- 上传图片入口 -->
             <a href="javascript:void(0);" onclick="toggleUploadModal()" class="flex items-center justify-center w-full py-2 text-xs font-bold text-pink-400 bg-pink-50 rounded-xl border border-pink-100 hover:bg-pink-100 hover:text-pink-600 transition-all mb-6">
                 <i class="fa-solid fa-cloud-arrow-up mr-1"></i> 我要上传图片
             </a>
 
+            <!-- 次元评分卡片 -->
             <div class="mt-6 bg-white/50 rounded-2xl p-4 text-center border border-white">
                 <div class="text-gray-400 text-xs font-bold mb-1">次元评分</div>
                 <div class="text-4xl text-pink-500 font-bold">{{ work.hot_score }}</div>
             </div>
-        <div class="bg-white/60 rounded-3xl p-6 border border-white shadow-sm">
-            <div class="flex justify-between items-center mb-4">
-                <h4 class="text-gray-700 text-sm font-black">用户标签展示</h4>
-                <a href="#" class="group text-pink-500 text-xs font-bold flex items-center">
-                    我要添加标签 <i class="fa-solid fa-circle-plus ml-1 group-hover:rotate-90 transition-transform"></i>
-                </a>
-            </div>
 
-            <div class="flex flex-wrap gap-3 min-h-[80px] p-2">
-                {% if work.user_tags.all %}
-                    {% for tag in work.user_tags.all %}
-                    <span class="px-4 py-2 bg-white text-gray-600 rounded-xl text-xs border border-pink-100 shadow-sm hover:border-pink-300 transition-colors">
-                        {{ tag.name }}
-                    </span>
-                    {% endfor %}
-                {% else %}
-                    <div class="flex flex-col items-center justify-center w-full text-gray-300">
-                        <i class="fa-solid fa-tags text-2xl mb-2"></i>
-                        <p class="text-[10px]">暂无用户标签，快来抢首发！</p>
-                    </div>
-                {% endif %}
+            <!-- 用户标签区域 -->
+            <div class="bg-white/60 rounded-3xl p-6 border border-white shadow-sm">
+                <div class="flex justify-between items-center mb-4">
+                    <h4 class="text-gray-700 text-sm font-black">用户标签展示</h4>
+                    <a href="#" class="group text-pink-500 text-xs font-bold flex items-center">
+                        我要添加标签 <i class="fa-solid fa-circle-plus ml-1 group-hover:rotate-90 transition-transform"></i>
+                    </a>
+                </div>
+
+                <div class="flex flex-wrap gap-3 min-h-[80px] p-2">
+                    {% if work.user_tags.all %}
+                        {% for tag in work.user_tags.all %}
+                        <span class="px-4 py-2 bg-white text-gray-600 rounded-xl text-xs border border-pink-100 shadow-sm hover:border-pink-300 transition-colors">
+                            {{ tag.name }}
+                        </span>
+                        {% endfor %}
+                    {% else %}
+                        <div class="flex flex-col items-center justify-center w-full text-gray-300">
+                            <i class="fa-solid fa-tags text-2xl mb-2"></i>
+                            <p class="text-[10px]">暂无用户标签，快来抢首发！</p>
+                        </div>
+                    {% endif %}
+                </div>
             </div>
         </div>
-        </div>
 
+        <!-- 右侧：标题、标签、元信息、简介 -->
         <div class="flex flex-col">
             <h1 class="text-4xl font-bold mb-4 work-title-clean">{{ work.title }}</h1>
+
+            <!-- 官方标签 -->
             <div class="flex flex-wrap gap-2 mb-8">
                 {% for tag in work.tags.all %}
                 <span class="px-3 py-1 bg-pink-100 text-pink-500 rounded-full text-xs font-bold"># {{ tag.name }}</span>
                 {% endfor %}
             </div>
 
+            <!-- 元信息 -->
             <div class="space-y-4 mb-8">
                 <p class="text-gray-500 flex items-center">
                     <i class="fa-solid fa-user-tag w-8 text-pink-300 text-lg"></i>
@@ -171,6 +192,7 @@
                 </p>
             </div>
 
+            <!-- 官方简介 + 精选评论 -->
             <div class="flex-1">
                 <h3 class="text-lg font-bold text-gray-700 mb-2 flex items-center">
                     <i class="fa-solid fa-quote-left text-pink-200 mr-2"></i> 官方简介
@@ -191,7 +213,9 @@
         </div>
     </div>
 
+    <!-- ========== 下方评论区 + 评分表单 ========== -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <!-- 左侧：全部评论列表 -->
         <div class="md:col-span-2 space-y-6">
             <div class="glass-card p-8 bg-white/60 rounded-3xl border border-white">
                 <h3 class="text-xl font-bold text-gray-700 mb-6">全部居民评论 ({{ comments.count }})</h3>
@@ -217,12 +241,14 @@
             </div>
         </div>
 
+        <!-- 右侧：评价表单（粘性） -->
         <div class="md:col-span-1">
             <div class="sticky top-24">
                 <div class="glass-card p-6 bg-white/80 rounded-3xl border border-white shadow-xl">
                     <h4 class="font-bold text-gray-700 mb-4 text-center">评价并安利</h4>
                     <form action="{% url 'masterpieces:submit_comment' work.id %}" method="post">
                         {% csrf_token %}
+                        <!-- 星星评分 -->
                         <div class="flex justify-center gap-2 mb-4 text-2xl text-gray-200" id="star-rating">
                             {% for i in "12345"|make_list %}
                             <i class="fa-solid fa-star cursor-pointer transition-colors" data-val="{{ forloop.counter }}"></i>
@@ -238,108 +264,119 @@
             </div>
         </div>
     </div>
-</div>
 
-<script>
-    // 星星评分
-    // 找到脚本中的星星评分部分，替换为此逻辑
-    const stars = document.querySelectorAll('#star-rating i');
-    const input = document.getElementById('score-input');
-
-    stars.forEach(star => {
-        star.onclick = function() {
-            const val = parseInt(this.dataset.val);
-            input.value = val;
-
-            stars.forEach(s => {
-                const sVal = parseInt(s.dataset.val);
-                if (sVal <= val) {
-                    // 选中态：黄色
-                    s.classList.remove('text-gray-200');
-                    s.classList.add('text-yellow-400');
-                } else {
-                    // 未选中态：灰色
-                    s.classList.remove('text-yellow-400');
-                    s.classList.add('text-gray-200');
-                }
-            });
-        }
-    });
-
-    // 点赞 Ajax
-    function likeComment(id, btn) {
-        fetch(`/masterpieces/comment/${id}/like/`)
-            .then(res => res.json())
-            .then(data => {
-                btn.classList.toggle('text-pink-500', data.liked);
-                btn.classList.toggle('text-gray-400', !data.liked);
-                btn.querySelector('span').innerText = data.count;
-            });
-    }
-    // 切换浮窗显示/隐藏
-    function toggleUploadModal() {
-        const modal = document.getElementById('uploadModal');
-        modal.classList.toggle('hidden');
-        // 如果隐藏了，重置表单和预览
-        if (modal.classList.contains('hidden')) {
-            document.getElementById('imagePreview').classList.add('hidden');
-        }
-    }
-
-    // 图片选择后预览
-    function previewImage(input) {
-        const preview = document.getElementById('imagePreview');
-        const img = preview.querySelector('img');
-        if (input.files && input.files[0]) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                img.src = e.target.result;
-                preview.classList.remove('hidden');
-            }
-            reader.readAsDataURL(input.files[0]);
-        }
-    }
-
-    // 点击 ESC 键关闭浮窗
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-            const modal = document.getElementById('uploadModal');
-            if (!modal.classList.contains('hidden')) toggleUploadModal();
-        }
-    });
-</script>
-
+    <!-- ========== 上传图片模态框 ========== -->
     <div id="uploadModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
-    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="toggleUploadModal()"></div>
+        <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="toggleUploadModal()"></div>
 
-    <div class="relative bg-white w-full max-w-md rounded-[32px] p-8 shadow-2xl transform transition-all">
-        <div class="flex justify-between items-center mb-6">
-            <h3 class="text-xl font-black text-gray-800">上传作品图集</h3>
-            <button onclick="toggleUploadModal()" class="text-gray-400 hover:text-pink-500 transition-colors">
-                <i class="fa-solid fa-circle-xmark text-2xl"></i>
-            </button>
-        </div>
-
-        <form action="{% url 'masterpieces:upload_work_image' work.id %}" method="post" enctype="multipart/form-data">
-            {% csrf_token %}
-            <div class="mb-6">
-                <label class="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-pink-100 rounded-3xl cursor-pointer bg-pink-50/30 hover:bg-pink-50 transition-all group">
-                    <div class="flex flex-col items-center justify-center pt-5 pb-6">
-                        <i class="fa-solid fa-image text-4xl text-pink-300 mb-3 group-hover:scale-110 transition-transform"></i>
-                        <p class="text-sm text-pink-400 font-bold">点击选择图片</p>
-                        <p class="text-[10px] text-gray-400 mt-1">支持 JPG, PNG (最大 5MB)</p>
-                    </div>
-                    <input type="file" name="image" class="hidden" accept="image/*" required onchange="previewImage(this)">
-                </label>
-                <div id="imagePreview" class="hidden mt-4">
-                    <img src="" class="w-full h-32 object-cover rounded-xl border border-pink-100">
-                </div>
+        <div class="relative bg-white w-full max-w-md rounded-[32px] p-8 shadow-2xl transform transition-all">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-black text-gray-800">上传作品图集</h3>
+                <button onclick="toggleUploadModal()" class="text-gray-400 hover:text-pink-500 transition-colors">
+                    <i class="fa-solid fa-circle-xmark text-2xl"></i>
+                </button>
             </div>
 
-            <button type="submit" class="w-full py-4 bg-gradient-to-r from-pink-400 to-rose-400 text-white rounded-2xl font-bold shadow-lg hover:shadow-pink-300/50 transition-all">
-                确认上传
-            </button>
-        </form>
+            <form action="{% url 'masterpieces:upload_work_image' work.id %}" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="mb-6">
+                    <label class="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-pink-100 rounded-3xl cursor-pointer bg-pink-50/30 hover:bg-pink-50 transition-all group">
+                        <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                            <i class="fa-solid fa-image text-4xl text-pink-300 mb-3 group-hover:scale-110 transition-transform"></i>
+                            <p class="text-sm text-pink-400 font-bold">点击选择图片</p>
+                            <p class="text-[10px] text-gray-400 mt-1">支持 JPG, PNG (最大 5MB)</p>
+                        </div>
+                        <input type="file" name="image" class="hidden" accept="image/*" required onchange="previewImage(this)">
+                    </label>
+                    <div id="imagePreview" class="hidden mt-4">
+                        <img src="" class="w-full h-32 object-cover rounded-xl border border-pink-100" alt="预览">
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full py-4 bg-gradient-to-r from-pink-400 to-rose-400 text-white rounded-2xl font-bold shadow-lg hover:shadow-pink-300/50 transition-all">
+                    确认上传
+                </button>
+            </form>
+        </div>
     </div>
 </div>
+
+<!-- ========== JavaScript ========== -->
+<script>
+    (function() {
+        // ---------- 星星评分交互 ----------
+        const stars = document.querySelectorAll('#star-rating i');
+        const scoreInput = document.getElementById('score-input');
+
+        if (stars.length && scoreInput) {
+            stars.forEach(star => {
+                star.onclick = function() {
+                    const val = parseInt(this.dataset.val);
+                    scoreInput.value = val;
+
+                    stars.forEach(s => {
+                        const sVal = parseInt(s.dataset.val);
+                        if (sVal <= val) {
+                            s.classList.remove('text-gray-200');
+                            s.classList.add('text-yellow-400');
+                        } else {
+                            s.classList.remove('text-yellow-400');
+                            s.classList.add('text-gray-200');
+                        }
+                    });
+                };
+            });
+        }
+
+        // ---------- 点赞功能（全局函数，供onclick调用） ----------
+        window.likeComment = function(commentId, btn) {
+            fetch(`/masterpieces/comment/${commentId}/like/`)
+                .then(res => res.json())
+                .then(data => {
+                    btn.classList.toggle('text-pink-500', data.liked);
+                    btn.classList.toggle('text-gray-400', !data.liked);
+                    btn.querySelector('span').innerText = data.count;
+                })
+                .catch(err => console.error('点赞失败:', err));
+        };
+
+        // ---------- 模态框切换（全局函数） ----------
+        window.toggleUploadModal = function() {
+            const modal = document.getElementById('uploadModal');
+            if (!modal) return;
+            modal.classList.toggle('hidden');
+            // 隐藏时重置预览
+            if (modal.classList.contains('hidden')) {
+                const preview = document.getElementById('imagePreview');
+                if (preview) preview.classList.add('hidden');
+            }
+        };
+
+        // ---------- 图片预览（全局函数） ----------
+        window.previewImage = function(input) {
+            const preview = document.getElementById('imagePreview');
+            if (!preview) return;
+            const img = preview.querySelector('img');
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    img.src = e.target.result;
+                    preview.classList.remove('hidden');
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        };
+
+        // ---------- ESC 关闭模态框 ----------
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const modal = document.getElementById('uploadModal');
+                if (modal && !modal.classList.contains('hidden')) {
+                    toggleUploadModal();
+                }
+            }
+        });
+
+    })();
+</script>
 {% endblock %}
