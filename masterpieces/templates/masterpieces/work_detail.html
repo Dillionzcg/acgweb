@@ -92,6 +92,28 @@
     .animate-fadeIn {
         animation: fadeIn 0.3s ease-out;
 
+
+    /* 弹窗背景模糊进入动画 */
+    @keyframes fadeInBlur {
+        from { backdrop-filter: blur(0px); background-color: rgba(0, 0, 0, 0); }
+        to { backdrop-filter: blur(12px); background-color: rgba(0, 0, 0, 0.7); }
+    }
+
+    /* 容器缩放升起动画 */
+    @keyframes modalUp {
+        from { opacity: 0; transform: scale(0.9) translateY(30px); }
+        to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    /* 应用动画的类 */
+    .modal-backdrop-animate {
+        animation: fadeInBlur 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .modal-content-animate {
+        animation: modalUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
 }
 </style>
 
@@ -126,15 +148,16 @@
                 <a href="{{ work.cover.url }}" target="_blank" class="gallery-item border-2 border-pink-200">
                     <img src="{{ work.cover.url }}" alt="封面">
                 </a>
+
                 {% for item in work.gallery.all|slice:":3" %}
                 <a href="{{ item.image.url }}" target="_blank" class="gallery-item">
                     <img src="{{ item.image.url }}" alt="图集">
                 </a>
                 {% endfor %}
-            </div>
 
-            <!-- 查看全部图集按钮 -->
-            <a href="#" class="flex items-center justify-center w-full py-4 mt-3 bg-gradient-to-r from-pink-400 to-rose-400 text-white rounded-2xl font-bold shadow-lg hover:shadow-pink-200/50 hover:scale-[1.02] transition-all mb-3">
+                </div>
+
+            <a href="javascript:void(0);" onclick="openFullGallery()" class="flex items-center justify-center w-full py-4 mt-3 bg-gradient-to-r from-pink-400 to-rose-400 text-white rounded-2xl font-bold shadow-lg hover:shadow-pink-200/50 hover:scale-[1.02] transition-all mb-3">
                 <i class="fa-solid fa-images mr-2"></i> 查看全部图集 ({{ work.gallery.count|add:1 }})
             </a>
 
@@ -616,6 +639,55 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 })();
+// 图集弹窗动画
+window.openFullGallery = function() {
+    const modal = document.getElementById('fullGalleryModal');
+    const backdrop = document.getElementById('galleryBackdrop');
+    const content = document.getElementById('galleryContent');
+
+    // 显示弹窗
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+
+    // 强制重绘以触发动画
+    setTimeout(() => {
+        // 背景动画：从透明到半透明
+        backdrop.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+        backdrop.style.backdropFilter = 'blur(8px)';
+
+        // 内容动画：从缩小透明到正常
+        content.style.opacity = '1';
+        content.style.transform = 'scale(1)';
+    }, 10);
+};
+
+window.closeFullGallery = function() {
+    const backdrop = document.getElementById('galleryBackdrop');
+    const content = document.getElementById('galleryContent');
+    const modal = document.getElementById('fullGalleryModal');
+
+    // 背景动画：半透明变透明
+    backdrop.style.backgroundColor = 'rgba(0, 0, 0, 0)';
+    backdrop.style.backdropFilter = 'blur(0px)';
+
+    // 内容动画：正常变缩小透明
+    content.style.opacity = '0';
+    content.style.transform = 'scale(0.9)';
+
+    // 动画完成后隐藏弹窗
+    setTimeout(() => {
+        modal.classList.add('hidden');
+        document.body.style.overflow = 'auto';
+    }, 500); // 500ms 与动画时长一致
+};
+
+// 增强下载功能（处理跨域图片下载）
+document.querySelectorAll('[download]').forEach(anchor => {
+    anchor.addEventListener('click', function(e) {
+        // 如果图片在不同域名下，普通的 download 属性可能失效
+        // 这里可以保持默认，现代浏览器对于同源或配置了 CORS 的媒体文件支持良好
+    });
+});
 </script>
 <div id="deleteConfirmModal" class="hidden fixed inset-0 z-[110] flex items-center justify-center p-4 transition-opacity duration-300">
     <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-md opacity-0 transition-opacity duration-300" id="modalBackdrop"></div>
@@ -638,6 +710,69 @@ document.addEventListener('DOMContentLoaded', function() {
                     确认删除
                 </button>
             </div>
+        </div>
+    </div>
+</div>
+<div id="fullGalleryModal" class="hidden fixed inset-0 z-[120] flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/0 backdrop-blur-0 transition-all duration-500 ease-out"
+         id="galleryBackdrop"
+         onclick="closeFullGallery()"></div>
+
+    <div class="relative bg-white/90 w-full max-w-5xl max-h-[90vh] rounded-[32px] shadow-2xl overflow-hidden flex flex-col opacity-0 scale-90 transition-all duration-500 ease-out"
+         id="galleryContent">
+
+        <div class="p-6 border-b bg-white/80 backdrop-blur-md flex justify-between items-center sticky top-0 z-10">
+            <div>
+                <h3 class="text-xl font-black text-gray-800">全部图集资源</h3>
+                <p class="text-xs text-gray-400">共 {{ work.gallery.count|add:1 }} 张高清资源</p>
+            </div>
+            <button onclick="closeFullGallery()" class="text-gray-400 hover:text-pink-500 transition-all hover:rotate-90">
+                <i class="fa-solid fa-circle-xmark text-3xl"></i>
+            </button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-6 space-y-8">
+
+            <div class="bg-white p-4 rounded-3xl shadow-sm border border-gray-100">
+                <div class="flex flex-col md:flex-row gap-8 items-start">
+                    <div class="w-full md:w-1/2 rounded-2xl overflow-hidden bg-gray-50 flex items-center justify-center">
+                        <img src="{{ work.cover.url }}" class="w-full h-auto object-contain shadow-inner" />
+                    </div>
+
+                    <div class="w-full md:w-1/2 flex flex-col justify-center self-center">
+                        <span class="px-3 py-1 bg-pink-100 text-pink-500 rounded-full text-xs font-bold w-fit mb-4">核心封面图</span>
+                        <div class="space-y-2 mb-6">
+                            <p class="text-gray-500 text-sm">上传者：<span class="font-bold text-gray-800">{{ work.owner.username }}</span></p>
+                            </div>
+                        <a href="{{ work.cover.url }}" download="cover_{{ work.id }}.jpg"
+                           class="flex items-center justify-center gap-3 py-4 bg-gray-900 text-white rounded-2xl text-base font-bold hover:bg-pink-500 shadow-xl transition-all active:scale-95">
+                            <i class="fa-solid fa-download"></i> 保存原图
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            {% for item in work.gallery.all %}
+            <div class="bg-white p-4 rounded-3xl shadow-sm border border-gray-100">
+                <div class="flex flex-col md:flex-row gap-8 items-start">
+                    <div class="w-full md:w-1/2 rounded-2xl overflow-hidden bg-gray-50 flex items-center justify-center">
+                        <img src="{{ item.image.url }}" class="w-full h-auto object-contain shadow-inner" />
+                    </div>
+
+                    <div class="w-full md:w-1/2 flex flex-col justify-center self-center">
+                        <span class="px-3 py-1 bg-blue-100 text-blue-500 rounded-full text-xs font-bold w-fit mb-4">作品插图 #{{ forloop.counter }}</span>
+                        <div class="space-y-2 mb-6">
+                            <p class="text-gray-500 text-sm">上传者：<span class="font-bold text-gray-800">{{ item.uploader.username|default:work.owner.username }}</span></p>
+                            </div>
+                        <a href="{{ item.image.url }}" download="gallery_{{ item.id }}.jpg"
+                           class="flex items-center justify-center gap-3 py-4 bg-gray-900 text-white rounded-2xl text-base font-bold hover:bg-blue-500 shadow-xl transition-all active:scale-95">
+                            <i class="fa-solid fa-download"></i> 保存原图
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+
         </div>
     </div>
 </div>
