@@ -242,8 +242,12 @@
                 {% for comment in comments %}
                 <div class="flex gap-4 group">
                     <div class="flex-shrink-0">
-                        <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-pink-100 to-rose-100 flex items-center justify-center text-pink-400 border-2 border-white shadow-sm">
-                            <i class="fa-solid fa-user text-lg"></i>
+                        <div class="w-12 h-12 rounded-2xl overflow-hidden border-2 border-white shadow-sm">
+                            {% if comment.user.avatar %}
+                                <img src="{{ comment.user.avatar.url }}" alt="{{ comment.user.username }}" class="w-full h-full object-cover">
+                            {% else %}
+                                <img src="{% static 'images/default_head.png' %}" alt="默认头像" class="w-full h-full object-cover">
+                            {% endif %}
                         </div>
                     </div>
 
@@ -256,6 +260,12 @@
                                 </span>
                             </div>
                             <span class="text-[11px] text-gray-300">{{ comment.created_at|date:"Y-m-d H:i" }}</span>
+                            {% if user.is_staff or work.owner == user or comment.user == user %}
+                                <button onclick="confirmDeleteComment('{% url 'masterpieces:delete_comment' comment.id %}')"
+                                        class="text-gray-300 hover:text-red-400 transition-colors duration-300">
+                                    <i class="fa-solid fa-trash-can text-xs"></i>
+                                </button>
+                            {% endif %}
                         </div>
 
                         <p class="text-gray-600 text-sm leading-relaxed mb-4">
@@ -403,6 +413,7 @@
         document.getElementById('tag-input-wrapper').classList.add('hidden');
     };
 
+    // 修改 submitUserTag 函数
     window.submitUserTag = function(workId) {
         const input = document.getElementById('new-tag-name');
         const tagName = input.value.trim();
@@ -412,7 +423,11 @@
         const formData = new FormData();
         formData.append('tag_name', tagName);
 
-        fetch(`/masterpieces/work/${workId}/add_tag/`, {
+        // 使用 Django 模板标签生成基础 URL，避免手动拼接路径错误
+        // 注意：这里需要确保路由中有对应的 name
+        const url = "{% url 'masterpieces:add_user_tag' 999 %}".replace('999', workId);
+
+        fetch(url, {
             method: 'POST',
             headers: { 'X-CSRFToken': csrfToken },
             body: formData
@@ -420,10 +435,25 @@
         .then(res => res.json())
         .then(data => {
             if (data.status === 'success') {
-                location.reload(); // 简单处理：添加成功后刷新页面显示新标签
+                // 更好的体验：动态添加 DOM 而不是刷新页面
+                const container = document.getElementById('user-tags-container');
+                const noTagPrompt = container.querySelector('div.flex-col');
+                if (noTagPrompt) noTagPrompt.remove(); // 移除“暂时没有标签”的提示
+
+                const span = document.createElement('span');
+                span.className = "inline-flex items-center justify-center px-3 py-1 bg-pink-100 text-pink-500 rounded-full text-xs font-bold animate-fadeIn";
+                span.innerText = `# ${tagName}`;
+                container.appendChild(span);
+
+                input.value = ''; // 清空输入框
+                hideTagInput();   // 隐藏输入框
             } else {
                 alert(data.message);
             }
+        })
+        .catch(err => {
+            console.error('Error:', err);
+            alert('提交失败，请检查网络或登录状态');
         });
     };
 
@@ -469,5 +499,146 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 })();
+// 修改后的完整无刷新删除脚本
+(function() {
+    let currentDeleteUrl = '';
+    let currentCommentElement = null;
+
+    // 1. 弹出确认框（带精美动画）
+    window.confirmDeleteComment = function(deleteUrl) {
+        // 获取点击的按钮及其所在的评论条目
+        const triggerBtn = window.event ? window.event.currentTarget || window.event.target : null;
+        currentDeleteUrl = deleteUrl;
+
+        if (triggerBtn) {
+            // 向上查找评论容器 - 修正选择器以匹配实际结构
+            currentCommentElement = triggerBtn.closest('.group.flex.gap-4');
+        }
+
+        const modal = document.getElementById('deleteConfirmModal');
+        const backdrop = document.getElementById('modalBackdrop');
+        const content = document.getElementById('modalContent');
+
+        modal.classList.remove('hidden');
+        // 强制重绘触发 CSS 过渡动画
+        setTimeout(() => {
+            backdrop.classList.replace('opacity-0', 'opacity-100');
+            content.classList.replace('scale-95', 'scale-100');
+            content.classList.replace('opacity-0', 'opacity-100');
+        }, 10);
+    };
+
+    // 2. 关闭确认框动画
+    window.closeDeleteModal = function() {
+        const backdrop = document.getElementById('modalBackdrop');
+        const content = document.getElementById('modalContent');
+
+        backdrop.classList.replace('opacity-100', 'opacity-0');
+        content.classList.replace('scale-100', 'scale-95');
+        content.classList.replace('opacity-100', 'opacity-0');
+
+        setTimeout(() => {
+            document.getElementById('deleteConfirmModal').classList.add('hidden');
+        }, 300);
+    };
+
+    // 3. 核心：执行无刷新删除
+    document.addEventListener('DOMContentLoaded', function() {
+        const confirmBtn = document.getElementById('confirmDeleteBtn');
+        if (confirmBtn) {
+            confirmBtn.onclick = function() {
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                const btn = this;
+
+                // 防止重复点击
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>处理中...';
+
+                fetch(currentDeleteUrl, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        closeDeleteModal();
+
+                        if (currentCommentElement) {
+                            // 执行评论条目淡出并向右滑动的动画
+                            currentCommentElement.style.transition = 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
+                            currentCommentElement.style.opacity = '0';
+                            currentCommentElement.style.transform = 'translateX(30px)';
+
+                            setTimeout(() => {
+                                currentCommentElement.remove();
+
+                                // 更新页面数据
+                                // 1. 更新顶部大卡片的评分数字
+                                const scoreDisplay = document.querySelector('.text-4xl.text-pink-500.font-bold');
+                                if (scoreDisplay) scoreDisplay.innerText = data.new_score;
+
+                                // 2. 更新评论区的总计数
+                                const countDisplay = document.querySelector('.ml-2.text-sm.font-normal.text-gray-400');
+                                if (countDisplay) countDisplay.innerText = `(${data.new_count})`;
+
+                                // 3. 检查是否还有其他评论
+                                const remainingComments = document.querySelectorAll('.group.flex.gap-4');
+                                if (remainingComments.length === 0) {
+                                    // 如果没有评论了，显示"还没有人评论"的占位提示
+                                    const commentsContainer = document.querySelector('.space-y-8');
+                                    if (commentsContainer) {
+                                        commentsContainer.innerHTML = `
+                                            <div class="text-center py-12">
+                                                <i class="fa-solid fa-feather text-4xl text-gray-100 mb-4 block"></i>
+                                                <p class="text-gray-400 text-sm">还没有人评论，快来抢沙发吧~</p>
+                                            </div>
+                                        `;
+                                    }
+                                }
+                            }, 500);
+                        }
+                    } else {
+                        alert('删除失败：' + (data.message || '权限不足'));
+                        btn.disabled = false;
+                        btn.innerText = '确认删除';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('网络通讯错误');
+                    btn.disabled = false;
+                    btn.innerText = '确认删除';
+                });
+            };
+        }
+    });
+})();
 </script>
+<div id="deleteConfirmModal" class="hidden fixed inset-0 z-[110] flex items-center justify-center p-4 transition-opacity duration-300">
+    <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-md opacity-0 transition-opacity duration-300" id="modalBackdrop"></div>
+
+    <div id="modalContent" class="relative bg-white w-full max-w-sm rounded-[24px] p-8 shadow-2xl transform scale-95 opacity-0 transition-all duration-300">
+        <div class="text-center">
+            <div class="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fa-solid fa-triangle-exclamation text-2xl"></i>
+            </div>
+            <h3 class="text-xl font-black text-gray-800 mb-2">确认删除评论？</h3>
+            <p class="text-gray-500 text-sm mb-8">此操作不可撤销，该评论的评分也将从总分中移除。</p>
+
+            <div class="flex gap-3">
+                <button type="button" onclick="closeDeleteModal()"
+                        class="flex-1 py-3 bg-gray-100 text-gray-600 rounded-xl font-bold hover:bg-gray-200 transition-all">
+                    取消
+                </button>
+                <button type="button" id="confirmDeleteBtn"
+                        class="flex-1 py-3 bg-red-500 text-white rounded-xl font-bold shadow-lg shadow-red-200 hover:bg-red-600 transition-all">
+                    确认删除
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

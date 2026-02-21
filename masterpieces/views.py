@@ -148,28 +148,67 @@ def upload_work_image(request, work_id):
 # views.py
 from .models import Work, UserTag # 确保导入新模型
 
+
 @login_required
 @require_POST
 def add_user_tag(request, work_id):
     work = get_object_or_404(Work, id=work_id)
     tag_name = request.POST.get('tag_name', '').strip()
 
+    # 1. 基础校验
     if not tag_name:
-        return JsonResponse({'status': 'error', 'message': '标签内容不能为空'}, status=400)
+        return JsonResponse({'status': 'error', 'message': '标签内容不能为空~'}, status=400)
 
-    # 1. 检查是否与官方标签重复
+    if len(tag_name) > 10:
+        return JsonResponse({'status': 'error', 'message': '标签太长了（最多10个字）'}, status=400)
+
+    # 2. 检查查重（不区分大小写）
+    # 检查官方标签
     if work.tags.filter(name__iexact=tag_name).exists():
-        return JsonResponse({'status': 'error', 'message': '该标签已存在于官方标签中'}, status=400)
+        return JsonResponse({'status': 'error', 'message': '这已经是官方认证的标签啦！'}, status=400)
 
-    # 2. 检查是否与其他用户添加的标签重复
+    # 检查用户标签
     if UserTag.objects.filter(work=work, name__iexact=tag_name).exists():
-        return JsonResponse({'status': 'error', 'message': '该标签已被其他用户添加过了'}, status=400)
+        return JsonResponse({'status': 'error', 'message': '已经有小伙伴想到这个标签了哦~'}, status=400)
 
-    # 3. 创建新标签
-    UserTag.objects.create(
-        work=work,
-        name=tag_name,
-        user=request.user
-    )
+    # 3. 创建
+    try:
+        UserTag.objects.create(
+            work=work,
+            name=tag_name,
+            user=request.user
+        )
+        return JsonResponse({'status': 'success', 'message': '添加成功'})
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': '服务器开小差了，请重试'}, status=500)
 
-    return JsonResponse({'status': 'success', 'message': '添加成功'})
+
+# views.py
+
+# views.py
+
+# views.py
+
+@login_required
+@require_POST
+def delete_comment(request, comment_id):
+    comment = get_object_or_404(Comment, id=comment_id)
+    work = comment.work
+
+    # 权限校验
+    if request.user.is_staff or work.owner == request.user or comment.user == request.user:
+        comment.delete()
+
+        # 重新计算平均分
+        avg_score = work.comments.aggregate(Avg('score'))['score__avg']
+        work.hot_score = round(avg_score, 1) if avg_score else 0.0
+        work.save()
+
+        # 返回最新的数据给前端
+        return JsonResponse({
+            'status': 'success',
+            'new_score': work.hot_score,
+            'new_count': work.comments.count()
+        })
+
+    return JsonResponse({'status': 'error', 'message': '无权删除'}, status=403)
