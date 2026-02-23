@@ -133,9 +133,13 @@ function generateGridHtml(items) {
                     <span class="px-2 py-0.5 bg-pink-50 text-pink-400 text-[10px] font-bold rounded uppercase">${item.tag}</span>
                     <h4 class="font-bold text-gray-800 mt-2 truncate">${item.title}</h4>
                     <div class="flex justify-between items-center mt-3">
-                        <div class="flex items-center text-yellow-500">
-                            <i class="fa-solid fa-star text-[10px] mr-1"></i>
-                            <span class="text-sm font-mono font-bold">${item.hot}</span>
+                        <div class="flex items-center">
+                            ${parseFloat(item.hot) > 0 ? `
+                                <i class="fa-solid fa-star text-yellow-500 text-[10px] mr-1"></i>
+                                <span class="text-sm font-mono font-bold text-yellow-500">${item.hot}</span>
+                            ` : `
+                                <span class="text-xs text-gray-400 italic">暂无评分</span>
+                            `}
                         </div>
                         <i class="fa-solid fa-heart text-gray-200 hover:text-pink-500 cursor-pointer transition-colors"></i>
                     </div>

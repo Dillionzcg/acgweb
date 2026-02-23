@@ -108,6 +108,8 @@ def recommend_work(request):
 
         tags_json = request.POST.get('tags_data')
         tags_list = json.loads(tags_json) if tags_json else []
+        hide_month = request.POST.get('hide_month') == 'on'
+        hide_day = request.POST.get('hide_day') == 'on'
 
         work = Work.objects.create(
             title=title,
@@ -115,6 +117,8 @@ def recommend_work(request):
             cover=cover,
             description=description,
             release_date=release_date,
+            hide_month=hide_month,
+            hide_day=hide_day,
             owner=request.user
         )
 

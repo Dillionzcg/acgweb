@@ -28,11 +28,13 @@ class Work(models.Model):
     )
     description = models.TextField('作品简介', help_text='简单介绍下这部作品吧...')
     release_date = models.DateField('作品官方发布日期')
-
+    hide_month = models.BooleanField('隐藏月份', default=False)  # 勾选“未公布具体月份”
+    hide_day = models.BooleanField('隐藏日期', default=False)  # 勾选“未公布具体日期”
     hot_score = models.FloatField('评分', default=0.0)
     views = models.IntegerField('点击量/热度', default=0)
     cover = models.ImageField('封面图', upload_to='works/covers/')
     created_at = models.DateTimeField(auto_now_add=True)
+
 
     def __str__(self):
         return self.title

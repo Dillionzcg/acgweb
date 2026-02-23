@@ -181,9 +181,13 @@
 
             <!-- 次元评分卡片 -->
             <div class="mt-6 bg-white/50 rounded-2xl p-4 text-center border border-white">
-                <div class="text-gray-400 text-xs font-bold mb-1">次元评分</div>
-                <div class="text-4xl text-pink-500 font-bold">{{ work.hot_score }}</div>
-            </div>
+    <div class="text-gray-400 text-xs font-bold mb-1">次元评分</div>
+    {% if work.hot_score > 0 %}
+        <div class="text-4xl text-pink-500 font-bold">{{ work.hot_score }}</div>
+    {% else %}
+        <div class="text-xl text-gray-400 font-medium py-2 italic">暂无评分</div>
+    {% endif %}
+</div>
 
             <div class="bg-white/60 rounded-3xl p-6 border border-white shadow-sm mt-6">
                 <div class="flex justify-between items-center mb-4">
@@ -224,25 +228,25 @@
                     {% endif %}
                 </div>
                 {% if work.user_tags.all %}
-    <div class="block w-full pt-6">
-        {% if user.is_staff or work.owner == user %}
-            <button onclick="openTagManagerModal()"
-                    class="block w-full py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-500 text-[10px] font-bold rounded-xl transition-all shadow-sm">
-                <i class="fa-solid fa-gear mr-1"></i> 管理用户上传标签
-            </button>
-        {% elif user.is_authenticated %}
-            {% regroup work.user_tags.all by user as user_tag_list %}
-            {% for group in user_tag_list %}
-                {% if group.grouper == user %}
-                    <button onclick="openTagManagerModal()"
-                            class="block w-full py-2.5 bg-pink-50 hover:bg-pink-100 text-pink-400 text-[10px] font-bold rounded-xl transition-all shadow-sm">
-                        <i class="fa-solid fa-user-pen mr-1"></i> 我上传的标签
-                    </button>
+                    <div class="block w-full pt-6">
+                        {% if user.is_staff or work.owner == user %}
+                            <button onclick="openTagManagerModal()"
+                                    class="block w-full py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-500 text-[10px] font-bold rounded-xl transition-all shadow-sm">
+                                <i class="fa-solid fa-gear mr-1"></i> 管理用户上传标签
+                            </button>
+                        {% elif user.is_authenticated %}
+                            {% regroup work.user_tags.all by user as user_tag_list %}
+                            {% for group in user_tag_list %}
+                                {% if group.grouper == user %}
+                                    <button onclick="openTagManagerModal()"
+                                            class="block w-full py-2.5 bg-pink-50 hover:bg-pink-100 text-pink-400 text-[10px] font-bold rounded-xl transition-all shadow-sm">
+                                        <i class="fa-solid fa-user-pen mr-1"></i> 我上传的标签
+                                    </button>
+                                {% endif %}
+                            {% endfor %}
+                        {% endif %}
+                    </div>
                 {% endif %}
-            {% endfor %}
-        {% endif %}
-    </div>
-{% endif %}
             </div>
         </div>
 
@@ -267,7 +271,15 @@
                 <p class="text-gray-500 flex items-center">
                     <i class="fa-solid fa-calendar-day w-8 text-pink-300 text-lg"></i>
                     <span class="mr-2">发布时间：</span>
-                    <span class="text-gray-800 font-bold">{{ work.release_date|date:"Y-m-d" }}</span>
+                    <span class="text-gray-800 font-bold">
+                        {% if work.hide_month %}
+                            {{ work.release_date|date:"Y年" }}
+                        {% elif work.hide_day %}
+                            {{ work.release_date|date:"Y年m月" }}
+                        {% else %}
+                            {{ work.release_date|date:"Y-m-d" }}
+                        {% endif %}
+                    </span>
                 </p>
             </div>
 

@@ -5,6 +5,17 @@
 
 {% block content %}
 <style>
+    /* 当 input 被选中时，改变后面 div 的背景色和边框 */
+    input:checked + div {
+        background: #ff7675;
+        border-color: #ff7675;
+    }
+
+    /* 当 input 被选中时，让内部的 i 图标显示出来 */
+    input:checked + div i {
+        transform: scale(1); /* 确保 scale 生效 */
+        opacity: 1;
+    }
     .recommend-container { animation: slideUpFade 0.8s cubic-bezier(0.2, 0.8, 0.2, 1); max-width: 850px; margin: 20px auto; }
     @keyframes slideUpFade { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -167,6 +178,23 @@
                         <select id="day-select" class="standard-input flex-1" required>
                             <option value="">日</option>
                         </select>
+                    </div>
+                    <div class="mt-4 flex gap-6">
+                        <label class="flex items-center cursor-pointer group">
+                            <input type="checkbox" id="hide-month-check" name="hide_month" class="hidden">
+                            <div class="w-5 h-5 border-2 border-pink-200 rounded-md mr-2 flex items-center justify-center group-hover:border-pink-400 transition-all">
+                                <i class="fa-solid fa-check text-xs text-white scale-0 transition-transform"></i>
+                            </div>
+                            <span class="text-sm text-gray-500 font-bold">未公布具体月份</span>
+                        </label>
+
+                        <label class="flex items-center cursor-pointer group">
+                            <input type="checkbox" id="hide-day-check" name="hide_day" class="hidden">
+                            <div class="w-5 h-5 border-2 border-pink-200 rounded-md mr-2 flex items-center justify-center group-hover:border-pink-400 transition-all">
+                                <i class="fa-solid fa-check text-xs text-white scale-0 transition-transform"></i>
+                            </div>
+                            <span class="text-sm text-gray-500 font-bold">未公布具体日期</span>
+                        </label>
                     </div>
                     <input type="hidden" name="release_date" id="release-date-hidden">
                 </div>
@@ -345,21 +373,34 @@ for (let i = 1; i <= 12; i++) {
 function updateDays() {
     const year = parseInt(yearSelect.value);
     const month = parseInt(monthSelect.value);
-    const dayVal = daySelect.value; // 保留当前选中的日
+    const dayVal = daySelect.value;
 
     daySelect.innerHTML = '<option value="">日</option>';
 
     if (year && month) {
-        // 获取该月天数：利用下个月的第0天
         const daysInMonth = new Date(year, month, 0).getDate();
         for (let i = 1; i <= daysInMonth; i++) {
             daySelect.options.add(new Option(i, i));
         }
-        // 尝试还原之前选中的日
         if (dayVal <= daysInMonth) daySelect.value = dayVal;
     }
-    syncDate();
+
+    // --- 关键修复：重建选项后，重新应用隐藏状态 ---
+    if (dayCheck.checked || monthCheck.checked) {
+        daySelect.style.display = 'none';
+        daySelect.required = false;
+    } else {
+        daySelect.style.display = 'block';
+        daySelect.required = true;
+    }
+    // ------------------------------------------
+
+    forceSyncDate();
 }
+
+// 别忘了给年份和月份下拉框绑定 updateDays
+yearSelect.addEventListener('change', updateDays);
+monthSelect.addEventListener('change', updateDays);
 // A. 定义提示弹窗函数
 function showToast(message) {
     // 防止重复弹出
@@ -378,31 +419,51 @@ function showToast(message) {
 }
 
 // B. 修改提交校验逻辑
+// B. 修改提交校验逻辑
 document.getElementById('recommendForm').addEventListener('submit', function(e) {
+    // 获取表单元素引用
     const title = this.querySelector('[name="title"]').value.trim();
-    const releaseDate = document.getElementById('release-date-hidden').value;
     const description = this.querySelector('[name="description"]').value.trim();
     const tagsData = document.getElementById('tags-data-value').value;
     const coverFile = document.getElementById('cover-file').files.length;
+
+    // 获取日期相关的状态
+    const yearVal = document.getElementById('year-select').value;
+    const monthVal = document.getElementById('month-select').value;
+    const dayVal = document.getElementById('day-select').value;
+    const isMonthHidden = document.getElementById('hide-month-check').checked;
+    const isDayHidden = document.getElementById('hide-day-check').checked;
 
     let errorMsg = "";
 
     // 按优先级检查必填项
     if (!title) {
         errorMsg = "作品名称不能为空哦~";
-    } else if (!releaseDate) {
-        errorMsg = "请选择完整的作品发布日期 (○'◡'○)";
-    } else if (!description) {
+    }
+    else if (!yearVal) {
+        errorMsg = "请至少选择作品的发布年份 (○'◡'○)";
+    }
+    // 逻辑：如果没有勾选隐藏月份，则必须选月份
+    else if (!isMonthHidden && !monthVal) {
+        errorMsg = "请选择月份，或勾选“未公布具体月份”";
+    }
+    // 逻辑：如果没有勾选隐藏日期（且也没勾选隐藏月份），则必须选日期
+    else if (!isMonthHidden && !isDayHidden && !dayVal) {
+        errorMsg = "请选择具体日期，或勾选“未公布具体日期”";
+    }
+    else if (!description) {
         errorMsg = "简介是必填项，让大家更了解它吧！";
-    } else if (!tagsData || tagsData === "[]") {
+    }
+    else if (!tagsData || tagsData === "[]") {
         errorMsg = "请至少添加一个标签，比如“治愈”或“热血”~";
-    } else if (coverFile === 0) {
+    }
+    else if (coverFile === 0) {
         errorMsg = "请上传封面图";
     }
 
     if (errorMsg) {
         e.preventDefault(); // 阻止提交
-        showToast(errorMsg); // 使用漂亮的 Toast 替代 alert
+        showToast(errorMsg);
     }
 });
 // 合并日期为 YYYY-MM-DD 格式
@@ -417,9 +478,90 @@ function syncDate() {
     }
 }
 
-// 绑定事件
-yearSelect.addEventListener('change', updateDays);
-monthSelect.addEventListener('change', updateDays);
-daySelect.addEventListener('change', syncDate);
+// 修改 recommend_work.html 中的相关脚本部分
+
+// 辅助函数：更新隐藏的日期值
+function forceSyncDate() {
+    const y = yearSelect.value || "2000"; // 如果没选年，默认2000（校验会拦截）
+    let m = monthSelect.value || "01";
+    let d = daySelect.value || "01";
+
+    if (monthCheck.checked) {
+        m = "01";
+        d = "01";
+    } else if (dayCheck.checked) {
+        d = "01";
+    }
+
+    if (yearSelect.value) {
+        releaseDateHidden.value = `${y}-${m.toString().padStart(2, '0')}-${d.toString().padStart(2, '0')}`;
+    } else {
+        releaseDateHidden.value = "";
+    }
+}
+
+// 处理勾选逻辑
+const monthCheck = document.getElementById('hide-month-check');
+const dayCheck = document.getElementById('hide-day-check');
+
+// 处理“未公布具体月份”勾选
+monthCheck.addEventListener('change', function() {
+    if (this.checked) {
+        // 1. 联动：勾选月份必勾选日期
+        dayCheck.checked = true;
+        // 2. 隐藏并移除必填，防止系统气泡
+        monthSelect.style.display = 'none';
+        daySelect.style.display = 'none';
+        monthSelect.required = false;
+        daySelect.required = false;
+    } else {
+        // 恢复显示和必填
+        monthSelect.style.display = 'block';
+        monthSelect.required = true;
+        // 只有当日记也没勾选时，才恢复日期框
+        if (!dayCheck.checked) {
+            daySelect.style.display = 'block';
+            daySelect.required = true;
+        }
+    }
+    forceSyncDate();
+});
+
+// 处理“未公布具体日期”勾选
+dayCheck.addEventListener('change', function() {
+    if (this.checked) {
+        daySelect.style.display = 'none';
+        daySelect.required = false; // 移除必填
+    } else {
+        // 如果月份没被隐藏，日期才能恢复
+        if (!monthCheck.checked) {
+            daySelect.style.display = 'block';
+            daySelect.required = true;
+        } else {
+            this.checked = true; // 强制保持勾选（因为月份勾着呢）
+        }
+    }
+    forceSyncDate();
+});
+
+// 修改原有的 syncDate 绑定，确保勾选状态下也能同步
+yearSelect.addEventListener('change', forceSyncDate);
+monthSelect.addEventListener('change', forceSyncDate);
+daySelect.addEventListener('change', forceSyncDate);
+// 页面加载时根据勾选框状态初始化显示
+function initCheckboxes() {
+    if (monthCheck.checked) {
+        monthSelect.style.display = 'none';
+        monthSelect.required = false;
+        daySelect.style.display = 'none';
+        daySelect.required = false;
+    } else if (dayCheck.checked) {
+        daySelect.style.display = 'none';
+        daySelect.required = false;
+    }
+}
+
+// 执行初始化
+initCheckboxes();
 </script>
 {% endblock %}
