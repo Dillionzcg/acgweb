@@ -42,6 +42,17 @@ class WorkGallery(models.Model):
     work = models.ForeignKey(Work, on_delete=models.CASCADE, related_name='gallery')
     image = models.ImageField('图集图片', upload_to='works/gallery/')
     created_at = models.DateTimeField(auto_now_add=True)
+    uploader = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+    is_featured = models.BooleanField(default=False)
+
+    class Meta:
+        # 确保精选的图片排在前面，然后再按时间排序
+        ordering = ['-is_featured', '-created_at']
 
 class Comment(models.Model):
     work = models.ForeignKey(Work, on_delete=models.CASCADE, related_name='comments')

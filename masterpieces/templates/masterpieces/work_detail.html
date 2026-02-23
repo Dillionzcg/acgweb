@@ -143,19 +143,32 @@
         <div>
             <img src="{{ work.cover.url }}" alt="{{ work.title }}" class="detail-cover">
 
-            <!-- 图集缩略网格（封面+3张） -->
             <div class="gallery-grid bg-white/50 p-2 rounded-xl border border-white mt-4">
-                <a href="{{ work.cover.url }}" target="_blank" class="gallery-item border-2 border-pink-200">
-                    <img src="{{ work.cover.url }}" alt="封面">
-                </a>
 
-                {% for item in work.gallery.all|slice:":3" %}
-                <a href="{{ item.image.url }}" target="_blank" class="gallery-item">
-                    <img src="{{ item.image.url }}" alt="图集">
-                </a>
-                {% endfor %}
+                {% with total_illustrations=work.gallery.count %}
 
-                </div>
+                    {% if total_illustrations < 4 %}
+                        <a href="{{ work.cover.url }}" target="_blank" class="gallery-item border-2 border-pink-200">
+                            <img src="{{ work.cover.url }}" alt="封面">
+                        </a>
+
+                        {% for item in work.gallery.all %}
+                            <a href="{{ item.image.url }}" target="_blank" class="gallery-item">
+                                <img src="{{ item.image.url }}" alt="图集">
+                            </a>
+                        {% endfor %}
+
+                    {% else %}
+                        {% for item in work.gallery.all|slice:":4" %}
+                            <a href="{{ item.image.url }}" target="_blank" class="gallery-item">
+                                <img src="{{ item.image.url }}" alt="图集">
+                            </a>
+                        {% endfor %}
+
+                    {% endif %}
+
+                {% endwith %}
+            </div>
 
             <a href="javascript:void(0);" onclick="openFullGallery()" class="flex items-center justify-center w-full py-4 mt-3 bg-gradient-to-r from-pink-400 to-rose-400 text-white rounded-2xl font-bold shadow-lg hover:shadow-pink-200/50 hover:scale-[1.02] transition-all mb-3">
                 <i class="fa-solid fa-images mr-2"></i> 查看全部图集 ({{ work.gallery.count|add:1 }})
@@ -377,6 +390,9 @@
 </div>
 
 <script>
+let currentFeaturedCount = {{ work.gallery.filter.is_featured.count|default:0 }};
+// 在 script 标签开头定义
+let hasChangedGallery = false;
 (function() {
     // ---------- 点赞：事件委托 ----------
     document.addEventListener('click', function(e) {
@@ -661,24 +677,26 @@ window.openFullGallery = function() {
     }, 10);
 };
 
+// 修改你原有的关闭函数
 window.closeFullGallery = function() {
     const backdrop = document.getElementById('galleryBackdrop');
     const content = document.getElementById('galleryContent');
     const modal = document.getElementById('fullGalleryModal');
 
-    // 背景动画：半透明变透明
     backdrop.style.backgroundColor = 'rgba(0, 0, 0, 0)';
     backdrop.style.backdropFilter = 'blur(0px)';
-
-    // 内容动画：正常变缩小透明
     content.style.opacity = '0';
     content.style.transform = 'scale(0.9)';
 
-    // 动画完成后隐藏弹窗
     setTimeout(() => {
         modal.classList.add('hidden');
         document.body.style.overflow = 'auto';
-    }, 500); // 500ms 与动画时长一致
+
+        // 关键：只有用户点过“删除”或“精选”成功后，关闭时才强制刷新同步主页预览图
+        if (hasChangedGallery) {
+            location.reload();
+        }
+    }, 500);
 };
 
 // 增强下载功能（处理跨域图片下载）
@@ -688,6 +706,175 @@ document.querySelectorAll('[download]').forEach(anchor => {
         // 这里可以保持默认，现代浏览器对于同源或配置了 CORS 的媒体文件支持良好
     });
 });
+// work_detail.html 的 script 区域
+
+window.deleteGalleryImage = function(imageId, deleteUrl) {
+    if (!confirm('确定要从作品图集中移除这张图片吗？')) return;
+
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    fetch(deleteUrl, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken,
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'success') {
+            const element = document.getElementById(`gallery-item-${imageId}`);
+            // 简单动效
+            element.style.opacity = '0';
+            element.style.transform = 'scale(0.9)';
+            setTimeout(() => {
+                element.remove();
+                // 可选：如果图片删完了，可以刷新页面或显示占位符
+            }, 300);
+            hasChangedGallery = true;
+        } else {
+            alert(data.message || '删除失败');
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        alert('通讯错误，请稍后重试');
+    });
+};
+window.toggleFeatured = function(imageId, url) {
+    const btn = document.getElementById(`feature-btn-${imageId}`);
+    const btnText = btn.querySelector('.btn-text');
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    // 发起异步请求
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken,
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(res => {
+        if (!res.ok) {
+            // 如果后端返回 400（达到上限），则抛出错误进入 catch
+            return res.json().then(err => { throw err; });
+        }
+        return res.json();
+    })
+    .then(data => {
+        if (data.status === 'success') {
+            // 1. 标记发生了变动，关闭弹窗时将刷新
+            hasChangedGallery = true;
+
+            // 2. 更新当前按钮的视觉状态
+            if (data.is_featured) {
+                // 变为“已精选”状态
+                btn.classList.remove('bg-white', 'text-yellow-600', 'border-yellow-200', 'hover:bg-yellow-50');
+                btn.classList.add('bg-yellow-400', 'text-white', 'border-yellow-500');
+                btnText.innerText = '取消精选';
+            } else {
+                // 恢复为“未精选”状态
+                btn.classList.remove('bg-yellow-400', 'text-white', 'border-yellow-500');
+                btn.classList.add('bg-white', 'text-yellow-600', 'border-yellow-200', 'hover:bg-yellow-50');
+                btnText.innerText = '设为精选';
+            }
+
+            // 提示：因为逻辑比较复杂（涉及到其他按钮是否该变灰），
+            // 我们通过 hasChangedGallery 让用户在关闭弹窗时看到最终排序效果。
+        }
+    })
+    .catch(err => {
+        console.error('Error:', err);
+        // 显示后端传回的“精选图片数量已经达到上限”或其他错误
+        alert(err.message || '操作失败，请重试');
+    });
+};
+// work_detail.html 的 script 区域
+
+// 用于存储哪些图片处于“待确认”状态
+let deleteConfirmTimeout = {};
+
+window.confirmDelete = function(imageId, deleteUrl) {
+    const btn = document.getElementById(`delete-btn-${imageId}`);
+    const textSpan = btn.querySelector('.delete-text');
+    const icon = btn.querySelector('i');
+
+    // 如果按钮目前不是“待确认”状态
+    if (!btn.dataset.confirming) {
+        // 1. 进入待确认状态
+        btn.dataset.confirming = "true";
+
+        // 2. 修改样式：加深红色背景，文字变白
+        btn.classList.remove('bg-red-50', 'text-red-500');
+        btn.classList.add('bg-red-600', 'text-white', 'border-red-700');
+        textSpan.innerText = "确认删除该图片吗？";
+        icon.classList.replace('fa-trash-can', 'fa-circle-exclamation');
+
+        // 3. 设置 3 秒超时重置，防止用户反悔后按钮一直卡在红色
+        if (deleteConfirmTimeout[imageId]) clearTimeout(deleteConfirmTimeout[imageId]);
+        deleteConfirmTimeout[imageId] = setTimeout(() => {
+            resetDeleteButton(imageId);
+        }, 3000);
+
+    } else {
+        // 如果已经是待确认状态，执行真正的删除操作
+        executeActualDelete(imageId, deleteUrl);
+    }
+};
+
+// 恢复按钮初始状态的函数
+function resetDeleteButton(imageId) {
+    const btn = document.getElementById(`delete-btn-${imageId}`);
+    if (!btn) return;
+    const textSpan = btn.querySelector('.delete-text');
+    const icon = btn.querySelector('i');
+
+    delete btn.dataset.confirming;
+    btn.classList.remove('bg-red-600', 'text-white', 'border-red-700');
+    btn.classList.add('bg-red-50', 'text-red-500');
+    textSpan.innerText = "删除此图片";
+    icon.classList.replace('fa-circle-exclamation', 'fa-trash-can');
+}
+
+// 真正的 Ajax 删除执行逻辑
+function executeActualDelete(imageId, deleteUrl) {
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    // 按钮显示加载状态
+    const btn = document.getElementById(`delete-btn-${imageId}`);
+    btn.style.opacity = "0.5";
+    btn.disabled = true;
+
+    fetch(deleteUrl, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken,
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'success') {
+            const card = document.getElementById(`gallery-item-${imageId}`);
+            card.style.transform = 'scale(0.9) translateY(20px)';
+            card.style.opacity = '0';
+
+            // 标记已改动，关闭弹窗时刷新
+            hasChangedGallery = true;
+
+            setTimeout(() => {
+                card.remove();
+            }, 300);
+        } else {
+            alert(data.message || '删除失败');
+            resetDeleteButton(imageId);
+        }
+    })
+    .catch(err => {
+        alert('通讯错误');
+        resetDeleteButton(imageId);
+    });
+}
 </script>
 <div id="deleteConfirmModal" class="hidden fixed inset-0 z-[110] flex items-center justify-center p-4 transition-opacity duration-300">
     <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-md opacity-0 transition-opacity duration-300" id="modalBackdrop"></div>
@@ -753,25 +940,59 @@ document.querySelectorAll('[download]').forEach(anchor => {
             </div>
 
             {% for item in work.gallery.all %}
-            <div class="bg-white p-4 rounded-3xl shadow-sm border border-gray-100">
-                <div class="flex flex-col md:flex-row gap-8 items-start">
-                    <div class="w-full md:w-1/2 rounded-2xl overflow-hidden bg-gray-50 flex items-center justify-center">
-                        <img src="{{ item.image.url }}" class="w-full h-auto object-contain shadow-inner" />
-                    </div>
+                <div class="bg-white p-4 rounded-3xl shadow-sm border border-gray-100 gallery-image-card" id="gallery-item-{{ item.id }}">
+                    <div class="flex flex-col md:flex-row gap-8 items-start">
+                        <div class="w-full md:w-1/2 rounded-2xl overflow-hidden bg-gray-50 flex items-center justify-center">
+                            <img src="{{ item.image.url }}" class="w-full h-auto object-contain shadow-inner" />
+                        </div>
 
-                    <div class="w-full md:w-1/2 flex flex-col justify-center self-center">
-                        <span class="px-3 py-1 bg-blue-100 text-blue-500 rounded-full text-xs font-bold w-fit mb-4">作品插图 #{{ forloop.counter }}</span>
-                        <div class="space-y-2 mb-6">
-                            <p class="text-gray-500 text-sm">上传者：<span class="font-bold text-gray-800">{{ item.uploader.username|default:work.owner.username }}</span></p>
+                        <div class="w-full md:w-1/2 flex flex-col justify-center self-center">
+                            <span class="px-3 py-1 bg-blue-100 text-blue-500 rounded-full text-xs font-bold w-fit mb-4">作品插图 #{{ forloop.counter }}</span>
+                            <div class="space-y-2 mb-6">
+                                <p class="text-gray-500 text-sm">上传者：<span class="font-bold text-gray-800">{{ item.uploader.username|default:work.owner.username }}</span></p>
                             </div>
-                        <a href="{{ item.image.url }}" download="gallery_{{ item.id }}.jpg"
-                           class="flex items-center justify-center gap-3 py-4 bg-gray-900 text-white rounded-2xl text-base font-bold hover:bg-blue-500 shadow-xl transition-all active:scale-95">
-                            <i class="fa-solid fa-download"></i> 保存原图
-                        </a>
+
+                            <div class="flex flex-col gap-3">
+                                <a href="{{ item.image.url }}" download="gallery_{{ item.id }}.jpg"
+                                   class="flex items-center justify-center gap-3 py-4 bg-gray-900 text-white rounded-2xl text-base font-bold hover:bg-blue-500 shadow-xl transition-all active:scale-95">
+                                    <i class="fa-solid fa-download"></i> 保存原图
+                                </a>
+
+                                {% if user.is_staff or work.owner == user or item.uploader == user %}
+                                    <button id="delete-btn-{{ item.id }}"
+                                            onclick="confirmDelete({{ item.id }}, '{% url 'masterpieces:delete_gallery_image' item.id %}')"
+                                            class="flex items-center justify-center gap-3 py-3 bg-red-50 text-red-500 rounded-2xl text-sm font-bold hover:bg-red-100 transition-all border border-red-100">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                        <span class="delete-text">删除此图片</span>
+                                    </button>
+                                {% endif %}
+                                {% if user.is_staff or work.owner == user %}
+                                    <button id="feature-btn-{{ item.id }}"
+                                            onclick="toggleFeatured({{ item.id }}, '{% url 'masterpieces:toggle_gallery_featured' item.id %}')"
+                                            class="flex items-center justify-center gap-3 py-3 rounded-2xl text-sm font-bold transition-all border
+                                            {% if item.is_featured %}
+                                                bg-yellow-400 text-white border-yellow-500
+                                            {% else %}
+                                                {% if work.gallery.filter.is_featured.count >= 4 %}
+                                                    bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed
+                                                {% else %}
+                                                    bg-white text-yellow-600 border-yellow-200 hover:bg-yellow-50
+                                                {% endif %}
+                                            {% endif %}"
+                                            {% if not item.is_featured and work.gallery.filter.is_featured.count >= 4 %} disabled {% endif %}>
+                                        <i class="fa-solid fa-star"></i>
+                                        <span class="btn-text">
+                                            {% if item.is_featured %}取消精选{% else %}
+                                                {% if work.gallery.filter.is_featured.count >= 4 %}精选图片数量已经达到上限{% else %}设为精选{% endif %}
+                                            {% endif %}
+                                        </span>
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-            {% endfor %}
+                {% endfor %}
 
         </div>
     </div>

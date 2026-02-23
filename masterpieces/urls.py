@@ -15,4 +15,6 @@ urlpatterns = [
     path('work/<int:work_id>/upload_image/', views.upload_work_image, name='upload_work_image'),
     path('work/<int:work_id>/add_tag/', views.add_user_tag, name='add_user_tag'),
     path('comment/<int:comment_id>/delete/', views.delete_comment, name='delete_comment'),
+    path('gallery/<int:image_id>/delete/', views.delete_gallery_image, name='delete_gallery_image'),
+    path('gallery/<int:image_id>/toggle-featured/', views.toggle_gallery_featured, name='toggle_gallery_featured'),
 ]

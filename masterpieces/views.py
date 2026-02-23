@@ -142,7 +142,7 @@ def upload_work_image(request, work_id):
     work = get_object_or_404(Work, id=work_id)
     image = request.FILES.get('image')
     if image:
-        WorkGallery.objects.create(work=work, image=image)
+        WorkGallery.objects.create(work=work, image=image,uploader=request.user)
     return redirect('masterpieces:work_detail', work_id=work.id)
 
 # views.py
@@ -212,3 +212,53 @@ def delete_comment(request, comment_id):
         })
 
     return JsonResponse({'status': 'error', 'message': '无权删除'}, status=403)
+
+
+# masterpieces/views.py
+
+@login_required
+@require_POST
+def delete_gallery_image(request, image_id):
+    """
+    删除图集中的单张图片
+    权限：管理员、作品所有者、图片上传者
+    """
+    image_item = get_object_or_404(WorkGallery, id=image_id)
+    work = image_item.work
+
+    # 权限判断逻辑
+    # 1. 是否是管理员
+    is_staff = request.user.is_staff
+    # 2. 是否是作品的推荐者
+    is_work_owner = (work.owner == request.user)
+    # 3. 是否是该图片的上传者 (需配合下方模型修改，若无此字段则默认为作品推荐者上传)
+    is_uploader = getattr(image_item, 'uploader', work.owner) == request.user
+
+    if is_staff or is_work_owner or is_uploader:
+        image_item.delete()
+        return JsonResponse({'status': 'success', 'message': '图片已删除'})
+
+    return JsonResponse({'status': 'error', 'message': '你没有权限删除这张图片哦~'}, status=403)
+
+
+@login_required
+@require_POST
+def toggle_gallery_featured(request, image_id):
+    image_item = get_object_or_404(WorkGallery, id=image_id)
+    work = image_item.work
+
+    # 权限校验
+    if not (request.user.is_staff or work.owner == request.user):
+        return JsonResponse({'status': 'error', 'message': '无权操作'}, status=403)
+
+    # 如果是要设为精选，先检查数量
+    if not image_item.is_featured:
+        featured_count = work.gallery.filter(is_featured=True).count()
+        if featured_count >= 4:
+            return JsonResponse({'status': 'error', 'message': '精选图片数量已达上限'}, status=400)
+        image_item.is_featured = True
+    else:
+        image_item.is_featured = False
+
+    image_item.save()
+    return JsonResponse({'status': 'success', 'is_featured': image_item.is_featured})
