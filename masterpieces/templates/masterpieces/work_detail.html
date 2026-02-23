@@ -223,6 +223,26 @@
                         </div>
                     {% endif %}
                 </div>
+                {% if work.user_tags.all %}
+    <div class="block w-full pt-6">
+        {% if user.is_staff or work.owner == user %}
+            <button onclick="openTagManagerModal()"
+                    class="block w-full py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-500 text-[10px] font-bold rounded-xl transition-all shadow-sm">
+                <i class="fa-solid fa-gear mr-1"></i> 管理用户上传标签
+            </button>
+        {% elif user.is_authenticated %}
+            {% regroup work.user_tags.all by user as user_tag_list %}
+            {% for group in user_tag_list %}
+                {% if group.grouper == user %}
+                    <button onclick="openTagManagerModal()"
+                            class="block w-full py-2.5 bg-pink-50 hover:bg-pink-100 text-pink-400 text-[10px] font-bold rounded-xl transition-all shadow-sm">
+                        <i class="fa-solid fa-user-pen mr-1"></i> 我上传的标签
+                    </button>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    </div>
+{% endif %}
             </div>
         </div>
 
@@ -474,6 +494,7 @@ let hasChangedGallery = false;
         .then(res => res.json())
         .then(data => {
             if (data.status === 'success') {
+                location.reload();
                 // 更好的体验：动态添加 DOM 而不是刷新页面
                 const container = document.getElementById('user-tags-container');
                 const noTagPrompt = container.querySelector('div.flex-col');
@@ -875,6 +896,71 @@ function executeActualDelete(imageId, deleteUrl) {
         resetDeleteButton(imageId);
     });
 }
+let tagChanged = false;
+
+window.openTagManagerModal = function() {
+    const modal = document.getElementById('tagManagerModal');
+    const content = document.getElementById('tagModalContent');
+    modal.classList.remove('hidden');
+    setTimeout(() => {
+        content.classList.replace('scale-95', 'scale-100');
+        content.classList.replace('opacity-0', 'opacity-100');
+    }, 10);
+    document.body.style.overflow = 'hidden';
+};
+
+window.closeTagManagerModal = function() {
+    const modal = document.getElementById('tagManagerModal');
+    const content = document.getElementById('tagModalContent');
+    content.classList.replace('scale-100', 'scale-95');
+    content.classList.replace('opacity-100', 'opacity-0');
+
+    setTimeout(() => {
+        modal.classList.add('hidden');
+        document.body.style.overflow = 'auto';
+        if (tagChanged) {
+            location.reload(); // 如果有删除操作，关闭时刷新界面
+        }
+    }, 300);
+};
+
+window.deleteUserTag = function(tagId, btnElement) {
+    // 删除了 if(!confirm) 判断，直接开始执行请求
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    const url = "{% url 'masterpieces:delete_user_tag' 999 %}".replace('999', tagId);
+
+    // 增加视觉反馈：立即半透明，让用户知道已经点到了
+    btnElement.style.opacity = '0.5';
+    btnElement.style.pointerEvents = 'none'; // 防止连续点击
+
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken,
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'success') {
+            tagChanged = true;
+            // 执行消失动画
+            btnElement.style.transform = 'scale(0.8)';
+            btnElement.style.opacity = '0';
+            setTimeout(() => btnElement.remove(), 250);
+        } else {
+            // 只有报错时才提示
+            btnElement.style.opacity = '1';
+            btnElement.style.pointerEvents = 'auto';
+            console.error(data.message);
+        }
+    })
+    .catch(err => {
+        btnElement.style.opacity = '1';
+        btnElement.style.pointerEvents = 'auto';
+        console.error(err);
+    });
+};
 </script>
 <div id="deleteConfirmModal" class="hidden fixed inset-0 z-[110] flex items-center justify-center p-4 transition-opacity duration-300">
     <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-md opacity-0 transition-opacity duration-300" id="modalBackdrop"></div>
@@ -994,6 +1080,39 @@ function executeActualDelete(imageId, deleteUrl) {
                 </div>
                 {% endfor %}
 
+        </div>
+    </div>
+</div>
+    <div id="tagManagerModal" class="hidden fixed inset-0 z-[130] flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-white/20 backdrop-blur-xl transition-all duration-300" onclick="closeTagManagerModal()"></div>
+
+    <div class="relative bg-white/80 backdrop-blur-md w-full max-w-md rounded-[32px] p-8 shadow-2xl border border-white/50 transform transition-all duration-500 scale-95 opacity-0" id="tagModalContent">
+        <div class="flex justify-between items-center mb-6">
+            <div>
+                <h3 class="text-xl font-black text-gray-800">标签管理</h3>
+                <p class="text-xs text-gray-400 mt-1">点击标签即可快速删除</p>
+            </div>
+            <button onclick="closeTagManagerModal()" class="text-gray-400 hover:text-pink-500 transition-colors">
+                <i class="fa-solid fa-circle-xmark text-2xl"></i>
+            </button>
+        </div>
+
+        <div class="flex flex-wrap gap-3 max-h-[40vh] overflow-y-auto p-2" id="manage-tags-list">
+            {% for tag in work.user_tags.all %}
+                {% if user.is_staff or work.owner == user or tag.user == user %}
+                <button onclick="deleteUserTag({{ tag.id }}, this)"
+                        class="group relative flex items-center px-4 py-2 bg-white/50 border border-gray-100 text-gray-600 rounded-2xl text-sm font-bold hover:bg-red-50 hover:text-red-500 hover:border-red-100 transition-all">
+                    # {{ tag.name }}
+                    <i class="fa-solid fa-xmark ml-2 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                </button>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+        <div class="mt-8">
+            <button onclick="closeTagManagerModal()" class="w-full py-4 bg-gray-900 text-white rounded-2xl font-bold shadow-lg hover:shadow-gray-300 transition-all active:scale-95">
+                关闭管理
+            </button>
         </div>
     </div>
 </div>

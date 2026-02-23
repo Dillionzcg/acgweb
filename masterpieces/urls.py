@@ -17,4 +17,5 @@ urlpatterns = [
     path('comment/<int:comment_id>/delete/', views.delete_comment, name='delete_comment'),
     path('gallery/<int:image_id>/delete/', views.delete_gallery_image, name='delete_gallery_image'),
     path('gallery/<int:image_id>/toggle-featured/', views.toggle_gallery_featured, name='toggle_gallery_featured'),
+    path('user-tag/<int:tag_id>/delete/', views.delete_user_tag, name='delete_user_tag'),
 ]

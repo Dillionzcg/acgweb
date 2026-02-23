@@ -262,3 +262,26 @@ def toggle_gallery_featured(request, image_id):
 
     image_item.save()
     return JsonResponse({'status': 'success', 'is_featured': image_item.is_featured})
+
+
+# views.py
+
+@login_required
+@require_POST
+def delete_user_tag(request, tag_id):
+    """
+    删除用户上传的标签
+    权限：管理员、作品推荐者可以删除所有；普通用户只能删除自己上传的
+    """
+    tag = get_object_or_404(UserTag, id=tag_id)
+    work = tag.work
+
+    is_staff = request.user.is_staff
+    is_work_owner = (work.owner == request.user)
+    is_tag_uploader = (tag.user == request.user)
+
+    if is_staff or is_work_owner or is_tag_uploader:
+        tag.delete()
+        return JsonResponse({'status': 'success', 'message': '标签已移除'})
+
+    return JsonResponse({'status': 'error', 'message': '你没有权限删除这个标签哦~'}, status=403)
