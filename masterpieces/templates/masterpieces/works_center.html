@@ -311,5 +311,22 @@ function generateGridHtml(items) {
     // 初始化显示第一页
     switchZone('anime', 0, document.querySelector('.zone-btn'));
 });
+// works_center.html
+document.addEventListener('DOMContentLoaded', function() {
+    const workName = localStorage.getItem('just_recommended_work');
+
+    if (workName) {
+        // 覆盖默认的 CENTER_ENTER，让小柚夸奖 Master
+        if (typeof askXiaoYou === 'function') {
+            askXiaoYou('USER_ACTION', `我刚刚在作品中心安利了作品《${workName}》`);
+        }
+        localStorage.removeItem('just_recommended_work'); // 用完删掉，防止刷新后重复触发
+    } else {
+        // 正常的进入逻辑
+        if (typeof askXiaoYou === 'function') {
+            askXiaoYou('CENTER_ENTER', '作品中心');
+        }
+    }
+});
 </script>
 {% endblock %}

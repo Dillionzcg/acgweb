@@ -264,6 +264,7 @@
                             <span class="preset-tag" onclick="addPresetTag('运动')"># 运动</span>
                             <span class="preset-tag" onclick="addPresetTag('励志')"># 励志</span>
                             <span class="preset-tag" onclick="addPresetTag('音乐')"># 音乐</span>
+                            <span class="preset-tag" onclick="addPresetTag('乐队')"># 乐队</span>
                             <span class="preset-tag" onclick="addPresetTag('治愈')"># 治愈</span>
                             <span class="preset-tag" onclick="addPresetTag('偶像')"># 偶像</span>
                             <span class="preset-tag" onclick="addPresetTag('校园')"># 校园</span>
@@ -474,6 +475,7 @@ document.getElementById('recommendForm').addEventListener('submit', function(e) 
     const dayVal = document.getElementById('day-select').value;
     const isMonthHidden = document.getElementById('hide-month-check').checked;
     const isDayHidden = document.getElementById('hide-day-check').checked;
+    localStorage.setItem('just_recommended_work', title);
 
     let errorMsg = "";
 
@@ -505,7 +507,35 @@ document.getElementById('recommendForm').addEventListener('submit', function(e) 
     if (errorMsg) {
         e.preventDefault(); // 阻止提交
         showToast(errorMsg);
+        if (typeof askXiaoYou === 'function') {
+            askXiaoYou('FORM_ERROR2', errorMsg);
+        }
     }
+    const formData = new FormData(this); // 自动收集表单内所有数据和文件
+
+    fetch('/submit_work/', {
+        method: 'POST',
+        body: formData,
+        // 注意：使用 FormData 时不要手动设置 Content-Type 头部，浏览器会自动处理
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            // 核心步骤：存入作品名，供跳转后的页面读取
+            localStorage.setItem('just_recommended_work', title);
+
+            showToast("安利成功！正在回到作品中心...", "success");
+            setTimeout(() => {
+                window.location.href = "/works_center/";
+            }, 1000);
+        } else {
+            showToast(data.message || "提交失败了喵...", "error");
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showToast("网络好像出了一点小问题喵...", "error");
+    });
 });
 // 合并日期为 YYYY-MM-DD 格式
 function syncDate() {
@@ -730,5 +760,15 @@ window.performSearch = async function() {
 })();
 // 执行初始化
 initCheckboxes();
+document.addEventListener('DOMContentLoaded', function() {
+        // 延迟执行，确保 waifu.html 里的组件和函数已初始化
+        setTimeout(() => {
+            if (typeof askXiaoYou === 'function') {
+                // 向小柚发送进入“推荐作品”界面的信号
+                // 这里内容可以写成 '推荐作品' 或 '安利作品'
+                askXiaoYou('USER_ACTION', '进入了推荐作品界面，准备安利作品。');
+            }
+        }, 800);
+    });
 </script>
 {% endblock %}

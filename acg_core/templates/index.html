@@ -122,52 +122,60 @@
 </aside>
 
     <section class="col-span-12 lg:col-span-6 space-y-8">
-        <div class="grid grid-cols-4 gap-4 animate__animated animate__fadeIn">
+<div class="grid grid-cols-4 gap-4 animate__animated animate__fadeIn">
 
-            <a href="{% url 'community_home' %}" class="col-span-2 h-48 relative group overflow-hidden rounded-2xl shadow-lg transition-all hover:-translate-y-1 bg-pink-900">
-                <div class="absolute inset-0 bg-cover bg-center opacity-75 transition-all duration-700 group-hover:scale-110 group-hover:opacity-60"
-                     style="background-image: url('/static/images/bg1.jpg');"></div>
-                <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
-                <div class="relative h-full p-5 flex flex-col justify-end text-white">
-                    <i class="fa-solid fa-house-chimney text-4xl opacity-30 absolute top-4 right-4 group-hover:rotate-12 transition-transform"></i>
-                    <h3 class="text-2xl font-bold drop-shadow-lg">社区中心</h3>
-                    <p class="text-sm opacity-80">次元居民的日常聚集地</p>
-                </div>
-            </a>
-
-            <a href="{% url 'news_list' %}" class="col-span-2 h-48 relative group overflow-hidden rounded-2xl shadow-lg transition-all hover:-translate-y-1 bg-blue-900">
-                <div class="absolute inset-0 bg-cover bg-center opacity-75 transition-all duration-700 group-hover:scale-110 group-hover:opacity-60"
-                     style="background-image: url('/static/images/bg2.jpg');"></div>
-                <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
-                <div class="relative h-full p-5 flex flex-col justify-end text-white">
-                    <i class="fa-solid fa-newspaper text-4xl opacity-30 absolute top-4 right-4 group-hover:rotate-12 transition-transform"></i>
-                    <h3 class="text-2xl font-bold drop-shadow-lg">资讯中心</h3>
-                    <p class="text-sm opacity-80">掌握最新番剧/游戏情报</p>
-                </div>
-            </a>
-
-            <a href="{% url 'masterpieces:works_center' %}" class="col-span-2 h-48 relative group overflow-hidden rounded-2xl shadow-lg transition-all hover:-translate-y-1 bg-orange-900">
-                <div class="absolute inset-0 bg-cover bg-center opacity-75 transition-all duration-700 group-hover:scale-110 group-hover:opacity-60"
-                     style="background-image: url('/static/images/bg3.jpg');"></div>
-                <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
-                <div class="relative h-full p-5 flex flex-col justify-end text-white">
-                    <i class="fa-solid fa-layer-group text-4xl opacity-30 absolute top-4 right-4 group-hover:rotate-12 transition-transform"></i>
-                    <h3 class="text-2xl font-bold drop-shadow-lg">作品中心</h3>
-                    <p class="text-sm opacity-80">发现与收藏心仪佳作</p>
-                </div>
-            </a>
-
-            <a href="#" class="col-span-2 h-48 relative group overflow-hidden rounded-2xl shadow-lg transition-all hover:-translate-y-1 bg-purple-900">
-                <div class="absolute inset-0 bg-cover bg-center opacity-75 transition-all duration-700 group-hover:scale-110 group-hover:opacity-60"
-                     style="background-image: url('/static/images/bg4.jpg');"></div>
-                <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
-                <div class="relative h-full p-5 flex flex-col justify-end text-white">
-                    <i class="fa-solid fa-palette text-4xl opacity-30 absolute top-4 right-4 group-hover:rotate-12 transition-transform"></i>
-                    <h3 class="text-2xl font-bold drop-shadow-lg">插画中心</h3>
-                    <p class="text-sm opacity-80">绝美大图与视觉盛宴</p>
-                </div>
-            </a>
+    <a href="{% url 'community_home' %}"
+       onclick="handleCenterClick(event, '{% url 'community_home' %}', '社区中心')"
+       class="center-link col-span-2 h-48 relative group overflow-hidden rounded-2xl shadow-lg transition-all hover:-translate-y-1 bg-pink-900">
+        <div class="absolute inset-0 bg-cover bg-center opacity-75 transition-all duration-700 group-hover:scale-110 group-hover:opacity-60"
+             style="background-image: url('/static/images/bg1.jpg');"></div>
+        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+        <div class="relative h-full p-5 flex flex-col justify-end text-white">
+            <i class="fa-solid fa-house-chimney text-4xl opacity-30 absolute top-4 right-4 group-hover:rotate-12 transition-transform"></i>
+            <h3 class="text-2xl font-bold drop-shadow-lg">社区中心</h3>
+            <p class="text-sm opacity-80">次元居民的日常聚集地</p>
         </div>
+    </a>
+
+    <a href="{% url 'news_list' %}"
+       onclick="handleCenterClick(event, '{% url 'news_list' %}', '资讯中心')"
+       class="center-link col-span-2 h-48 relative group overflow-hidden rounded-2xl shadow-lg transition-all hover:-translate-y-1 bg-blue-900">
+        <div class="absolute inset-0 bg-cover bg-center opacity-75 transition-all duration-700 group-hover:scale-110 group-hover:opacity-60"
+             style="background-image: url('/static/images/bg2.jpg');"></div>
+        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+        <div class="relative h-full p-5 flex flex-col justify-end text-white">
+            <i class="fa-solid fa-newspaper text-4xl opacity-30 absolute top-4 right-4 group-hover:rotate-12 transition-transform"></i>
+            <h3 class="text-2xl font-bold drop-shadow-lg">资讯中心</h3>
+            <p class="text-sm opacity-80">掌握最新番剧/游戏情报</p>
+        </div>
+    </a>
+
+    <a href="{% url 'masterpieces:works_center' %}"
+       onclick="handleCenterClick(event, '{% url 'masterpieces:works_center' %}', '作品中心')"
+       class="center-link col-span-2 h-48 relative group overflow-hidden rounded-2xl shadow-lg transition-all hover:-translate-y-1 bg-orange-900">
+        <div class="absolute inset-0 bg-cover bg-center opacity-75 transition-all duration-700 group-hover:scale-110 group-hover:opacity-60"
+             style="background-image: url('/static/images/bg3.jpg');"></div>
+        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+        <div class="relative h-full p-5 flex flex-col justify-end text-white">
+            <i class="fa-solid fa-layer-group text-4xl opacity-30 absolute top-4 right-4 group-hover:rotate-12 transition-transform"></i>
+            <h3 class="text-2xl font-bold drop-shadow-lg">作品中心</h3>
+            <p class="text-sm opacity-80">发现与收藏心仪佳作</p>
+        </div>
+    </a>
+
+    <a href="#"
+       onclick="handleCenterClick(event, '#', '插画中心')"
+       class="center-link col-span-2 h-48 relative group overflow-hidden rounded-2xl shadow-lg transition-all hover:-translate-y-1 bg-purple-900">
+        <div class="absolute inset-0 bg-cover bg-center opacity-75 transition-all duration-700 group-hover:scale-110 group-hover:opacity-60"
+             style="background-image: url('/static/images/bg4.jpg');"></div>
+        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+        <div class="relative h-full p-5 flex flex-col justify-end text-white">
+            <i class="fa-solid fa-palette text-4xl opacity-30 absolute top-4 right-4 group-hover:rotate-12 transition-transform"></i>
+            <h3 class="text-2xl font-bold drop-shadow-lg">插画中心</h3>
+            <p class="text-sm opacity-80">绝美大图与视觉盛宴</p>
+        </div>
+    </a>
+</div>
 
         <div class="space-y-4">
             <div class="flex items-center justify-between px-2">
