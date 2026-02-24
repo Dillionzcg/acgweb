@@ -4,7 +4,48 @@
 {% block title %}我要安利 - 柚子次元壁{% endblock %}
 
 {% block content %}
+    <div id="search-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-white/20 backdrop-blur-xl transition-all duration-500">
+    <div class="bg-white/90 w-[90%] max-w-lg p-8 rounded-[32px] shadow-2xl border border-white/50 relative overflow-hidden">
+        <div class="absolute -top-10 -right-10 w-32 h-32 bg-pink-100 rounded-full blur-3xl opacity-50"></div>
+
+        <div class="relative z-10 text-center">
+            <h3 class="text-2xl acg-font text-gray-700 mb-2">✨ 先搜一搜吧</h3>
+            <p class="text-sm text-gray-500 mb-6">为了避免重复，请先检查作品是否已被推荐过</p>
+
+            <div class="zone-slider-wrapper mb-4 scale-90">
+                <div class="zone-cursor" id="modal-zone-cursor"></div>
+                <div class="zone-item active" onclick="setModalZone('anime', 0)">番剧</div>
+                <div class="zone-item" onclick="setModalZone('galgame', 1)">Galgame</div>
+                <div class="zone-item" onclick="setModalZone('manga', 2)">小说/漫画</div>
+            </div>
+
+            <div class="relative mb-6">
+                <input type="text" id="modal-search-input"
+                       class="standard-input text-center"
+                       placeholder="输入作品名称...">
+            </div>
+
+            <div id="search-results" class="space-y-3 mb-6 max-height-[200px] overflow-y-auto">
+                </div>
+
+            <div id="modal-actions" class="flex flex-col gap-3">
+                <button onclick="performSearch()" class="submit-btn w-full">点击查找</button>
+                <a href="{% url 'masterpieces:works_center' %}" class="text-gray-400 text-sm hover:underline">返回作品中心</a>
+            </div>
+        </div>
+    </div>
+</div>
 <style>
+    /* 搜索结果项样式 */
+.search-res-item {
+    display: flex; align-items: center; gap: 12px; padding: 10px;
+    background: white; border-radius: 16px; border: 1px solid #ffe4e6;
+    animation: slideIn 0.3s ease-out;
+}
+@keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+#search-results::-webkit-scrollbar { width: 4px; }
+#search-results::-webkit-scrollbar-thumb { background: #ffb6c1; border-radius: 10px; }
     /* 当 input 被选中时，改变后面 div 的背景色和边框 */
     input:checked + div {
         background: #ff7675;
@@ -560,7 +601,133 @@ function initCheckboxes() {
         daySelect.required = false;
     }
 }
+(function() {
+    // 内部状态存储
+    let modalZone = 'anime';
 
+    // 1. 弹窗内的专区切换逻辑
+    window.setModalZone = function(val, index) {
+        modalZone = val;
+        const cursor = document.getElementById('modal-zone-cursor');
+        if (cursor) {
+            cursor.style.transform = `translateX(${index * 100}%)`;
+        }
+        document.querySelectorAll('#search-modal .zone-item').forEach((el, i) => {
+            el.classList.toggle('active', i === index);
+        });
+    };
+
+    // 2. 核心查重搜索函数
+    // 核心查重搜索函数
+window.performSearch = async function() {
+    const titleInput = document.getElementById('modal-search-input');
+    const title = titleInput ? titleInput.value.trim() : '';
+    const resultsDiv = document.getElementById('search-results');
+    const actionsDiv = document.getElementById('modal-actions');
+
+    if (!title) {
+        showToast("请输入作品名称哦~");
+        return;
+    }
+
+    resultsDiv.innerHTML = '<p class="text-gray-400 text-sm py-4">🔍 正在次元库中检索...</p>';
+
+    try {
+        // 动态获取 URL 防止 404
+        const baseUrl = "{% url 'masterpieces:check_work_exists' %}";
+        const response = await fetch(`${baseUrl}?title=${encodeURIComponent(title)}&zone=${modalZone}`);
+
+        if (!response.ok) throw new Error('网络请求失败');
+
+        const data = await response.json();
+        resultsDiv.innerHTML = '';
+
+        if (data.exists) {
+            resultsDiv.innerHTML = `<p class="text-pink-500 font-bold mb-3 text-xs">这个作品可能已经被推荐了哦</p>`;
+
+            data.results.forEach(res => {
+                // 构造跳转详情页的 URL
+                // 注意：这里手动拼接路径，需确保与 urls.py 中的 path('work/<int:work_id>/', ...) 一致
+                const detailUrl = `/works/work/${res.id}/`;
+
+                resultsDiv.innerHTML += `
+                    <div onclick="window.location.href='${detailUrl}'"
+                         class="flex items-center gap-3 p-3 bg-white/80 border border-pink-100 rounded-2xl mb-2 cursor-pointer hover:bg-pink-50 hover:shadow-md transition-all animate-fade-in group">
+                        <img src="${res.cover}" class="w-10 h-14 object-cover rounded-lg shadow-sm group-hover:scale-105 transition-transform">
+                        <div class="text-left flex-1 min-w-0">
+                            <p class="font-bold text-gray-700 text-sm truncate group-hover:text-pink-500">${res.title}</p>
+                            <p class="text-[10px] text-pink-300">点击进入详情页查看内容</p>
+                        </div>
+                        <i class="ri-arrow-right-s-line text-pink-200 group-hover:text-pink-400"></i>
+                    </div>
+                `;
+            });
+
+            // 保留操作按钮并在下方保留搜索功能
+            actionsDiv.innerHTML = `
+                <div class="flex flex-col gap-2 w-full">
+                    <button onclick="closeModalAndFill('${title}')"
+                            class="bg-gray-100 text-gray-500 py-3 rounded-full text-xs font-bold hover:bg-gray-200 transition-colors">
+                        我确定不重复，继续推荐
+                    </button>
+                    <button onclick="performSearch()"
+                            class="submit-btn w-full py-3 shadow-lg">
+                        再次查找
+                    </button>
+                    <a href="{% url 'masterpieces:works_center' %}" class="text-gray-400 text-xs mt-1 hover:underline">返回作品中心</a>
+                </div>
+            `;
+        } else {
+            // 未找到作品
+            resultsDiv.innerHTML = `
+                <div class="py-6 text-center animate-bounce-in">
+                    <div class="text-4xl mb-2">✨</div>
+                    <p class="text-gray-700 font-bold">此作尚未收录！</p>
+                    <p class="text-xs text-gray-400 mt-1">快来成为第一个安利它的人吧~</p>
+                </div>
+            `;
+            actionsDiv.innerHTML = `
+                <div class="flex flex-col gap-2 w-full">
+                    <button onclick="closeModalAndFill('${title}')"
+                            class="submit-btn w-full py-4 rounded-full shadow-xl">
+                        立即开始安利
+                    </button>
+                    <button onclick="performSearch()"
+                            class="bg-white border border-pink-200 text-pink-400 w-full py-3 rounded-full text-xs font-bold hover:bg-pink-50 transition-colors">
+                        换个名字搜搜
+                    </button>
+                </div>
+            `;
+        }
+    } catch (e) {
+        console.error(e);
+        resultsDiv.innerHTML = `<p class="text-red-400 text-xs py-4">❌ 查找出错，请稍后再试</p>`;
+        actionsDiv.innerHTML = `<button onclick="performSearch()" class="submit-btn w-full">点击重试</button>`;
+    }
+};
+
+    // 3. 关闭弹窗并自动填充主界面
+    window.closeModalAndFill = function(title) {
+        // 自动填充作品名称
+        const mainTitleInput = document.querySelector('input[name="title"]');
+        if (mainTitleInput) mainTitleInput.value = title;
+
+        // 自动同步专区选择 (调用你原本 recommend_work.html 里的 setZone)
+        const zoneMap = {'anime': 0, 'galgame': 1, 'manga': 2};
+        if (typeof setZone === 'function') {
+            setZone(modalZone, zoneMap[modalZone]);
+        }
+
+        // 优雅关闭弹窗
+        const modal = document.getElementById('search-modal');
+        if (modal) {
+            modal.style.opacity = '0';
+            modal.style.transform = 'scale(0.9)';
+            modal.style.transition = 'all 0.4s ease';
+            setTimeout(() => modal.remove(), 400);
+        }
+    };
+})();
 // 执行初始化
 initCheckboxes();
 </script>

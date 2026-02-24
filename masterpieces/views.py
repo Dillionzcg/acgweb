@@ -289,3 +289,30 @@ def delete_user_tag(request, tag_id):
         return JsonResponse({'status': 'success', 'message': '标签已移除'})
 
     return JsonResponse({'status': 'error', 'message': '你没有权限删除这个标签哦~'}, status=403)
+
+
+# views.py
+# views.py 完整函数
+def check_work_exists(request):
+    title = request.GET.get('title', '').strip()
+    zone = request.GET.get('zone', 'anime')
+
+    if not title:
+        return JsonResponse({'exists': False, 'results': []})
+
+    # 使用 icontains 进行不区分大小写的模糊搜索
+    works = Work.objects.filter(zone=zone, title__icontains=title)[:5]
+
+    results = []
+    for w in works:
+        results.append({
+            'title': w.title,
+            # 确保即使没有封面也不会报错
+            'cover': w.cover.url if w.cover else '/static/images/default_cover.png',
+            'id': w.id
+        })
+
+    return JsonResponse({
+        'exists': len(results) > 0,
+        'results': results
+    })

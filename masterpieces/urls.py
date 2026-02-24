@@ -18,4 +18,5 @@ urlpatterns = [
     path('gallery/<int:image_id>/delete/', views.delete_gallery_image, name='delete_gallery_image'),
     path('gallery/<int:image_id>/toggle-featured/', views.toggle_gallery_featured, name='toggle_gallery_featured'),
     path('user-tag/<int:tag_id>/delete/', views.delete_user_tag, name='delete_user_tag'),
+    path('check-exists/', views.check_work_exists, name='check_work_exists'),
 ]
