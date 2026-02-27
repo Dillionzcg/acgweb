@@ -1128,4 +1128,22 @@ window.deleteUserTag = function(tagId, btnElement) {
         </div>
     </div>
 </div>
+    <script>
+    // 当页面加载完成后，通知小柚
+window.addEventListener('load', () => {
+    // 延迟一小会儿执行，确保看板娘组件已加载完成
+    setTimeout(() => {
+        // 获取作品名称（通过 Django 模板变量）
+        const workTitle = "{{ work.title|escapejs }}";
+
+        // 调用看板娘的对话函数
+        // 建议使用 'GENERAL' 或自定义一个 'DETAIL' 类型
+        if (typeof askXiaoYou === 'function') {
+            // 这里可以自定义发送给后端的消息内容，让 AI 生成开场白
+            askXiaoYou('GENERAL', `用户进入了作品《${workTitle}》的详情界面`);
+        }
+    }, 1000);
+});
+    </script>
+
 {% endblock %}
