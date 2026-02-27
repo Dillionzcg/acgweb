@@ -34,6 +34,12 @@ class Work(models.Model):
     views = models.IntegerField('点击量/热度', default=0)
     cover = models.ImageField('封面图', upload_to='works/covers/')
     created_at = models.DateTimeField(auto_now_add=True)
+    favorites = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        related_name='favorite_works',
+        blank=True,
+        verbose_name='收藏者'
+    )
 
 
     def __str__(self):

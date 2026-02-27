@@ -1,0 +1,179 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}我的收藏 - 柚子次元壁{% endblock %}
+
+{% block content %}
+<style>
+    /* 保持与 works_center 完全一致 */
+    :root { --theme-color: #ff7675; }
+    .works-container { animation: slideUpIn 0.8s cubic-bezier(0.2, 0.8, 0.2, 1); padding-top: 80px; }
+    @keyframes slideUpIn { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+    
+    .zone-selector-wrapper { position: relative; display: flex; justify-content: center; margin-bottom: 30px; }
+    .zone-selector {
+        position: relative; display: inline-flex; background: rgba(255, 255, 255, 0.5);
+        backdrop-filter: blur(10px); padding: 5px; border-radius: 50px;
+        border: 1px solid rgba(255, 255, 255, 0.8); z-index: 1;
+    }
+    .active-slider {
+        position: absolute; height: calc(100% - 10px); top: 5px; left: 5px;
+        background: var(--theme-color); border-radius: 50px;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: -1;
+    }
+    .zone-btn { padding: 12px 35px; border-radius: 50px; color: #666; font-weight: bold; cursor: pointer; transition: color 0.3s; border: none; background: transparent; }
+    .zone-btn.active { color: white; }
+
+    .content-viewport { overflow: hidden; width: 100%; }
+    .content-slider { display: flex; width: 300%; transition: transform 0.6s cubic-bezier(0.65, 0, 0.35, 1); }
+    .zone-content-pane { width: 33.3333%; padding: 0 10px; }
+
+    .work-card {
+        background: white; border-radius: 18px; overflow: hidden; transition: all 0.4s ease;
+        border: 1px solid rgba(255, 182, 193, 0.2); opacity: 0; transform: translateY(30px);
+    }
+    .work-card.show { opacity: 1; transform: translateY(0); }
+    .work-card:hover { transform: translateY(-8px); box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
+    
+    .page-title { text-align: center; margin-bottom: 20px; }
+</style>
+
+<div class="works-container relative">
+    <div class="absolute left-5 top-5 flex gap-3 z-10">
+        <a href="{% url 'masterpieces:works_center' %}" class="px-4 py-2 bg-white/90 backdrop-blur rounded-full shadow-sm text-pink-500 hover:bg-pink-500 hover:text-white transition-all acg-font border border-pink-100 flex items-center">
+            <i class="fa-solid fa-arrow-left mr-1"></i> 返回中心
+        </a>
+    </div>
+
+    <div class="page-title">
+        <h2 class="text-3xl font-bold text-gray-700 acg-font">
+            <i class="fa-solid fa-box-archive text-pink-400 mr-2"></i>我的收藏夹
+        </h2>
+        <p class="text-gray-400 text-sm mt-1">这里是你珍藏的二次元宝藏</p>
+    </div>
+
+    <div class="zone-selector-wrapper">
+        <div class="zone-selector">
+            <div class="active-slider" id="slider-bg"></div>
+            <button class="zone-btn active" onclick="switchZone('anime', 0, this)">番剧收藏</button>
+            <button class="zone-btn" onclick="switchZone('galgame', 1, this)">Galgame收藏</button>
+            <button class="zone-btn" onclick="switchZone('manga', 2, this)">小说漫画收藏</button>
+        </div>
+    </div>
+
+    <div class="content-viewport">
+        <div class="content-slider" id="main-slider">
+            <div class="zone-content-pane">
+                <div id="fav-anime"></div>
+            </div>
+            <div class="zone-content-pane">
+                <div id="fav-galgame"></div>
+            </div>
+            <div class="zone-content-pane">
+                <div id="fav-manga"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const zoneConfigs = {
+        anime: { color: "#ff7675" },
+        galgame: { color: "#74b9ff" },
+        manga: { color: "#55efc4" }
+    };
+
+    // 复用作品卡片生成逻辑
+    function generateFavGrid(items) {
+        if (!items || items.length === 0) {
+            return `<div class="py-20 text-center"><p class="text-gray-400 italic">你还没有在这个分区收藏任何作品哦~</p></div>`;
+        }
+        return `<div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            ${items.map(item => `
+                <div class="work-card shadow-sm block relative">
+                    <a href="${item.url}">
+                        <img src="${item.img}" class="w-full h-48 object-cover">
+                    </a>
+                    <div class="p-4">
+                        <h4 class="font-bold text-gray-800 truncate">${item.title}</h4>
+                        <div class="flex justify-between items-center mt-3">
+                            <span class="text-xs text-gray-400">${item.date} 收藏</span>
+                            <i class="fa-solid fa-heart text-pink-500 cursor-pointer" onclick="toggleFavorite(this, ${item.id})"></i>
+                        </div>
+                    </div>
+                </div>
+            `).join('')}
+        </div>`;
+    }
+
+    // 复用滑块逻辑
+    function switchZone(zone, index, btnElement) {
+        const sliderBg = document.getElementById('slider-bg');
+        sliderBg.style.width = btnElement.offsetWidth + 'px';
+        sliderBg.style.transform = `translateX(${btnElement.offsetLeft - 5}px)`;
+        sliderBg.style.background = zoneConfigs[zone].color;
+        
+        document.querySelectorAll('.zone-btn').forEach(btn => btn.classList.remove('active'));
+        btnElement.classList.add('active');
+        document.getElementById('main-slider').style.transform = `translateX(-${index * 33.3333}%)`;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // 动态注入数据
+        const data = {
+            anime: [
+                {% for item in anime_favs %}{
+                    id: {{ item.id }},
+                    title: "{{ item.title|escapejs }}",
+                    url: "{% url 'masterpieces:work_detail' item.id %}",
+                    img: "{% if item.cover %}{{ item.cover.url }}{% else %}https://picsum.photos/seed/a{{item.id}}/300/400{% endif %}",
+                    date: "{{ item.created_at|date:'Y-m-d' }}"
+                },{% endfor %}
+            ],
+            galgame: [
+                {% for item in galgame_favs %}{
+                    id: {{ item.id }},
+                    title: "{{ item.title|escapejs }}",
+                    url: "{% url 'masterpieces:work_detail' item.id %}",
+                    img: "{% if item.cover %}{{ item.cover.url }}{% else %}https://picsum.photos/seed/g{{item.id}}/300/400{% endif %}",
+                    date: "{{ item.created_at|date:'Y-m-d' }}"
+                },{% endfor %}
+            ],
+            manga: [
+                {% for item in manga_favs %}{
+                    id: {{ item.id }},
+                    title: "{{ item.title|escapejs }}",
+                    url: "{% url 'masterpieces:work_detail' item.id %}",
+                    img: "{% if item.cover %}{{ item.cover.url }}{% else %}https://picsum.photos/seed/m{{item.id}}/300/400{% endif %}",
+                    date: "{{ item.created_at|date:'Y-m-d' }}"
+                },{% endfor %}
+            ]
+        };
+
+        document.getElementById('fav-anime').innerHTML = generateFavGrid(data.anime);
+        document.getElementById('fav-galgame').innerHTML = generateFavGrid(data.galgame);
+        document.getElementById('fav-manga').innerHTML = generateFavGrid(data.manga);
+
+        // 初始化动画
+        setTimeout(() => {
+            document.querySelectorAll('.work-card').forEach((card, i) => {
+                setTimeout(() => card.classList.add('show'), i * 50);
+            });
+        }, 100);
+        
+        // 初始化滑块
+        const firstBtn = document.querySelector('.zone-btn');
+        switchZone('anime', 0, firstBtn);
+        
+        // 告诉小柚主人在看收藏夹
+        if (typeof askXiaoYou === 'function') {
+            askXiaoYou('GENERAL', '用户进入了作品收藏中心');
+        }
+    });
+
+    // 这里可以复用 works_center 的 toggleFavorite 函数实现取消收藏
+    async function toggleFavorite(el, workId) {
+        // ... (与 works_center.html 逻辑相同，成功后可以 el.closest('.work-card').remove() 来实现即时移除动画)
+    }
+</script>
+{% endblock %}

@@ -44,17 +44,53 @@
 
     .rank-list { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px); border-radius: 20px; padding: 20px; border: 1px solid white; }
     .rank-num { width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; border-radius: 6px; font-size: 12px; margin-right: 10px; font-weight: bold; }
+    /* 标题文字渐变与立体感 */
+.title-gradient {
+    background: linear-gradient(to bottom, #ff7675 0%, #d63031 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    /* 增加一层极细的白色描边，让文字在粉色背景下更清晰 */
+    filter: drop-shadow(0 4px 6px rgba(255, 118, 117, 0.2));
+}
 
+/* 悬停时的发光效果 */
+.title-main-group:hover .title-gradient {
+    filter: drop-shadow(0 0 12px rgba(255, 118, 117, 0.5));
+    transition: all 0.4s ease;
+}
+
+/* 针对不同分区的色彩联动（可选） */
+/* 当切换到 Galgame 蓝色专区时，如果你想让标题也变色，可以在 switchZone 函数里动态修改这个 class */
+.title-gradient.blue-theme {
+    background: linear-gradient(to bottom, #74b9ff 0%, #0984e3 100%);
+    filter: drop-shadow(0 4px 6px rgba(116, 185, 255, 0.2));
+}
     .empty-state { grid-column: span 3; padding: 40px 0; text-align: center; background: rgba(255, 255, 255, 0.4); border-radius: 24px; border: 2px dashed #ffb6c1; margin: 10px 0; }
     .back-home { position: absolute; left: 20px; top: 20px; z-index: 10; opacity: 0; animation: slideInLeft 0.5s ease-out forwards; }
     @keyframes slideInLeft { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
 </style>
 
-<div class="works-container relative">
-    <a href="/" class="back-home px-4 py-2 bg-white/90 backdrop-blur rounded-full shadow-sm text-pink-500 hover:bg-pink-500 hover:text-white transition-all acg-font border border-pink-100 flex items-center">
-        <i class="fa-solid fa-house-chimney mr-1"></i> 返回首页
-    </a>
+<div class="works-container relative pt-4"> <div class="absolute left-0 top-0 z-10">
+        <a href="/" class="px-4 py-2 bg-white/90 backdrop-blur rounded-full shadow-sm text-pink-500 hover:bg-pink-500 hover:text-white transition-all acg-font border border-pink-100 flex items-center">
+            <i class="fa-solid fa-house-chimney mr-1"></i> 返回首页
+        </a>
+    </div>
 
+    <div class="absolute right-0 top-0 z-10">
+        <a href="{% url 'masterpieces:my_favorites' %}" class="px-4 py-2 bg-white/90 backdrop-blur rounded-full shadow-sm text-pink-500 hover:bg-pink-500 hover:text-white transition-all acg-font border border-pink-100 flex items-center">
+            <i class="fa-solid fa-heart mr-1"></i> 我的收藏
+        </a>
+    </div>
+    <div class="text-center mb-12 mt-8">
+        <div class="inline-block group cursor-default">
+            <h1 class="text-5xl md:text-6xl font-black tracking-tighter text-pink-500 drop-shadow-[0_2px_10px_rgba(255,118,117,0.3)] group-hover:drop-shadow-[0_2px_20px_rgba(255,118,117,0.5)] transition-all duration-500">
+                作品中心
+            </h1>
+            <p class="text-[10px] uppercase tracking-[0.5em] text-pink-400/60 mt-2 font-medium">
+                Creative Works Center
+            </p>
+        </div>
+    </div>
     <div class="zone-selector-wrapper">
         <div class="zone-selector">
             <div class="active-slider" id="slider-bg"></div>
@@ -63,6 +99,7 @@
             <button class="zone-btn" onclick="switchZone('manga', 2, this)">小说和漫画</button>
         </div>
     </div>
+
 
     <div class="recommend-hero" id="recommend-btn" onclick="location.href='{% url 'masterpieces:recommend_work' %}'" style="background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);">
         <div>
@@ -117,34 +154,34 @@
 
     // works_center.html 里的 JavaScript 部分
 
+// works_center.html 脚本部分
+
 function generateGridHtml(items) {
     if (!items || items.length === 0) return `<div class="empty-state"><p class="text-gray-400 text-sm italic">该栏目暂无作品~</p></div>`;
 
     return `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         ${items.map(item => `
-            <a href="${item.url}" class="work-card shadow-sm block hover:no-underline">
-                <div class="relative group">
-                    <img src="${item.img}" class="w-full h-48 object-cover">
-                    <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <span class="px-3 py-1 bg-white/90 rounded-full text-pink-500 text-xs font-bold">查看详情</span>
+            <div class="work-card shadow-sm block relative">
+                <a href="${item.url}" class="hover:no-underline">
+                    <div class="relative group">
+                        <img src="${item.img}" class="w-full h-48 object-cover">
+                        <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <span class="px-3 py-1 bg-white/90 rounded-full text-pink-500 text-xs font-bold">查看详情</span>
+                        </div>
                     </div>
-                </div>
+                </a>
                 <div class="p-4">
                     <span class="px-2 py-0.5 bg-pink-50 text-pink-400 text-[10px] font-bold rounded uppercase">${item.tag}</span>
                     <h4 class="font-bold text-gray-800 mt-2 truncate">${item.title}</h4>
-                    <div class="flex justify-between items-center mt-3">
-                        <div class="flex items-center">
-                            ${parseFloat(item.hot) > 0 ? `
-                                <i class="fa-solid fa-star text-yellow-500 text-[10px] mr-1"></i>
-                                <span class="text-sm font-mono font-bold text-yellow-500">${item.hot}</span>
-                            ` : `
-                                <span class="text-xs text-gray-400 italic">暂无评分</span>
-                            `}
-                        </div>
-                        <i class="fa-solid fa-heart text-gray-200 hover:text-pink-500 cursor-pointer transition-colors"></i>
+                <div class="flex justify-between items-center mt-3">
+                    <div class="flex items-center">
+                        ${parseFloat(item.hot) > 0 ? `<i class="fa-solid fa-star text-yellow-500 text-[10px] mr-1"></i><span class="text-sm font-mono font-bold text-yellow-500">${item.hot}</span>` : `<span class="text-xs text-gray-400 italic">暂无评分</span>`}
                     </div>
+                    <i class="fa-heart cursor-pointer transition-all duration-300 ${item.is_fav ? 'fa-solid text-pink-500 scale-125' : 'fa-regular text-gray-300 hover:text-pink-400'}"
+                       onclick="toggleFavorite(this, ${item.id})"></i>
                 </div>
-            </a>
+                </div>
+            </div>
         `).join('')}
     </div>`;
 }
@@ -161,30 +198,29 @@ function generateGridHtml(items) {
             <div class="sub-section"><h3 class="text-xl font-bold text-gray-700 flex items-center mb-6"><span class="w-2 h-6 ${accentClass} rounded-full mr-3"></span>最新发布</h3>${generateGridHtml(data.latest)}</div>
         `;
 
-        // 2. 渲染排行榜区 (新增空状态判断)
-        if (rankContainer) {
-            if (!ranks || ranks.length === 0) {
-                // 如果排行榜没有数据，显示提示文本
-                rankContainer.innerHTML = `
-                    <div class="py-10 text-center">
-                        <i class="fa-solid fa-layer-group text-gray-200 text-3xl mb-2"></i>
-                        <p class="text-gray-400 text-sm italic">目前排行榜还没有作品哦~</p>
-                    </div>`;
-            } else {
-                // 如果有数据，则正常渲染列表
-                rankContainer.innerHTML = ranks.map((name, i) => `
-                    <div class="flex items-center justify-between py-3 border-b border-pink-50/50 last:border-0 hover:bg-white/40 px-2 rounded-lg transition-colors">
-                        <div class="flex items-center overflow-hidden">
-                            <span class="rank-num ${i < 3 ? 'bg-gradient-to-br from-pink-400 to-red-400 text-white' : 'bg-gray-100 text-gray-400'}">${i+1}</span>
-                            <span class="text-sm font-medium text-gray-700 truncate">${name}</span>
-                        </div>
-                        <div class="flex items-center ml-2">
-                            <i class="fa-solid fa-fire text-[10px] text-orange-400 mr-1 animate-pulse"></i>
-                            <span class="text-xs text-orange-400 font-mono font-bold">${(99.9 - i * 4.2).toFixed(1)}w</span>
-                        </div>
-                    </div>`).join('');
-            }
+
+        // 2. 渲染排行榜区
+    if (rankContainer) {
+        if (!ranks || ranks.length === 0) {
+            rankContainer.innerHTML = `
+                <div class="py-10 text-center">
+                    <i class="fa-solid fa-layer-group text-gray-200 text-3xl mb-2"></i>
+                    <p class="text-gray-400 text-sm italic">目前排行榜还没有作品哦~</p>
+                </div>`;
+        } else {
+            // 修改点：1. 增加 <a> 标签跳转； 2. 去掉右侧热度数值显示； 3. 增加链接
+            rankContainer.innerHTML = ranks.map((item, i) => `
+                <a href="${item.url}" class="flex items-center justify-between py-3 border-b border-pink-50/50 last:border-0 hover:bg-white/60 px-2 rounded-lg transition-all group no-underline">
+                    <div class="flex items-center overflow-hidden">
+                        <span class="rank-num ${i < 3 ? 'bg-gradient-to-br from-pink-400 to-red-400 text-white' : 'bg-gray-100 text-gray-400'}">${i+1}</span>
+                        <span class="text-sm font-medium text-gray-700 truncate group-hover:text-pink-500 transition-colors">${item.title}</span>
+                    </div>
+                    <div class="flex items-center ml-2">
+                        <i class="fa-solid fa-chevron-right text-[10px] text-gray-300 group-hover:text-pink-300"></i>
+                    </div>
+                </a>`).join('');
         }
+    }
 
         // 动画延迟显示
         setTimeout(() => {
@@ -194,8 +230,16 @@ function generateGridHtml(items) {
         }, 100);
     }
 
-    function switchZone(zone, index, btnElement) {
-        const sliderBg = document.getElementById('slider-bg');
+    function switchZone(zone, index, btnElement,isInit = false) {
+        localStorage.setItem('last_active_zone', JSON.stringify({ zone, index }));
+        const slider = document.getElementById('main-slider');
+    const sliderBg = document.getElementById('slider-bg');
+
+    // 如果是初始化，暂时关闭过渡效果
+    if (isInit) {
+        slider.style.transition = 'none';
+        sliderBg.style.transition = 'none';
+    }
         sliderBg.style.width = btnElement.offsetWidth + 'px';
         sliderBg.style.transform = `translateX(${btnElement.offsetLeft - 5}px)`;
         sliderBg.style.background = zoneConfigs[zone].color;
@@ -203,113 +247,154 @@ function generateGridHtml(items) {
         btnElement.classList.add('active');
         document.getElementById('main-slider').style.transform = `translateX(-${index * 33.3333}%)`;
         document.getElementById('recommend-btn').style.background = zoneConfigs[zone].theme;
+        if (isInit) {
+        slider.offsetHeight; // 触发 reflow
+        slider.style.transition = 'transform 0.6s cubic-bezier(0.65, 0, 0.35, 1)';
+        sliderBg.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+    }
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-    // 1. 渲染番剧专区
-    renderSection('anime', {
-        recommend: [
-            {% for item in anime_list %}{
-                id: "{{ item.id }}",
-                url: "{% url 'masterpieces:work_detail' item.id %}",  // ✅ 正确的写法：在服务器端生成完整URL
-                title: "{{ item.title|escapejs }}",
-                tag: "{% for t in item.tags.all|slice:':3' %}{{ t.name }}{% if not forloop.last %}/{% endif %}{% endfor %}",
-                hot: "{{ item.hot_score|default:'0' }}",
-                img: "{% if item.cover %}{{ item.cover.url }}{% else %}https://picsum.photos/seed/a{{item.id}}/300/400{% endif %}"
-            },{% endfor %}
-        ],
-        hot: [
-            {% for item in anime_hot %}{
-                id: "{{ item.id }}",
-                url: "{% url 'masterpieces:work_detail' item.id %}",
-                title: "{{ item.title|escapejs }}",
-                tag: "{% for t in item.tags.all|slice:':3' %}{{ t.name }}{% if not forloop.last %}/{% endif %}{% endfor %}",
-                hot: "{{ item.hot_score|default:'0' }}",
-                img: "{% if item.cover %}{{ item.cover.url }}{% else %}https://picsum.photos/seed/ah{{item.id}}/300/400{% endif %}"
-            },{% endfor %}
-        ],
-        latest: [
-            {% for item in anime_list %}{
-                id: "{{ item.id }}",
-                url: "{% url 'masterpieces:work_detail' item.id %}",
-                title: "{{ item.title|escapejs }}",
-                tag: "{% for t in item.tags.all|slice:':3' %}{{ t.name }}{% if not forloop.last %}/{% endif %}{% endfor %}",
-                hot: "{{ item.hot_score|default:'0' }}",
-                img: "{% if item.cover %}{{ item.cover.url }}{% else %}https://picsum.photos/seed/al{{item.id}}/300/400{% endif %}"
-            },{% endfor %}
-        ]
-    }, [{% for r in anime_ranks %}"{{ r.title|escapejs }}",{% endfor %}]);
+// 1. 渲染番剧专区
+renderSection('anime', {
+    recommend: [
+        {% for item in anime_list %}{
+            id: "{{ item.id }}",
+            url: "{% url 'masterpieces:work_detail' item.id %}",
+            title: "{{ item.title|escapejs }}",
+            tag: "{% for t in item.tags.all|slice:':3' %}{{ t.name }}{% if not forloop.last %}/{% endif %}{% endfor %}",
+            hot: "{{ item.hot_score|default:'0' }}",
+            img: "{% if item.cover %}{{ item.cover.url }}{% else %}https://picsum.photos/seed/a{{item.id}}/300/400{% endif %}",
+            // 新增：判断当前用户是否已收藏
+            is_fav: {% if user.is_authenticated and user in item.favorites.all %}true{% else %}false{% endif %}
+        },{% endfor %}
+    ],
+    hot: [
+        {% for item in anime_hot %}{
+            id: "{{ item.id }}",
+            url: "{% url 'masterpieces:work_detail' item.id %}",
+            title: "{{ item.title|escapejs }}",
+            tag: "{% for t in item.tags.all|slice:':3' %}{{ t.name }}{% if not forloop.last %}/{% endif %}{% endfor %}",
+            hot: "{{ item.hot_score|default:'0' }}",
+            img: "{% if item.cover %}{{ item.cover.url }}{% else %}https://picsum.photos/seed/ah{{item.id}}/300/400{% endif %}",
+            is_fav: {% if user.is_authenticated and user in item.favorites.all %}true{% else %}false{% endif %}
+        },{% endfor %}
+    ],
+    latest: [
+        {% for item in anime_list %}{
+            id: "{{ item.id }}",
+            url: "{% url 'masterpieces:work_detail' item.id %}",
+            title: "{{ item.title|escapejs }}",
+            tag: "{% for t in item.tags.all|slice:':3' %}{{ t.name }}{% if not forloop.last %}/{% endif %}{% endfor %}",
+            hot: "{{ item.hot_score|default:'0' }}",
+            img: "{% if item.cover %}{{ item.cover.url }}{% else %}https://picsum.photos/seed/al{{item.id}}/300/400{% endif %}",
+            is_fav: {% if user.is_authenticated and user in item.favorites.all %}true{% else %}false{% endif %}
+        },{% endfor %}
+    ]
+}, [
+    {% for r in anime_ranks %}{
+        title: "{{ r.title|escapejs }}",
+        url: "{% url 'masterpieces:work_detail' r.id %}"
+    }{% if not forloop.last %},{% endif %}{% endfor %}
+]);
 
-    // 2. 渲染 Galgame 专区
-    renderSection('galgame', {
-        recommend: [
-            {% for item in galgame_list %}{
-                id: "{{ item.id }}",
-                url: "{% url 'masterpieces:work_detail' item.id %}",
-                title: "{{ item.title|escapejs }}",
-                tag: "{% for t in item.tags.all|slice:':3' %}{{ t.name }}{% if not forloop.last %}/{% endif %}{% endfor %}",
-                hot: "{{ item.hot_score|default:'0' }}",
-                img: "{% if item.cover %}{{ item.cover.url }}{% else %}https://picsum.photos/seed/g{{item.id}}/300/400{% endif %}"
-            },{% endfor %}
-        ],
-        hot: [
-            {% for item in galgame_hot %}{
-                id: "{{ item.id }}",
-                url: "{% url 'masterpieces:work_detail' item.id %}",
-                title: "{{ item.title|escapejs }}",
-                tag: "{% for t in item.tags.all|slice:':3' %}{{ t.name }}{% if not forloop.last %}/{% endif %}{% endfor %}",
-                hot: "{{ item.hot_score|default:'0' }}",
-                img: "{% if item.cover %}{{ item.cover.url }}{% else %}https://picsum.photos/seed/gh{{item.id}}/300/400{% endif %}"
-            },{% endfor %}
-        ],
-        latest: [
-            {% for item in galgame_list %}{
-                id: "{{ item.id }}",
-                url: "{% url 'masterpieces:work_detail' item.id %}",
-                title: "{{ item.title|escapejs }}",
-                tag: "{% for t in item.tags.all|slice:':3' %}{{ t.name }}{% if not forloop.last %}/{% endif %}{% endfor %}",
-                hot: "{{ item.hot_score|default:'0' }}",
-                img: "{% if item.cover %}{{ item.cover.url }}{% else %}https://picsum.photos/seed/gl{{item.id}}/300/400{% endif %}"
-            },{% endfor %}
-        ]
-    }, [{% for r in galgame_ranks %}"{{ r.title|escapejs }}",{% endfor %}]);
+// 2. 渲染 Galgame 专区
+renderSection('galgame', {
+    recommend: [
+        {% for item in galgame_list %}{
+            id: "{{ item.id }}",
+            url: "{% url 'masterpieces:work_detail' item.id %}",
+            title: "{{ item.title|escapejs }}",
+            tag: "{% for t in item.tags.all|slice:':3' %}{{ t.name }}{% if not forloop.last %}/{% endif %}{% endfor %}",
+            hot: "{{ item.hot_score|default:'0' }}",
+            img: "{% if item.cover %}{{ item.cover.url }}{% else %}https://picsum.photos/seed/g{{item.id}}/300/400{% endif %}",
+            is_fav: {% if user.is_authenticated and user in item.favorites.all %}true{% else %}false{% endif %}
+        },{% endfor %}
+    ],
+    hot: [
+        {% for item in galgame_hot %}{
+            id: "{{ item.id }}",
+            url: "{% url 'masterpieces:work_detail' item.id %}",
+            title: "{{ item.title|escapejs }}",
+            tag: "{% for t in item.tags.all|slice:':3' %}{{ t.name }}{% if not forloop.last %}/{% endif %}{% endfor %}",
+            hot: "{{ item.hot_score|default:'0' }}",
+            img: "{% if item.cover %}{{ item.cover.url }}{% else %}https://picsum.photos/seed/gh{{item.id}}/300/400{% endif %}",
+            is_fav: {% if user.is_authenticated and user in item.favorites.all %}true{% else %}false{% endif %}
+        },{% endfor %}
+    ],
+    latest: [
+        {% for item in galgame_list %}{
+            id: "{{ item.id }}",
+            url: "{% url 'masterpieces:work_detail' item.id %}",
+            title: "{{ item.title|escapejs }}",
+            tag: "{% for t in item.tags.all|slice:':3' %}{{ t.name }}{% if not forloop.last %}/{% endif %}{% endfor %}",
+            hot: "{{ item.hot_score|default:'0' }}",
+            img: "{% if item.cover %}{{ item.cover.url }}{% else %}https://picsum.photos/seed/gl{{item.id}}/300/400{% endif %}",
+            is_fav: {% if user.is_authenticated and user in item.favorites.all %}true{% else %}false{% endif %}
+        },{% endfor %}
+    ]
+}, [
+    {% for r in galgame_ranks %}{
+        title: "{{ r.title|escapejs }}",
+        url: "{% url 'masterpieces:work_detail' r.id %}"
+    }{% if not forloop.last %},{% endif %}{% endfor %}
+]);
 
-    // 3. 渲染 小说/漫画 专区
-    renderSection('manga', {
-        recommend: [
-            {% for item in manga_list %}{
-                id: "{{ item.id }}",
-                url: "{% url 'masterpieces:work_detail' item.id %}",
-                title: "{{ item.title|escapejs }}",
-                tag: "{% for t in item.tags.all|slice:':3' %}{{ t.name }}{% if not forloop.last %}/{% endif %}{% endfor %}",
-                hot: "{{ item.hot_score|default:'0' }}",
-                img: "{% if item.cover %}{{ item.cover.url }}{% else %}https://picsum.photos/seed/m{{item.id}}/300/400{% endif %}"
-            },{% endfor %}
-        ],
-        hot: [
-            {% for item in manga_hot %}{
-                id: "{{ item.id }}",
-                url: "{% url 'masterpieces:work_detail' item.id %}",
-                title: "{{ item.title|escapejs }}",
-                tag: "{% for t in item.tags.all|slice:':3' %}{{ t.name }}{% if not forloop.last %}/{% endif %}{% endfor %}",
-                hot: "{{ item.hot_score|default:'0' }}",
-                img: "{% if item.cover %}{{ item.cover.url }}{% else %}https://picsum.photos/seed/mh{{item.id}}/300/400{% endif %}"
-            },{% endfor %}
-        ],
-        latest: [
-            {% for item in manga_list %}{
-                id: "{{ item.id }}",
-                url: "{% url 'masterpieces:work_detail' item.id %}",
-                title: "{{ item.title|escapejs }}",
-                tag: "{% for t in item.tags.all|slice:':3' %}{{ t.name }}{% if not forloop.last %}/{% endif %}{% endfor %}",
-                hot: "{{ item.hot_score|default:'0' }}",
-                img: "{% if item.cover %}{{ item.cover.url }}{% else %}https://picsum.photos/seed/ml{{item.id}}/300/400{% endif %}"
-            },{% endfor %}
-        ]
-    }, [{% for r in manga_ranks %}"{{ r.title|escapejs }}",{% endfor %}]);
+// 3. 渲染 小说/漫画 专区
+renderSection('manga', {
+    recommend: [
+        {% for item in manga_list %}{
+            id: "{{ item.id }}",
+            url: "{% url 'masterpieces:work_detail' item.id %}",
+            title: "{{ item.title|escapejs }}",
+            tag: "{% for t in item.tags.all|slice:':3' %}{{ t.name }}{% if not forloop.last %}/{% endif %}{% endfor %}",
+            hot: "{{ item.hot_score|default:'0' }}",
+            img: "{% if item.cover %}{{ item.cover.url }}{% else %}https://picsum.photos/seed/m{{item.id}}/300/400{% endif %}",
+            is_fav: {% if user.is_authenticated and user in item.favorites.all %}true{% else %}false{% endif %}
+        },{% endfor %}
+    ],
+    hot: [
+        {% for item in manga_hot %}{
+            id: "{{ item.id }}",
+            url: "{% url 'masterpieces:work_detail' item.id %}",
+            title: "{{ item.title|escapejs }}",
+            tag: "{% for t in item.tags.all|slice:':3' %}{{ t.name }}{% if not forloop.last %}/{% endif %}{% endfor %}",
+            hot: "{{ item.hot_score|default:'0' }}",
+            img: "{% if item.cover %}{{ item.cover.url }}{% else %}https://picsum.photos/seed/mh{{item.id}}/300/400{% endif %}",
+            is_fav: {% if user.is_authenticated and user in item.favorites.all %}true{% else %}false{% endif %}
+        },{% endfor %}
+    ],
+    latest: [
+        {% for item in manga_list %}{
+            id: "{{ item.id }}",
+            url: "{% url 'masterpieces:work_detail' item.id %}",
+            title: "{{ item.title|escapejs }}",
+            tag: "{% for t in item.tags.all|slice:':3' %}{{ t.name }}{% if not forloop.last %}/{% endif %}{% endfor %}",
+            hot: "{{ item.hot_score|default:'0' }}",
+            img: "{% if item.cover %}{{ item.cover.url }}{% else %}https://picsum.photos/seed/ml{{item.id}}/300/400{% endif %}",
+            is_fav: {% if user.is_authenticated and user in item.favorites.all %}true{% else %}false{% endif %}
+        },{% endfor %}
+    ]
+}, [
+    {% for r in manga_ranks %}{
+        title: "{{ r.title|escapejs }}",
+        url: "{% url 'masterpieces:work_detail' r.id %}"
+    }{% if not forloop.last %},{% endif %}{% endfor %}
+]);
 
-    // 初始化显示第一页
-    switchZone('anime', 0, document.querySelector('.zone-btn'));
+    const savedState = localStorage.getItem('last_active_zone');
+    let targetZone = 'anime';
+    let targetIndex = 0;
+
+    if (savedState) {
+        const { zone, index } = JSON.parse(savedState);
+        targetZone = zone;
+        targetIndex = index;
+    }
+
+    // 获取对应的按钮元素并执行切换
+    const targetBtn = document.querySelectorAll('.zone-btn')[targetIndex];
+    switchZone(targetZone, targetIndex, targetBtn);
 });
 // works_center.html
 document.addEventListener('DOMContentLoaded', function() {
@@ -328,5 +413,76 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 });
+async function toggleFavorite(el, workId) {
+    // 1. 检查登录状态
+    {% if not user.is_authenticated %}
+        alert("请先登录后再收藏哦~");
+        return;
+    {% endif %}
+
+    try {
+        const response = await fetch(`/works/work/${workId}/favorite/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+
+        if (!response.ok) throw new Error('网络请求失败');
+
+        const data = await response.json();
+        const cardTitle = el.closest('.work-card').querySelector('h4').innerText; // 获取作品标题
+
+        // 2. 创建浮动文字提示
+        const tip = document.createElement('span');
+        tip.className = 'absolute -top-8 left-1/2 -translate-x-1/2 text-xs font-bold py-1 px-2 rounded-full transition-all duration-500 pointer-events-none opacity-0';
+
+        if (data.is_favorite) {
+            // 变为已收藏状态
+            el.classList.remove('fa-regular', 'text-gray-300');
+            el.classList.add('fa-solid', 'text-pink-500', 'scale-125');
+
+            tip.innerText = '已收藏';
+            tip.classList.add('bg-pink-500', 'text-white');
+
+            // --- 联动看板娘小柚 ---
+            if (typeof askXiaoYou === 'function') {
+                askXiaoYou('USER_ACTION', `我刚刚收藏了作品《${cardTitle}》`);
+            }
+        } else {
+            // 变为未收藏状态
+            el.classList.remove('fa-solid', 'text-pink-500');
+            el.classList.add('fa-regular', 'text-gray-300');
+
+            tip.innerText = '已取消';
+            tip.classList.add('bg-gray-500', 'text-white');
+        }
+
+        // 3. 插入提示并执行动画
+        el.parentElement.style.position = 'relative'; // 确保父容器是相对定位
+        el.parentElement.appendChild(tip);
+
+        // 触发动画
+        requestAnimationFrame(() => {
+            tip.style.opacity = '1';
+            tip.style.transform = 'translate(-50%, -10px)';
+        });
+
+        // 4. 移除提示并恢复图标缩放
+        setTimeout(() => {
+            el.classList.remove('scale-125');
+            tip.style.opacity = '0';
+            setTimeout(() => tip.remove(), 500);
+        }, 800);
+
+    } catch (error) {
+        console.error("收藏失败:", error);
+        if (typeof askXiaoYou === 'function') {
+            askXiaoYou('GENERAL', "小柚，刚才收藏操作好像出错了，呜呜...");
+        }
+    }
+}
 </script>
 {% endblock %}

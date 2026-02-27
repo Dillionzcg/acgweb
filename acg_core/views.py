@@ -96,7 +96,8 @@ def kanban_chat(request):
                 'FORM_ERROR2': f"Master在安利作品的时候信息填写有问题，错误提示信息是：{user_input}。请温柔安慰并提醒检查。",
                 'LOGIN_ERROR': f"登录失败：{user_input}。请温柔地鼓励Master再试一次。",
                 'CENTER_ENTER': f"Master现在去{user_input}了，请根据该中心的特点说一句鼓励或期待的话，并介绍这个中心",
-                'CLICK': f"{user_input}"
+                'CLICK': f"{user_input}",
+                'GENERAL': f"{user_input}"
             }
 
             instruction = prompts.get(sig, f"对话：{user_input}") if sig != 'CHAT' else f"用户说：{user_input}"

@@ -5,18 +5,25 @@ from django.views.decorators.http import require_POST
 from django.http import JsonResponse
 from django.db.models import Avg
 from .models import Work, Tag, Comment, WorkGallery  # 确保导入了所有新模型
+from django.db.models import Count, F, ExpressionWrapper, FloatField
 
 
 # 1. 作品中心列表页
 def works_center(request):
-    all_works = Work.objects.prefetch_related('tags').all()
+    all_works = Work.objects.prefetch_related('tags').annotate(
+        calculated_hot=ExpressionWrapper(
+            F('views') + Count('favorites', distinct=True) * 5 + Count('comments', distinct=True) * 3,
+            output_field=FloatField()
+        )
+    )
 
     def get_zone_data(zone_name):
         zone_works = all_works.filter(zone=zone_name)
         return {
             'list': zone_works.order_by('-created_at')[:6],
-            'ranks': zone_works.order_by('-views')[:10],
-            'hot': zone_works.order_by('-views')[:6],
+            # 2. 排行榜按计算出的热度排序，取前10名
+            'ranks': zone_works.order_by('-calculated_hot')[:15],
+            'hot': zone_works.order_by('-calculated_hot')[:6],
         }
 
     context = {
@@ -316,3 +323,41 @@ def check_work_exists(request):
         'exists': len(results) > 0,
         'results': results
     })
+
+
+# masterpieces/views.py
+
+@login_required
+@require_POST
+def toggle_favorite(request, work_id):
+    work = get_object_or_404(Work, id=work_id)
+    if request.user in work.favorites.all():
+        work.favorites.remove(request.user)
+        is_favorite = False
+    else:
+        work.favorites.add(request.user)
+        is_favorite = True
+
+    return JsonResponse({
+        'status': 'success',
+        'is_favorite': is_favorite,
+        'count': work.favorites.count()
+    })
+# views.py
+
+@login_required
+def my_favorites(request):
+    # 获取当前用户收藏的所有作品
+    favorite_works = request.user.favorite_works.prefetch_related('tags').all()
+
+    def get_favorite_zone_data(zone_name):
+        zone_works = favorite_works.filter(zone=zone_name).order_by('-created_at')
+        return zone_works
+
+    context = {
+        'anime_favs': get_favorite_zone_data('anime'),
+        'galgame_favs': get_favorite_zone_data('galgame'),
+        'manga_favs': get_favorite_zone_data('manga'),
+    }
+    # 使用一个新的模板，但逻辑复用 works_center
+    return render(request, 'masterpieces/my_favorites.html', context)
