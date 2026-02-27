@@ -3,121 +3,59 @@
 
 {% block content %}
 <div class="grid grid-cols-12 gap-6 pb-8">
-
- <aside class="col-span-12 lg:col-span-3 space-y-6 animate__animated animate__fadeInLeft">
+<aside class="col-span-12 lg:col-span-3 space-y-6 animate__animated animate__fadeInLeft">
     <div class="glass-card p-6 shadow-xl border-l-4 border-pink-400">
         <h2 class="text-2xl acg-font text-pink-600 mb-4 flex items-center justify-between">
             <span><i class="fa-solid fa-fire-flame-curved mr-2"></i>番剧热度榜</span>
         </h2>
         <ul class="space-y-4">
-            <li class="flex items-center group cursor-pointer">
-                <span class="w-6 h-6 flex items-center justify-center rounded-full bg-orange-500 text-white text-xs font-bold">1</span>
-                <span class="flex-1 ml-3 text-gray-700 group-hover:text-pink-500 transition-colors">更衣人偶坠入爱河</span>
-                <span class="text-xs text-gray-400">9.8w</span>
+            {% for work in anime_ranks %}
+            <li onclick="window.location.href='/works/work/{{ work.id }}/'" class="flex items-center group cursor-pointer">
+                <span class="w-6 h-6 flex items-center justify-center rounded-full text-white text-xs font-bold
+                    {% if forloop.counter == 1 %}bg-orange-500
+                    {% elif forloop.counter == 2 %}bg-orange-400
+                    {% elif forloop.counter == 3 %}bg-orange-300
+                    {% else %}bg-gray-200 text-gray-500{% endif %}">
+                    {{ forloop.counter }}
+                </span>
+                <span class="flex-1 ml-3 text-gray-700 group-hover:text-pink-500 transition-colors line-clamp-1 {% if forloop.counter > 3 %}text-sm text-gray-600{% endif %}">
+                    {{ work.title }}
+                </span>
             </li>
-            <li class="flex items-center group cursor-pointer">
-                <span class="w-6 h-6 flex items-center justify-center rounded-full bg-orange-400 text-white text-xs font-bold">2</span>
-                <span class="flex-1 ml-3 text-gray-700 group-hover:text-pink-500 transition-colors">电锯人</span>
-                <span class="text-xs text-gray-400">8.5w</span>
-            </li>
-            <li class="flex items-center group cursor-pointer">
-                <span class="w-6 h-6 flex items-center justify-center rounded-full bg-orange-300 text-white text-xs font-bold">3</span>
-                <span class="flex-1 ml-3 text-gray-700 group-hover:text-pink-500 transition-colors">孤独摇滚</span>
-                <span class="text-xs text-gray-400">7.2w</span>
-            </li>
-            <li class="flex items-center group cursor-pointer text-sm">
-                <span class="w-6 h-6 flex items-center justify-center rounded-full bg-gray-200 text-gray-500 text-xs">4</span>
-                <span class="flex-1 ml-3 text-gray-600">间谍过家家</span>
-                <span class="text-[10px] text-gray-400">6.8w</span>
-            </li>
-            <li class="flex items-center group cursor-pointer text-sm">
-                <span class="w-6 h-6 flex items-center justify-center rounded-full bg-gray-200 text-gray-500 text-xs">5</span>
-                <span class="flex-1 ml-3 text-gray-600">赛博朋克：边缘行者</span>
-                <span class="text-[10px] text-gray-400">6.1w</span>
-            </li>
-            <li class="flex items-center group cursor-pointer text-sm">
-                <span class="w-6 h-6 flex items-center justify-center rounded-full bg-gray-200 text-gray-500 text-xs">6</span>
-                <span class="flex-1 ml-3 text-gray-600">利科莉丝 Lycoris</span>
-                <span class="text-[10px] text-gray-400">5.9w</span>
-            </li>
-            <li class="flex items-center group cursor-pointer text-sm">
-                <span class="w-6 h-6 flex items-center justify-center rounded-full bg-gray-200 text-gray-500 text-xs">7</span>
-                <span class="flex-1 ml-3 text-gray-600">咒术回战 第二季</span>
-                <span class="text-[10px] text-gray-400">5.5w</span>
-            </li>
-            <li class="flex items-center group cursor-pointer text-sm">
-                <span class="w-6 h-6 flex items-center justify-center rounded-full bg-gray-200 text-gray-500 text-xs">8</span>
-                <span class="flex-1 ml-3 text-gray-600">进击的巨人 最终季</span>
-                <span class="text-[10px] text-gray-400">5.2w</span>
-            </li>
-            <li class="flex items-center group cursor-pointer text-sm">
-                <span class="w-6 h-6 flex items-center justify-center rounded-full bg-gray-200 text-gray-500 text-xs">9</span>
-                <span class="flex-1 ml-3 text-gray-600">辉夜大小姐想让我告白</span>
-                <span class="text-[10px] text-gray-400">4.9w</span>
-            </li>
-            <li class="flex items-center group cursor-pointer text-sm">
-                <span class="w-6 h-6 flex items-center justify-center rounded-full bg-gray-200 text-gray-500 text-xs">10</span>
-                <span class="flex-1 ml-3 text-gray-600">鬼灭之刃 锻刀村篇</span>
-                <span class="text-[10px] text-gray-400">4.5w</span>
-            </li>
+            {% empty %}
+            <li class="text-gray-400 text-xs text-center py-4">暂无数据</li>
+            {% endfor %}
         </ul>
-        <button class="w-full mt-6 py-2 text-sm text-pink-500 border border-pink-200 rounded-xl hover:bg-pink-500 hover:text-white transition-all duration-300">
+        <a href="/works/" class="block w-full mt-6 py-2 text-center text-sm text-pink-500 border border-pink-200 rounded-xl hover:bg-pink-500 hover:text-white transition-all duration-300">
             查看详情 <i class="fa-solid fa-chevron-right text-[10px]"></i>
-        </button>
+        </a>
     </div>
 
-    <div class="glass-card p-6 shadow-xl border-l-4 border-purple-400 mt-6">
-        <h2 class="text-2xl acg-font text-purple-600 mb-4 flex items-center">
-            <span><i class="fa-solid fa-trophy mr-2"></i>Galgame热度榜</span>
+    <div class="glass-card p-6 shadow-xl border-l-4 border-blue-400">
+        <h2 class="text-2xl acg-font text-blue-600 mb-4 flex items-center justify-between">
+            <span><i class="fa-solid fa-gamepad mr-2"></i>Galgame榜</span>
         </h2>
-        <div class="space-y-4">
-            <div class="p-3 bg-white/50 rounded-xl hover:bg-white/80 transition-all border border-transparent hover:border-purple-200 cursor-pointer">
-                <p class="text-sm font-bold text-gray-800">1. CLANNAD</p>
-                <p class="text-[11px] text-purple-400 mt-1">写作“家族”，读作“人生”</p>
-            </div>
-            <div class="p-3 bg-white/50 rounded-xl hover:bg-white/80 transition-all border border-transparent hover:border-purple-200 cursor-pointer">
-                <p class="text-sm font-bold text-gray-800">2. 命运石之门</p>
-                <p class="text-[11px] text-purple-400 mt-1">这一切都是命运石之门的选择</p>
-            </div>
-            <div class="p-3 bg-white/50 rounded-xl hover:bg-white/80 transition-all border border-transparent hover:border-purple-200 cursor-pointer">
-                <p class="text-sm font-bold text-gray-800">3. 白色相簿2</p>
-                <p class="text-[11px] text-purple-400 mt-1">“又到了白色相簿的季节。。。”</p>
-            </div>
-
-            <ul class="mt-4 space-y-3 px-1">
-                <li class="flex justify-between items-center group cursor-pointer">
-                    <span class="text-sm text-gray-600 group-hover:text-purple-500">4. Muv-Luv Alternative</span>
-                    <span class="text-[10px] text-gray-400 italic">9.6</span>
-                </li>
-                <li class="flex justify-between items-center group cursor-pointer">
-                    <span class="text-sm text-gray-600 group-hover:text-purple-500">5. 魔法使之夜</span>
-                    <span class="text-[10px] text-gray-400 italic">9.5</span>
-                </li>
-                <li class="flex justify-between items-center group cursor-pointer">
-                    <span class="text-sm text-gray-600 group-hover:text-purple-500">6. Summer Pockets</span>
-                    <span class="text-[10px] text-gray-400 italic">9.4</span>
-                </li>
-                <li class="flex justify-between items-center group cursor-pointer">
-                    <span class="text-sm text-gray-600 group-hover:text-purple-500">7. 装甲恶鬼村正</span>
-                    <span class="text-[10px] text-gray-400 italic">9.4</span>
-                </li>
-                <li class="flex justify-between items-center group cursor-pointer">
-                    <span class="text-sm text-gray-600 group-hover:text-purple-500">8. 樱之刻</span>
-                    <span class="text-[10px] text-gray-400 italic">9.3</span>
-                </li>
-                <li class="flex justify-between items-center group cursor-pointer">
-                    <span class="text-sm text-gray-600 group-hover:text-purple-500">9. 拔作岛 (Nukitashi)</span>
-                    <span class="text-[10px] text-gray-400 italic">9.2</span>
-                </li>
-                <li class="flex justify-between items-center group cursor-pointer">
-                    <span class="text-sm text-gray-600 group-hover:text-purple-500">10. 命运停驻之夜 (FSN)</span>
-                    <span class="text-[10px] text-gray-400 italic">9.2</span>
-                </li>
-            </ul>
-        </div>
-        <button class="w-full mt-6 py-2 text-sm text-purple-500 border border-purple-200 rounded-xl hover:bg-purple-500 hover:text-white transition-all duration-300">
+        <ul class="space-y-4">
+            {% for work in galgame_ranks %}
+            <li onclick="window.location.href='/works/work/{{ work.id }}/'" class="flex items-center group cursor-pointer">
+                <span class="w-6 h-6 flex items-center justify-center rounded-full text-white text-xs font-bold
+                    {% if forloop.counter == 1 %}bg-blue-500
+                    {% elif forloop.counter == 2 %}bg-blue-400
+                    {% elif forloop.counter == 3 %}bg-blue-300
+                    {% else %}bg-gray-200 text-gray-500{% endif %}">
+                    {{ forloop.counter }}
+                </span>
+                <span class="flex-1 ml-3 text-gray-700 group-hover:text-blue-500 transition-colors line-clamp-1 {% if forloop.counter > 3 %}text-sm text-gray-600{% endif %}">
+                    {{ work.title }}
+                </span>
+            </li>
+            {% empty %}
+            <li class="text-gray-400 text-xs text-center py-4">暂无数据</li>
+            {% endfor %}
+        </ul>
+        <a href="/works/" class="block w-full mt-6 py-2 text-center text-sm text-blue-500 border border-blue-200 rounded-xl hover:bg-blue-500 hover:text-white transition-all duration-300">
             查看详情 <i class="fa-solid fa-chevron-right text-[10px]"></i>
-        </button>
+        </a>
     </div>
 </aside>
 

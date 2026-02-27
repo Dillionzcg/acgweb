@@ -8,6 +8,9 @@ from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from django.contrib import messages
 from django.db import IntegrityError
+from django.shortcuts import render
+# 1. 确保导入 Work 模型
+from masterpieces.models import Work
 
 
 User = get_user_model()
@@ -108,8 +111,25 @@ def kanban_chat(request):
     return JsonResponse({'error': 'invalid request'}, status=400)
 
 
-def index(request): return render(request, 'index.html')
+# views.py
 
+# views.py
+
+def index(request):
+    # 确保导入了 Work 模型
+    from masterpieces.models import Work
+
+    # 1. 使用数据库实际存储的 'anime' 和 'galgame' 进行过滤
+    # 2. 排序使用 hot_score (这是数据库字段)
+    anime_ranks = Work.objects.filter(zone='anime').order_by('-hot_score')[:10]
+    galgame_ranks = Work.objects.filter(zone='galgame').order_by('-hot_score')[:10]
+
+    # 3. 将变量放入 context 传给前端
+    context = {
+        'anime_ranks': anime_ranks,
+        'galgame_ranks': galgame_ranks,
+    }
+    return render(request, 'index.html', context)
 from django.db import IntegrityError
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
