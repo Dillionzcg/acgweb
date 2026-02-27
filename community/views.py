@@ -1,6 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import JsonResponse
+from django.contrib import messages
 from .models import Topic, TopicCategory, News, NewsCategory, NewsComment, TopicComment
 from .forms import TopicForm, NewsForm, NewsCommentForm, TopicCommentForm
 
@@ -251,6 +252,30 @@ def like_news(request, pk):
 
     return JsonResponse({'error': 'Invalid request'}, status=400)
 
+@login_required
+def delete_news(request, pk):
+    """删除资讯 (仅作者或管理员)"""
+    news = get_object_or_404(News, pk=pk)
+    if request.user != news.author and not request.user.is_superuser:
+        messages.error(request, '你没有权限删除该资讯。')
+        return redirect('news_detail', pk=pk)
+    if request.method == 'POST':
+        news.delete()
+        messages.success(request, '资讯已成功删除。')
+        return redirect('news_list')
+    return redirect('news_detail', pk=pk)
 
 
+@login_required
+def delete_topic(request, pk):
+    """删除话题 (仅作者或管理员)"""
+    topic = get_object_or_404(Topic, pk=pk)
+    if request.user != topic.author and not request.user.is_superuser:
+        messages.error(request, '你没有权限删除该话题。')
+        return redirect('topic_detail', pk=pk)
+    if request.method == 'POST':
+        topic.delete()
+        messages.success(request, '话题已成功删除。')
+        return redirect('topic_list')
+    return redirect('topic_detail', pk=pk)
 

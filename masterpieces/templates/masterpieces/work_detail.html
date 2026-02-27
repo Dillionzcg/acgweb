@@ -12,9 +12,17 @@
         margin: 0 auto;
         padding-bottom: 50px;
     }
+
     @keyframes fadeInSlide {
-        from { opacity: 0; transform: translateY(20px); }
-        to   { opacity: 1; transform: translateY(0); }
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 
     /* ---------- 作品头部卡片 ---------- */
@@ -33,7 +41,7 @@
     .detail-cover {
         width: 100%;
         border-radius: 20px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
     }
 
     /* ---------- 作品标题（简洁但高级） ---------- */
@@ -44,7 +52,8 @@
         -webkit-text-fill-color: transparent;
         letter-spacing: 1px;
         text-shadow: 3px 3px 0px rgba(255, 182, 193, 0.2);
-        margin-bottom: 24px !important; /* 强制下方间距 */
+        margin-bottom: 24px !important;
+        /* 强制下方间距 */
     }
 
     /* ---------- 图集区域 ---------- */
@@ -60,12 +69,14 @@
         border-radius: 12px;
         overflow: hidden;
         border: 2px solid #fff;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
         transition: transform 0.3s ease;
     }
+
     .gallery-item:hover {
         transform: scale(1.05);
     }
+
     .gallery-item img {
         width: 100%;
         height: 100%;
@@ -76,6 +87,7 @@
     .btn-animate {
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
+
     .btn-animate:hover {
         transform: translateY(-2px);
         box-shadow: 0 10px 20px -5px rgba(244, 114, 182, 0.4);
@@ -85,36 +97,59 @@
     .text-4xl.text-pink-500.font-bold {
         /* 保持原样，无需额外定义，仅作标记 */
     }
+
     @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(-5px); }
-        to { opacity: 1; transform: translateY(0); }
+        from {
+            opacity: 0;
+            transform: translateY(-5px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
+
     .animate-fadeIn {
         animation: fadeIn 0.3s ease-out;
 
 
-    /* 弹窗背景模糊进入动画 */
-    @keyframes fadeInBlur {
-        from { backdrop-filter: blur(0px); background-color: rgba(0, 0, 0, 0); }
-        to { backdrop-filter: blur(12px); background-color: rgba(0, 0, 0, 0.7); }
-    }
+        /* 弹窗背景模糊进入动画 */
+        @keyframes fadeInBlur {
+            from {
+                backdrop-filter: blur(0px);
+                background-color: rgba(0, 0, 0, 0);
+            }
 
-    /* 容器缩放升起动画 */
-    @keyframes modalUp {
-        from { opacity: 0; transform: scale(0.9) translateY(30px); }
-        to { opacity: 1; transform: scale(1) translateY(0); }
-    }
+            to {
+                backdrop-filter: blur(12px);
+                background-color: rgba(0, 0, 0, 0.7);
+            }
+        }
 
-    /* 应用动画的类 */
-    .modal-backdrop-animate {
-        animation: fadeInBlur 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
+        /* 容器缩放升起动画 */
+        @keyframes modalUp {
+            from {
+                opacity: 0;
+                transform: scale(0.9) translateY(30px);
+            }
 
-    .modal-content-animate {
-        animation: modalUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
 
-}
+        /* 应用动画的类 */
+        .modal-backdrop-animate {
+            animation: fadeInBlur 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .modal-content-animate {
+            animation: modalUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+    }
 </style>
 
 <div class="detail-container">
@@ -123,7 +158,8 @@
     <div class="flex justify-end mb-4">
         <form action="{% url 'masterpieces:delete_work' work.id %}" method="post" onsubmit="return confirm('确定要删除吗？');">
             {% csrf_token %}
-            <button type="submit" class="bg-red-500 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg hover:bg-red-600 transition">
+            <button type="submit"
+                class="bg-red-500 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg hover:bg-red-600 transition">
                 <i class="fa-solid fa-trash-can mr-2"></i>删除该作品推荐
             </button>
         </form>
@@ -147,54 +183,57 @@
 
                 {% with total_illustrations=work.gallery.count %}
 
-                    {% if total_illustrations < 4 %}
-                        <a href="{{ work.cover.url }}" target="_blank" class="gallery-item border-2 border-pink-200">
-                            <img src="{{ work.cover.url }}" alt="封面">
-                        </a>
+                {% if total_illustrations < 4 %} <a href="{{ work.cover.url }}" target="_blank"
+                    class="gallery-item border-2 border-pink-200">
+                    <img src="{{ work.cover.url }}" alt="封面">
+                    </a>
 
-                        {% for item in work.gallery.all %}
-                            <a href="{{ item.image.url }}" target="_blank" class="gallery-item">
-                                <img src="{{ item.image.url }}" alt="图集">
-                            </a>
-                        {% endfor %}
+                    {% for item in work.gallery.all %}
+                    <a href="{{ item.image.url }}" target="_blank" class="gallery-item">
+                        <img src="{{ item.image.url }}" alt="图集">
+                    </a>
+                    {% endfor %}
 
                     {% else %}
-                        {% for item in work.gallery.all|slice:":4" %}
-                            <a href="{{ item.image.url }}" target="_blank" class="gallery-item">
-                                <img src="{{ item.image.url }}" alt="图集">
-                            </a>
-                        {% endfor %}
+                    {% for item in work.gallery.all|slice:":4" %}
+                    <a href="{{ item.image.url }}" target="_blank" class="gallery-item">
+                        <img src="{{ item.image.url }}" alt="图集">
+                    </a>
+                    {% endfor %}
 
                     {% endif %}
 
-                {% endwith %}
+                    {% endwith %}
             </div>
 
-            <a href="javascript:void(0);" onclick="openFullGallery()" class="flex items-center justify-center w-full py-4 mt-3 bg-gradient-to-r from-pink-400 to-rose-400 text-white rounded-2xl font-bold shadow-lg hover:shadow-pink-200/50 hover:scale-[1.02] transition-all mb-3">
+            <a href="javascript:void(0);" onclick="openFullGallery()"
+                class="flex items-center justify-center w-full py-4 mt-3 bg-gradient-to-r from-pink-400 to-rose-400 text-white rounded-2xl font-bold shadow-lg hover:shadow-pink-200/50 hover:scale-[1.02] transition-all mb-3">
                 <i class="fa-solid fa-images mr-2"></i> 查看全部图集 ({{ work.gallery.count|add:1 }})
             </a>
 
             <!-- 上传图片入口 -->
-            <a href="javascript:void(0);" onclick="toggleUploadModal()" class="flex items-center justify-center w-full py-2 text-xs font-bold text-pink-400 bg-pink-50 rounded-xl border border-pink-100 hover:bg-pink-100 hover:text-pink-600 transition-all mb-6">
+            <a href="javascript:void(0);" onclick="toggleUploadModal()"
+                class="flex items-center justify-center w-full py-2 text-xs font-bold text-pink-400 bg-pink-50 rounded-xl border border-pink-100 hover:bg-pink-100 hover:text-pink-600 transition-all mb-6">
                 <i class="fa-solid fa-cloud-arrow-up mr-1"></i> 我要上传图片
             </a>
 
             <!-- 次元评分卡片 -->
             <div class="mt-6 bg-white/50 rounded-2xl p-4 text-center border border-white">
-    <div class="text-gray-400 text-xs font-bold mb-1">次元评分</div>
-    {% if work.hot_score > 0 %}
-        <div class="text-4xl text-pink-500 font-bold">{{ work.hot_score }}</div>
-    {% else %}
-        <div class="text-xl text-gray-400 font-medium py-2 italic">暂无评分</div>
-    {% endif %}
-</div>
+                <div class="text-gray-400 text-xs font-bold mb-1">次元评分</div>
+                {% if work.hot_score > 0 %}
+                <div class="text-4xl text-pink-500 font-bold">{{ work.hot_score }}</div>
+                {% else %}
+                <div class="text-xl text-gray-400 font-medium py-2 italic">暂无评分</div>
+                {% endif %}
+            </div>
 
             <div class="bg-white/60 rounded-3xl p-6 border border-white shadow-sm mt-6">
                 <div class="flex justify-between items-center mb-4">
                     <h4 class="text-gray-700 text-sm font-black flex items-center">
                         <i class="fa-solid fa-tags text-pink-400 mr-2"></i>用户标签展示
                     </h4>
-                    <button id="add-tag-btn" onclick="showTagInput()" class="group text-pink-500 text-xs font-bold flex items-center hover:text-pink-600 transition-colors">
+                    <button id="add-tag-btn" onclick="showTagInput()"
+                        class="group text-pink-500 text-xs font-bold flex items-center hover:text-pink-600 transition-colors">
                         我要添加标签 <i class="fa-solid fa-circle-plus ml-1 group-hover:rotate-90 transition-transform"></i>
                     </button>
                 </div>
@@ -202,14 +241,14 @@
                 <div id="tag-input-wrapper" class="hidden mb-6 animate-fadeIn">
                     <div class="flex gap-2 p-1 bg-pink-50/50 rounded-2xl border border-pink-100">
                         <input type="text" id="new-tag-name"
-                               class="flex-1 px-4 py-2 bg-transparent border-none text-xs focus:outline-none placeholder:text-pink-300 text-pink-600"
-                               placeholder="输入新标签..."
-                               maxlength="10">
+                            class="flex-1 px-4 py-2 bg-transparent border-none text-xs focus:outline-none placeholder:text-pink-300 text-pink-600"
+                            placeholder="输入新标签..." maxlength="10">
                         <button onclick="submitUserTag({{ work.id }})"
-                                class="px-5 py-2 bg-gradient-to-r from-pink-400 to-rose-400 text-white rounded-xl text-xs font-bold shadow-sm hover:shadow-pink-200 hover:scale-105 transition-all">
+                            class="px-5 py-2 bg-gradient-to-r from-pink-400 to-rose-400 text-white rounded-xl text-xs font-bold shadow-sm hover:shadow-pink-200 hover:scale-105 transition-all">
                             提交
                         </button>
-                        <button onclick="hideTagInput()" class="px-3 py-2 text-gray-400 hover:text-pink-500 transition-colors">
+                        <button onclick="hideTagInput()"
+                            class="px-3 py-2 text-gray-400 hover:text-pink-500 transition-colors">
                             <i class="fa-solid fa-xmark"></i>
                         </button>
                     </div>
@@ -217,35 +256,38 @@
 
                 <div id="user-tags-container" class="flex flex-wrap gap-2 min-h-[40px]">
                     {% if work.user_tags.all %}
-                        {% for tag in work.user_tags.all %}
-                        <span class="inline-flex items-center justify-center px-3 py-1 bg-pink-100 text-pink-500 rounded-full text-xs font-bold"># {{ tag.name }}</span>
-                        {% endfor %}
+                    {% for tag in work.user_tags.all %}
+                    <span
+                        class="inline-flex items-center justify-center px-3 py-1 bg-pink-100 text-pink-500 rounded-full text-xs font-bold">#
+                        {{ tag.name }}</span>
+                    {% endfor %}
                     {% else %}
-                        <div class="flex flex-col items-center justify-center w-full py-6 border-2 border-dashed border-pink-50 rounded-3xl">
-                            <i class="fa-solid fa-wand-magic-sparkles text-pink-200 text-2xl mb-2"></i>
-                            <p class="text-[11px] text-pink-300 tracking-widest font-bold">暂时还没有用户标签，快来留下你的印象吧~</p>
-                        </div>
+                    <div
+                        class="flex flex-col items-center justify-center w-full py-6 border-2 border-dashed border-pink-50 rounded-3xl">
+                        <i class="fa-solid fa-wand-magic-sparkles text-pink-200 text-2xl mb-2"></i>
+                        <p class="text-[11px] text-pink-300 tracking-widest font-bold">暂时还没有用户标签，快来留下你的印象吧~</p>
+                    </div>
                     {% endif %}
                 </div>
                 {% if work.user_tags.all %}
-                    <div class="block w-full pt-6">
-                        {% if user.is_staff or work.owner == user %}
-                            <button onclick="openTagManagerModal()"
-                                    class="block w-full py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-500 text-[10px] font-bold rounded-xl transition-all shadow-sm">
-                                <i class="fa-solid fa-gear mr-1"></i> 管理用户上传标签
-                            </button>
-                        {% elif user.is_authenticated %}
-                            {% regroup work.user_tags.all by user as user_tag_list %}
-                            {% for group in user_tag_list %}
-                                {% if group.grouper == user %}
-                                    <button onclick="openTagManagerModal()"
-                                            class="block w-full py-2.5 bg-pink-50 hover:bg-pink-100 text-pink-400 text-[10px] font-bold rounded-xl transition-all shadow-sm">
-                                        <i class="fa-solid fa-user-pen mr-1"></i> 我上传的标签
-                                    </button>
-                                {% endif %}
-                            {% endfor %}
-                        {% endif %}
-                    </div>
+                <div class="block w-full pt-6">
+                    {% if user.is_staff or work.owner == user %}
+                    <button onclick="openTagManagerModal()"
+                        class="block w-full py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-500 text-[10px] font-bold rounded-xl transition-all shadow-sm">
+                        <i class="fa-solid fa-gear mr-1"></i> 管理用户上传标签
+                    </button>
+                    {% elif user.is_authenticated %}
+                    {% regroup work.user_tags.all by user as user_tag_list %}
+                    {% for group in user_tag_list %}
+                    {% if group.grouper == user %}
+                    <button onclick="openTagManagerModal()"
+                        class="block w-full py-2.5 bg-pink-50 hover:bg-pink-100 text-pink-400 text-[10px] font-bold rounded-xl transition-all shadow-sm">
+                        <i class="fa-solid fa-user-pen mr-1"></i> 我上传的标签
+                    </button>
+                    {% endif %}
+                    {% endfor %}
+                    {% endif %}
+                </div>
                 {% endif %}
             </div>
         </div>
@@ -273,11 +315,11 @@
                     <span class="mr-2">发布时间：</span>
                     <span class="text-gray-800 font-bold">
                         {% if work.hide_month %}
-                            {{ work.release_date|date:"Y年" }}
+                        {{ work.release_date|date:"Y年" }}
                         {% elif work.hide_day %}
-                            {{ work.release_date|date:"Y年m月" }}
+                        {{ work.release_date|date:"Y年m月" }}
                         {% else %}
-                            {{ work.release_date|date:"Y-m-d" }}
+                        {{ work.release_date|date:"Y-m-d" }}
                         {% endif %}
                     </span>
                 </p>
@@ -288,7 +330,8 @@
                 <h3 class="text-lg font-bold text-gray-700 mb-2 flex items-center">
                     <i class="fa-solid fa-quote-left text-pink-200 mr-2"></i> 官方简介
                 </h3>
-                <p class="text-gray-700 leading-relaxed text-base bg-white/40 p-5 rounded-2xl border border-white italic">
+                <p
+                    class="text-gray-700 leading-relaxed text-base bg-white/40 p-5 rounded-2xl border border-white italic">
                     {{ work.description|linebreaksbr }}
                 </p>
 
@@ -299,91 +342,101 @@
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
 
-    <div class="md:col-span-2 space-y-6">
-        <div class="glass-card p-8 bg-white/60 rounded-3xl border border-white shadow-sm">
-            <h3 class="text-xl font-black text-gray-700 mb-8 flex items-center">
-                <i class="fa-solid fa-comments text-pink-400 mr-3"></i>
-                全部居民评论 <span class="ml-2 text-sm font-normal text-gray-400">({{ comments.count }})</span>
-            </h3>
+        <div class="md:col-span-2 space-y-6">
+            <div class="glass-card p-8 bg-white/60 rounded-3xl border border-white shadow-sm">
+                <h3 class="text-xl font-black text-gray-700 mb-8 flex items-center">
+                    <i class="fa-solid fa-comments text-pink-400 mr-3"></i>
+                    全部居民评论 <span class="ml-2 text-sm font-normal text-gray-400">({{ comments.count }})</span>
+                </h3>
 
-            <div class="space-y-8">
-                {% for comment in comments %}
-                <div class="flex gap-4 group">
-                    <div class="flex-shrink-0">
-                        <div class="w-12 h-12 rounded-2xl overflow-hidden border-2 border-white shadow-sm">
-                            {% if comment.user.avatar %}
-                                <img src="{{ comment.user.avatar.url }}" alt="{{ comment.user.username }}" class="w-full h-full object-cover">
-                            {% else %}
-                                <img src="{% static 'images/default_head.png' %}" alt="默认头像" class="w-full h-full object-cover">
-                            {% endif %}
-                        </div>
-                    </div>
-
-                    <div class="flex-1 pb-6 border-b border-pink-50 group-last:border-0">
-                        <div class="flex justify-between items-center mb-2">
-                            <div>
-                                <span class="font-bold text-gray-800">{{ comment.user.username }}</span>
-                                <span class="ml-2 px-2 py-0.5 bg-yellow-50 text-yellow-600 text-[10px] rounded-lg font-bold border border-yellow-100">
-                                    <i class="fa-solid fa-star mr-0.5"></i>{{ comment.score }}
-                                </span>
+                <div class="space-y-8">
+                    {% for comment in comments %}
+                    <div class="flex gap-4 group">
+                        <div class="flex-shrink-0">
+                            <div class="w-12 h-12 rounded-2xl overflow-hidden border-2 border-white shadow-sm">
+                                {% if comment.user.avatar %}
+                                <img src="{{ comment.user.avatar.url }}" alt="{{ comment.user.username }}"
+                                    class="w-full h-full object-cover">
+                                {% else %}
+                                <img src="{% static 'images/default_head.png' %}" alt="默认头像"
+                                    class="w-full h-full object-cover">
+                                {% endif %}
                             </div>
-                            <span class="text-[11px] text-gray-300">{{ comment.created_at|date:"Y-m-d H:i" }}</span>
-                            {% if user.is_staff or work.owner == user or comment.user == user %}
-                                <button onclick="confirmDeleteComment('{% url 'masterpieces:delete_comment' comment.id %}')"
-                                        class="text-gray-300 hover:text-red-400 transition-colors duration-300">
+                        </div>
+
+                        <div class="flex-1 pb-6 border-b border-pink-50 group-last:border-0">
+                            <div class="flex justify-between items-center mb-2">
+                                <div>
+                                    <span class="font-bold text-gray-800">{{ comment.user.username }}</span>
+                                    <span
+                                        class="ml-2 px-2 py-0.5 bg-yellow-50 text-yellow-600 text-[10px] rounded-lg font-bold border border-yellow-100">
+                                        <i class="fa-solid fa-star mr-0.5"></i>{{ comment.score }}
+                                    </span>
+                                </div>
+                                <span class="text-[11px] text-gray-300">{{ comment.created_at|date:"Y-m-d H:i" }}</span>
+                                {% if user.is_staff or work.owner == user or comment.user == user %}
+                                <button
+                                    onclick="confirmDeleteComment('{% url 'masterpieces:delete_comment' comment.id %}')"
+                                    class="text-gray-300 hover:text-red-400 transition-colors duration-300">
                                     <i class="fa-solid fa-trash-can text-xs"></i>
                                 </button>
-                            {% endif %}
-                        </div>
+                                {% endif %}
+                            </div>
 
-                        <p class="text-gray-600 text-sm leading-relaxed mb-4">
-                            {{ comment.content }}
-                        </p>
+                            <p class="text-gray-600 text-sm leading-relaxed mb-4">
+                                {{ comment.content }}
+                            </p>
 
-                        <div class="flex items-center">
-                            <button
-                                class="comment-like-btn flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-colors {% if user in comment.likes.all %}text-pink-500 bg-pink-50{% else %}text-gray-400 hover:bg-gray-50{% endif %}"
-                                data-url="{% url 'masterpieces:like_comment' comment.id %}">
-                                <i class="fa-{% if user in comment.likes.all %}solid{% else %}regular{% endif %} fa-heart"></i>
-                                <span class="text-xs font-bold">{{ comment.likes.count }}</span>
-                            </button>
+                            <div class="flex items-center">
+                                <button
+                                    class="comment-like-btn flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-colors {% if user in comment.likes.all %}text-pink-500 bg-pink-50{% else %}text-gray-400 hover:bg-gray-50{% endif %}"
+                                    data-url="{% url 'masterpieces:like_comment' comment.id %}">
+                                    <i
+                                        class="fa-{% if user in comment.likes.all %}solid{% else %}regular{% endif %} fa-heart"></i>
+                                    <span class="text-xs font-bold">{{ comment.likes.count }}</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
+                    {% empty %}
+                    <div class="text-center py-12">
+                        <i class="fa-solid fa-feather text-4xl text-gray-100 mb-4 block"></i>
+                        <p class="text-gray-400 text-sm">还没有人评论，快来抢沙发吧~</p>
+                    </div>
+                    {% endfor %}
                 </div>
-                {% empty %}
-                <div class="text-center py-12">
-                    <i class="fa-solid fa-feather text-4xl text-gray-100 mb-4 block"></i>
-                    <p class="text-gray-400 text-sm">还没有人评论，快来抢沙发吧~</p>
+            </div>
+        </div>
+
+        <div class="md:col-span-1">
+            <div class="sticky top-24">
+                <div class="glass-card p-6 bg-white/80 rounded-3xl border border-white shadow-xl">
+                    <h4 class="font-bold text-gray-700 mb-4 text-center">评价并安利</h4>
+                    <form action="{% url 'masterpieces:submit_comment' work.id %}" method="post">
+                        {% csrf_token %}
+                        <div class="flex justify-center gap-2 mb-4 text-2xl text-gray-200" id="star-rating">
+                            {% for i in "12345"|make_list %}
+                            <i class="fa-solid fa-star cursor-pointer transition-colors hover:text-yellow-300"
+                                data-val="{{ forloop.counter }}"></i>
+                            {% endfor %}
+                            <input type="hidden" name="score" id="score-input" required>
+                        </div>
+                        <textarea name="content" required placeholder="分享你的观看感受..."
+                            class="w-full p-4 bg-white/50 rounded-2xl border border-pink-100 focus:outline-none focus:ring-2 focus:ring-pink-200 text-sm mb-4"
+                            rows="4"></textarea>
+                        <button type="submit"
+                            class="w-full py-3 bg-pink-500 text-white rounded-xl font-bold shadow-lg hover:bg-pink-600 transition-all active:scale-95">
+                            同步发布
+                        </button>
+                    </form>
                 </div>
-                {% endfor %}
+
+                <div class="mt-4 p-4 text-[11px] text-gray-400 leading-relaxed italic text-center">
+                    温馨提示：请文明发言，共同维护次元壁和谐氛围哦~
+                </div>
             </div>
         </div>
     </div>
-
-    <div class="md:col-span-1">
-        <div class="sticky top-24"> <div class="glass-card p-6 bg-white/80 rounded-3xl border border-white shadow-xl">
-                <h4 class="font-bold text-gray-700 mb-4 text-center">评价并安利</h4>
-                <form action="{% url 'masterpieces:submit_comment' work.id %}" method="post">
-                    {% csrf_token %}
-                    <div class="flex justify-center gap-2 mb-4 text-2xl text-gray-200" id="star-rating">
-                        {% for i in "12345"|make_list %}
-                        <i class="fa-solid fa-star cursor-pointer transition-colors hover:text-yellow-300" data-val="{{ forloop.counter }}"></i>
-                        {% endfor %}
-                        <input type="hidden" name="score" id="score-input" required>
-                    </div>
-                    <textarea name="content" required placeholder="分享你的观看感受..." class="w-full p-4 bg-white/50 rounded-2xl border border-pink-100 focus:outline-none focus:ring-2 focus:ring-pink-200 text-sm mb-4" rows="4"></textarea>
-                    <button type="submit" class="w-full py-3 bg-pink-500 text-white rounded-xl font-bold shadow-lg hover:bg-pink-600 transition-all active:scale-95">
-                        同步发布
-                    </button>
-                </form>
-            </div>
-
-            <div class="mt-4 p-4 text-[11px] text-gray-400 leading-relaxed italic text-center">
-                温馨提示：请文明发言，共同维护次元壁和谐氛围哦~
-            </div>
-        </div>
-    </div>
-</div>
 
     <!-- ========== 上传图片模态框 ========== -->
     <div id="uploadModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -397,23 +450,28 @@
                 </button>
             </div>
 
-            <form action="{% url 'masterpieces:upload_work_image' work.id %}" method="post" enctype="multipart/form-data">
+            <form action="{% url 'masterpieces:upload_work_image' work.id %}" method="post"
+                enctype="multipart/form-data">
                 {% csrf_token %}
                 <div class="mb-6">
-                    <label class="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-pink-100 rounded-3xl cursor-pointer bg-pink-50/30 hover:bg-pink-50 transition-all group">
+                    <label
+                        class="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-pink-100 rounded-3xl cursor-pointer bg-pink-50/30 hover:bg-pink-50 transition-all group">
                         <div class="flex flex-col items-center justify-center pt-5 pb-6">
-                            <i class="fa-solid fa-image text-4xl text-pink-300 mb-3 group-hover:scale-110 transition-transform"></i>
+                            <i
+                                class="fa-solid fa-image text-4xl text-pink-300 mb-3 group-hover:scale-110 transition-transform"></i>
                             <p class="text-sm text-pink-400 font-bold">点击选择图片</p>
                             <p class="text-[10px] text-gray-400 mt-1">支持 JPG, PNG (最大 5MB)</p>
                         </div>
-                        <input type="file" name="image" class="hidden" accept="image/*" required onchange="previewImage(this)">
+                        <input type="file" name="image" class="hidden" accept="image/*" required
+                            onchange="previewImage(this)">
                     </label>
                     <div id="imagePreview" class="hidden mt-4">
                         <img src="" class="w-full h-32 object-cover rounded-xl border border-pink-100" alt="预览">
                     </div>
                 </div>
 
-                <button type="submit" class="w-full py-4 bg-gradient-to-r from-pink-400 to-rose-400 text-white rounded-2xl font-bold shadow-lg hover:shadow-pink-300/50 transition-all">
+                <button type="submit"
+                    class="w-full py-4 bg-gradient-to-r from-pink-400 to-rose-400 text-white rounded-2xl font-bold shadow-lg hover:shadow-pink-300/50 transition-all">
                     确认上传
                 </button>
             </form>
@@ -422,18 +480,528 @@
 </div>
 
 <script>
-let currentFeaturedCount = {{ work.gallery.filter.is_featured.count|default:0 }};
-// 在 script 标签开头定义
-let hasChangedGallery = false;
-(function() {
-    // ---------- 点赞：事件委托 ----------
-    document.addEventListener('click', function(e) {
-        const likeBtn = e.target.closest('.comment-like-btn');
-        if (!likeBtn) return;
+    let currentFeaturedCount = {{ work.gallery.filter.is_featured.count|default: 0 }};
+    // 在 script 标签开头定义
+    let hasChangedGallery = false;
+    (function () {
+        // ---------- 点赞：事件委托 ----------
+        document.addEventListener('click', function (e) {
+            const likeBtn = e.target.closest('.comment-like-btn');
+            if (!likeBtn) return;
 
-        e.preventDefault();
-        const url = likeBtn.dataset.url;
-        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+            e.preventDefault();
+            const url = likeBtn.dataset.url;
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    const icon = likeBtn.querySelector('i');
+                    const countSpan = likeBtn.querySelector('span');
+                    if (data.liked) {
+                        likeBtn.classList.add('text-pink-500');
+                        icon.className = 'fa-solid fa-heart';
+                    } else {
+                        likeBtn.classList.remove('text-pink-500');
+                        icon.className = 'fa-regular fa-heart';
+                    }
+                    countSpan.innerText = data.count;
+                });
+        });
+
+        // ---------- 补充缺失的完整函数 ----------
+        window.toggleUploadModal = function () {
+            const modal = document.getElementById('uploadModal');
+            modal.classList.toggle('hidden');
+        };
+
+        window.previewImage = function (input) {
+            const preview = document.getElementById('imagePreview');
+            const previewImg = preview.querySelector('img');
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    previewImg.src = e.target.result;
+                    preview.classList.remove('hidden');
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        };
+
+        window.showTagInput = function () {
+            document.getElementById('tag-input-wrapper').classList.remove('hidden');
+        };
+
+        window.hideTagInput = function () {
+            document.getElementById('tag-input-wrapper').classList.add('hidden');
+        };
+
+        // 修改 submitUserTag 函数
+        window.submitUserTag = function (workId) {
+            const input = document.getElementById('new-tag-name');
+            const tagName = input.value.trim();
+            if (!tagName) return;
+
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+            const formData = new FormData();
+            formData.append('tag_name', tagName);
+
+            // 使用 Django 模板标签生成基础 URL，避免手动拼接路径错误
+            // 注意：这里需要确保路由中有对应的 name
+            const url = "{% url 'masterpieces:add_user_tag' 999 %}".replace('999', workId);
+
+            fetch(url, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': csrfToken },
+                body: formData
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        location.reload();
+                        // 更好的体验：动态添加 DOM 而不是刷新页面
+                        const container = document.getElementById('user-tags-container');
+                        const noTagPrompt = container.querySelector('div.flex-col');
+                        if (noTagPrompt) noTagPrompt.remove(); // 移除“暂时没有标签”的提示
+
+                        const span = document.createElement('span');
+                        span.className = "inline-flex items-center justify-center px-3 py-1 bg-pink-100 text-pink-500 rounded-full text-xs font-bold animate-fadeIn";
+                        span.innerText = `# ${tagName}`;
+                        container.appendChild(span);
+
+                        input.value = ''; // 清空输入框
+                        hideTagInput();   // 隐藏输入框
+                    } else {
+                        alert(data.message);
+                    }
+                })
+                .catch(err => {
+                    console.error('Error:', err);
+                    alert('提交失败，请检查网络或登录状态');
+                });
+        };
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const stars = document.querySelectorAll('#star-rating i');
+            const scoreInput = document.getElementById('score-input');
+            let currentSelected = 0; // 记录当前点击锁定的分数
+
+            if (stars.length && scoreInput) {
+                // 定义一个高亮星星的辅助函数
+                const highlightStars = (rating) => {
+                    stars.forEach(s => {
+                        const sVal = parseInt(s.dataset.val);
+                        if (sVal <= rating) {
+                            s.classList.add('text-yellow-400');
+                            s.classList.remove('text-gray-200');
+                        } else {
+                            s.classList.add('text-gray-200');
+                            s.classList.remove('text-yellow-400');
+                        }
+                    });
+                };
+
+                stars.forEach(star => {
+                    // 1. 鼠标移入：根据当前经过的星星，让前面的全部亮起
+                    star.onmouseenter = function () {
+                        const hoverVal = parseInt(this.dataset.val);
+                        highlightStars(hoverVal);
+                    };
+
+                    // 2. 鼠标移出：恢复到之前已经点击选择的分数（如果没有点击，则全灭）
+                    star.onmouseleave = function () {
+                        highlightStars(currentSelected);
+                    };
+
+                    // 3. 点击：锁定数值并同步到表单
+                    star.onclick = function () {
+                        currentSelected = parseInt(this.dataset.val);
+                        scoreInput.value = currentSelected;
+                        highlightStars(currentSelected);
+                    };
+                });
+            }
+        });
+    })();
+    // 修改后的完整无刷新删除脚本
+    (function () {
+        let currentDeleteUrl = '';
+        let currentCommentElement = null;
+
+        // 1. 弹出确认框（带精美动画）
+        window.confirmDeleteComment = function (deleteUrl) {
+            // 获取点击的按钮及其所在的评论条目
+            const triggerBtn = window.event ? window.event.currentTarget || window.event.target : null;
+            currentDeleteUrl = deleteUrl;
+
+            if (triggerBtn) {
+                // 向上查找评论容器 - 修正选择器以匹配实际结构
+                currentCommentElement = triggerBtn.closest('.group.flex.gap-4');
+            }
+
+            const modal = document.getElementById('deleteConfirmModal');
+            const backdrop = document.getElementById('modalBackdrop');
+            const content = document.getElementById('modalContent');
+
+            modal.classList.remove('hidden');
+            // 强制重绘触发 CSS 过渡动画
+            setTimeout(() => {
+                backdrop.classList.replace('opacity-0', 'opacity-100');
+                content.classList.replace('scale-95', 'scale-100');
+                content.classList.replace('opacity-0', 'opacity-100');
+            }, 10);
+        };
+
+        // 2. 关闭确认框动画
+        window.closeDeleteModal = function () {
+            const backdrop = document.getElementById('modalBackdrop');
+            const content = document.getElementById('modalContent');
+
+            backdrop.classList.replace('opacity-100', 'opacity-0');
+            content.classList.replace('scale-100', 'scale-95');
+            content.classList.replace('opacity-100', 'opacity-0');
+
+            setTimeout(() => {
+                document.getElementById('deleteConfirmModal').classList.add('hidden');
+            }, 300);
+        };
+
+        // 3. 核心：执行无刷新删除
+        document.addEventListener('DOMContentLoaded', function () {
+            const confirmBtn = document.getElementById('confirmDeleteBtn');
+            if (confirmBtn) {
+                confirmBtn.onclick = function () {
+                    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                    const btn = this;
+
+                    // 防止重复点击
+                    btn.disabled = true;
+                    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>处理中...';
+
+                    fetch(currentDeleteUrl, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': csrfToken,
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.status === 'success') {
+                                closeDeleteModal();
+
+                                if (currentCommentElement) {
+                                    // 执行评论条目淡出并向右滑动的动画
+                                    currentCommentElement.style.transition = 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
+                                    currentCommentElement.style.opacity = '0';
+                                    currentCommentElement.style.transform = 'translateX(30px)';
+
+                                    setTimeout(() => {
+                                        currentCommentElement.remove();
+
+                                        // 更新页面数据
+                                        // 1. 更新顶部大卡片的评分数字
+                                        const scoreDisplay = document.querySelector('.text-4xl.text-pink-500.font-bold');
+                                        if (scoreDisplay) scoreDisplay.innerText = data.new_score;
+
+                                        // 2. 更新评论区的总计数
+                                        const countDisplay = document.querySelector('.ml-2.text-sm.font-normal.text-gray-400');
+                                        if (countDisplay) countDisplay.innerText = `(${data.new_count})`;
+
+                                        // 3. 检查是否还有其他评论
+                                        const remainingComments = document.querySelectorAll('.group.flex.gap-4');
+                                        if (remainingComments.length === 0) {
+                                            // 如果没有评论了，显示"还没有人评论"的占位提示
+                                            const commentsContainer = document.querySelector('.space-y-8');
+                                            if (commentsContainer) {
+                                                commentsContainer.innerHTML = `
+                                            <div class="text-center py-12">
+                                                <i class="fa-solid fa-feather text-4xl text-gray-100 mb-4 block"></i>
+                                                <p class="text-gray-400 text-sm">还没有人评论，快来抢沙发吧~</p>
+                                            </div>
+                                        `;
+                                            }
+                                        }
+                                    }, 500);
+                                }
+                            } else {
+                                alert('删除失败：' + (data.message || '权限不足'));
+                                btn.disabled = false;
+                                btn.innerText = '确认删除';
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            alert('网络通讯错误');
+                            btn.disabled = false;
+                            btn.innerText = '确认删除';
+                        });
+                };
+            }
+        });
+    })();
+    // 图集弹窗动画
+    window.openFullGallery = function () {
+        const modal = document.getElementById('fullGalleryModal');
+        const backdrop = document.getElementById('galleryBackdrop');
+        const content = document.getElementById('galleryContent');
+
+        // 显示弹窗
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+
+        // 强制重绘以触发动画
+        setTimeout(() => {
+            // 背景动画：从透明到半透明
+            backdrop.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+            backdrop.style.backdropFilter = 'blur(8px)';
+
+            // 内容动画：从缩小透明到正常
+            content.style.opacity = '1';
+            content.style.transform = 'scale(1)';
+        }, 10);
+    };
+
+    // 修改你原有的关闭函数
+    window.closeFullGallery = function () {
+        const backdrop = document.getElementById('galleryBackdrop');
+        const content = document.getElementById('galleryContent');
+        const modal = document.getElementById('fullGalleryModal');
+
+        backdrop.style.backgroundColor = 'rgba(0, 0, 0, 0)';
+        backdrop.style.backdropFilter = 'blur(0px)';
+        content.style.opacity = '0';
+        content.style.transform = 'scale(0.9)';
+
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+
+            // 关键：只有用户点过“删除”或“精选”成功后，关闭时才强制刷新同步主页预览图
+            if (hasChangedGallery) {
+                location.reload();
+            }
+        }, 500);
+    };
+
+    // 增强下载功能（处理跨域图片下载）
+    document.querySelectorAll('[download]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            // 如果图片在不同域名下，普通的 download 属性可能失效
+            // 这里可以保持默认，现代浏览器对于同源或配置了 CORS 的媒体文件支持良好
+        });
+    });
+    // work_detail.html 的 script 区域
+
+    window.deleteGalleryImage = function (imageId, deleteUrl) {
+        if (!confirm('确定要从作品图集中移除这张图片吗？')) return;
+
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        fetch(deleteUrl, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    const element = document.getElementById(`gallery-item-${imageId}`);
+                    // 简单动效
+                    element.style.opacity = '0';
+                    element.style.transform = 'scale(0.9)';
+                    setTimeout(() => {
+                        element.remove();
+                        // 可选：如果图片删完了，可以刷新页面或显示占位符
+                    }, 300);
+                    hasChangedGallery = true;
+                } else {
+                    alert(data.message || '删除失败');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('通讯错误，请稍后重试');
+            });
+    };
+    window.toggleFeatured = function (imageId, url) {
+        const btn = document.getElementById(`feature-btn-${imageId}`);
+        const btnText = btn.querySelector('.btn-text');
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        // 发起异步请求
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+            .then(res => {
+                if (!res.ok) {
+                    // 如果后端返回 400（达到上限），则抛出错误进入 catch
+                    return res.json().then(err => { throw err; });
+                }
+                return res.json();
+            })
+            .then(data => {
+                if (data.status === 'success') {
+                    // 1. 标记发生了变动，关闭弹窗时将刷新
+                    hasChangedGallery = true;
+
+                    // 2. 更新当前按钮的视觉状态
+                    if (data.is_featured) {
+                        // 变为“已精选”状态
+                        btn.classList.remove('bg-white', 'text-yellow-600', 'border-yellow-200', 'hover:bg-yellow-50');
+                        btn.classList.add('bg-yellow-400', 'text-white', 'border-yellow-500');
+                        btnText.innerText = '取消精选';
+                    } else {
+                        // 恢复为“未精选”状态
+                        btn.classList.remove('bg-yellow-400', 'text-white', 'border-yellow-500');
+                        btn.classList.add('bg-white', 'text-yellow-600', 'border-yellow-200', 'hover:bg-yellow-50');
+                        btnText.innerText = '设为精选';
+                    }
+
+                    // 提示：因为逻辑比较复杂（涉及到其他按钮是否该变灰），
+                    // 我们通过 hasChangedGallery 让用户在关闭弹窗时看到最终排序效果。
+                }
+            })
+            .catch(err => {
+                console.error('Error:', err);
+                // 显示后端传回的“精选图片数量已经达到上限”或其他错误
+                alert(err.message || '操作失败，请重试');
+            });
+    };
+    // work_detail.html 的 script 区域
+
+    // 用于存储哪些图片处于“待确认”状态
+    let deleteConfirmTimeout = {};
+
+    window.confirmDelete = function (imageId, deleteUrl) {
+        const btn = document.getElementById(`delete-btn-${imageId}`);
+        const textSpan = btn.querySelector('.delete-text');
+        const icon = btn.querySelector('i');
+
+        // 如果按钮目前不是“待确认”状态
+        if (!btn.dataset.confirming) {
+            // 1. 进入待确认状态
+            btn.dataset.confirming = "true";
+
+            // 2. 修改样式：加深红色背景，文字变白
+            btn.classList.remove('bg-red-50', 'text-red-500');
+            btn.classList.add('bg-red-600', 'text-white', 'border-red-700');
+            textSpan.innerText = "确认删除该图片吗？";
+            icon.classList.replace('fa-trash-can', 'fa-circle-exclamation');
+
+            // 3. 设置 3 秒超时重置，防止用户反悔后按钮一直卡在红色
+            if (deleteConfirmTimeout[imageId]) clearTimeout(deleteConfirmTimeout[imageId]);
+            deleteConfirmTimeout[imageId] = setTimeout(() => {
+                resetDeleteButton(imageId);
+            }, 3000);
+
+        } else {
+            // 如果已经是待确认状态，执行真正的删除操作
+            executeActualDelete(imageId, deleteUrl);
+        }
+    };
+
+    // 恢复按钮初始状态的函数
+    function resetDeleteButton(imageId) {
+        const btn = document.getElementById(`delete-btn-${imageId}`);
+        if (!btn) return;
+        const textSpan = btn.querySelector('.delete-text');
+        const icon = btn.querySelector('i');
+
+        delete btn.dataset.confirming;
+        btn.classList.remove('bg-red-600', 'text-white', 'border-red-700');
+        btn.classList.add('bg-red-50', 'text-red-500');
+        textSpan.innerText = "删除此图片";
+        icon.classList.replace('fa-circle-exclamation', 'fa-trash-can');
+    }
+
+    // 真正的 Ajax 删除执行逻辑
+    function executeActualDelete(imageId, deleteUrl) {
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        // 按钮显示加载状态
+        const btn = document.getElementById(`delete-btn-${imageId}`);
+        btn.style.opacity = "0.5";
+        btn.disabled = true;
+
+        fetch(deleteUrl, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    const card = document.getElementById(`gallery-item-${imageId}`);
+                    card.style.transform = 'scale(0.9) translateY(20px)';
+                    card.style.opacity = '0';
+
+                    // 标记已改动，关闭弹窗时刷新
+                    hasChangedGallery = true;
+
+                    setTimeout(() => {
+                        card.remove();
+                    }, 300);
+                } else {
+                    alert(data.message || '删除失败');
+                    resetDeleteButton(imageId);
+                }
+            })
+            .catch(err => {
+                alert('通讯错误');
+                resetDeleteButton(imageId);
+            });
+    }
+    let tagChanged = false;
+
+    window.openTagManagerModal = function () {
+        const modal = document.getElementById('tagManagerModal');
+        const content = document.getElementById('tagModalContent');
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            content.classList.replace('scale-95', 'scale-100');
+            content.classList.replace('opacity-0', 'opacity-100');
+        }, 10);
+        document.body.style.overflow = 'hidden';
+    };
+
+    window.closeTagManagerModal = function () {
+        const modal = document.getElementById('tagManagerModal');
+        const content = document.getElementById('tagModalContent');
+        content.classList.replace('scale-100', 'scale-95');
+        content.classList.replace('opacity-100', 'opacity-0');
+
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+            if (tagChanged) {
+                location.reload(); // 如果有删除操作，关闭时刷新界面
+            }
+        }, 300);
+    };
+
+    window.deleteUserTag = function (tagId, btnElement) {
+        // 删除了 if(!confirm) 判断，直接开始执行请求
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        const url = "{% url 'masterpieces:delete_user_tag' 999 %}".replace('999', tagId);
+
+        // 增加视觉反馈：立即半透明，让用户知道已经点到了
+        btnElement.style.opacity = '0.5';
+        btnElement.style.pointerEvents = 'none'; // 防止连续点击
 
         fetch(url, {
             method: 'POST',
@@ -442,542 +1010,35 @@ let hasChangedGallery = false;
                 'X-Requested-With': 'XMLHttpRequest'
             }
         })
-        .then(response => response.json())
-        .then(data => {
-            const icon = likeBtn.querySelector('i');
-            const countSpan = likeBtn.querySelector('span');
-            if (data.liked) {
-                likeBtn.classList.add('text-pink-500');
-                icon.className = 'fa-solid fa-heart';
-            } else {
-                likeBtn.classList.remove('text-pink-500');
-                icon.className = 'fa-regular fa-heart';
-            }
-            countSpan.innerText = data.count;
-        });
-    });
-
-    // ---------- 补充缺失的完整函数 ----------
-    window.toggleUploadModal = function() {
-        const modal = document.getElementById('uploadModal');
-        modal.classList.toggle('hidden');
-    };
-
-    window.previewImage = function(input) {
-        const preview = document.getElementById('imagePreview');
-        const previewImg = preview.querySelector('img');
-        if (input.files && input.files[0]) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                previewImg.src = e.target.result;
-                preview.classList.remove('hidden');
-            };
-            reader.readAsDataURL(input.files[0]);
-        }
-    };
-
-    window.showTagInput = function() {
-        document.getElementById('tag-input-wrapper').classList.remove('hidden');
-    };
-
-    window.hideTagInput = function() {
-        document.getElementById('tag-input-wrapper').classList.add('hidden');
-    };
-
-    // 修改 submitUserTag 函数
-    window.submitUserTag = function(workId) {
-        const input = document.getElementById('new-tag-name');
-        const tagName = input.value.trim();
-        if (!tagName) return;
-
-        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
-        const formData = new FormData();
-        formData.append('tag_name', tagName);
-
-        // 使用 Django 模板标签生成基础 URL，避免手动拼接路径错误
-        // 注意：这里需要确保路由中有对应的 name
-        const url = "{% url 'masterpieces:add_user_tag' 999 %}".replace('999', workId);
-
-        fetch(url, {
-            method: 'POST',
-            headers: { 'X-CSRFToken': csrfToken },
-            body: formData
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.status === 'success') {
-                location.reload();
-                // 更好的体验：动态添加 DOM 而不是刷新页面
-                const container = document.getElementById('user-tags-container');
-                const noTagPrompt = container.querySelector('div.flex-col');
-                if (noTagPrompt) noTagPrompt.remove(); // 移除“暂时没有标签”的提示
-
-                const span = document.createElement('span');
-                span.className = "inline-flex items-center justify-center px-3 py-1 bg-pink-100 text-pink-500 rounded-full text-xs font-bold animate-fadeIn";
-                span.innerText = `# ${tagName}`;
-                container.appendChild(span);
-
-                input.value = ''; // 清空输入框
-                hideTagInput();   // 隐藏输入框
-            } else {
-                alert(data.message);
-            }
-        })
-        .catch(err => {
-            console.error('Error:', err);
-            alert('提交失败，请检查网络或登录状态');
-        });
-    };
-
-document.addEventListener('DOMContentLoaded', function() {
-    const stars = document.querySelectorAll('#star-rating i');
-    const scoreInput = document.getElementById('score-input');
-    let currentSelected = 0; // 记录当前点击锁定的分数
-
-    if (stars.length && scoreInput) {
-        // 定义一个高亮星星的辅助函数
-        const highlightStars = (rating) => {
-            stars.forEach(s => {
-                const sVal = parseInt(s.dataset.val);
-                if (sVal <= rating) {
-                    s.classList.add('text-yellow-400');
-                    s.classList.remove('text-gray-200');
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    tagChanged = true;
+                    // 执行消失动画
+                    btnElement.style.transform = 'scale(0.8)';
+                    btnElement.style.opacity = '0';
+                    setTimeout(() => btnElement.remove(), 250);
                 } else {
-                    s.classList.add('text-gray-200');
-                    s.classList.remove('text-yellow-400');
+                    // 只有报错时才提示
+                    btnElement.style.opacity = '1';
+                    btnElement.style.pointerEvents = 'auto';
+                    console.error(data.message);
                 }
+            })
+            .catch(err => {
+                btnElement.style.opacity = '1';
+                btnElement.style.pointerEvents = 'auto';
+                console.error(err);
             });
-        };
-
-        stars.forEach(star => {
-            // 1. 鼠标移入：根据当前经过的星星，让前面的全部亮起
-            star.onmouseenter = function() {
-                const hoverVal = parseInt(this.dataset.val);
-                highlightStars(hoverVal);
-            };
-
-            // 2. 鼠标移出：恢复到之前已经点击选择的分数（如果没有点击，则全灭）
-            star.onmouseleave = function() {
-                highlightStars(currentSelected);
-            };
-
-            // 3. 点击：锁定数值并同步到表单
-            star.onclick = function() {
-                currentSelected = parseInt(this.dataset.val);
-                scoreInput.value = currentSelected;
-                highlightStars(currentSelected);
-            };
-        });
-    }
-});
-})();
-// 修改后的完整无刷新删除脚本
-(function() {
-    let currentDeleteUrl = '';
-    let currentCommentElement = null;
-
-    // 1. 弹出确认框（带精美动画）
-    window.confirmDeleteComment = function(deleteUrl) {
-        // 获取点击的按钮及其所在的评论条目
-        const triggerBtn = window.event ? window.event.currentTarget || window.event.target : null;
-        currentDeleteUrl = deleteUrl;
-
-        if (triggerBtn) {
-            // 向上查找评论容器 - 修正选择器以匹配实际结构
-            currentCommentElement = triggerBtn.closest('.group.flex.gap-4');
-        }
-
-        const modal = document.getElementById('deleteConfirmModal');
-        const backdrop = document.getElementById('modalBackdrop');
-        const content = document.getElementById('modalContent');
-
-        modal.classList.remove('hidden');
-        // 强制重绘触发 CSS 过渡动画
-        setTimeout(() => {
-            backdrop.classList.replace('opacity-0', 'opacity-100');
-            content.classList.replace('scale-95', 'scale-100');
-            content.classList.replace('opacity-0', 'opacity-100');
-        }, 10);
     };
-
-    // 2. 关闭确认框动画
-    window.closeDeleteModal = function() {
-        const backdrop = document.getElementById('modalBackdrop');
-        const content = document.getElementById('modalContent');
-
-        backdrop.classList.replace('opacity-100', 'opacity-0');
-        content.classList.replace('scale-100', 'scale-95');
-        content.classList.replace('opacity-100', 'opacity-0');
-
-        setTimeout(() => {
-            document.getElementById('deleteConfirmModal').classList.add('hidden');
-        }, 300);
-    };
-
-    // 3. 核心：执行无刷新删除
-    document.addEventListener('DOMContentLoaded', function() {
-        const confirmBtn = document.getElementById('confirmDeleteBtn');
-        if (confirmBtn) {
-            confirmBtn.onclick = function() {
-                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-                const btn = this;
-
-                // 防止重复点击
-                btn.disabled = true;
-                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>处理中...';
-
-                fetch(currentDeleteUrl, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRFToken': csrfToken,
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'success') {
-                        closeDeleteModal();
-
-                        if (currentCommentElement) {
-                            // 执行评论条目淡出并向右滑动的动画
-                            currentCommentElement.style.transition = 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
-                            currentCommentElement.style.opacity = '0';
-                            currentCommentElement.style.transform = 'translateX(30px)';
-
-                            setTimeout(() => {
-                                currentCommentElement.remove();
-
-                                // 更新页面数据
-                                // 1. 更新顶部大卡片的评分数字
-                                const scoreDisplay = document.querySelector('.text-4xl.text-pink-500.font-bold');
-                                if (scoreDisplay) scoreDisplay.innerText = data.new_score;
-
-                                // 2. 更新评论区的总计数
-                                const countDisplay = document.querySelector('.ml-2.text-sm.font-normal.text-gray-400');
-                                if (countDisplay) countDisplay.innerText = `(${data.new_count})`;
-
-                                // 3. 检查是否还有其他评论
-                                const remainingComments = document.querySelectorAll('.group.flex.gap-4');
-                                if (remainingComments.length === 0) {
-                                    // 如果没有评论了，显示"还没有人评论"的占位提示
-                                    const commentsContainer = document.querySelector('.space-y-8');
-                                    if (commentsContainer) {
-                                        commentsContainer.innerHTML = `
-                                            <div class="text-center py-12">
-                                                <i class="fa-solid fa-feather text-4xl text-gray-100 mb-4 block"></i>
-                                                <p class="text-gray-400 text-sm">还没有人评论，快来抢沙发吧~</p>
-                                            </div>
-                                        `;
-                                    }
-                                }
-                            }, 500);
-                        }
-                    } else {
-                        alert('删除失败：' + (data.message || '权限不足'));
-                        btn.disabled = false;
-                        btn.innerText = '确认删除';
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('网络通讯错误');
-                    btn.disabled = false;
-                    btn.innerText = '确认删除';
-                });
-            };
-        }
-    });
-})();
-// 图集弹窗动画
-window.openFullGallery = function() {
-    const modal = document.getElementById('fullGalleryModal');
-    const backdrop = document.getElementById('galleryBackdrop');
-    const content = document.getElementById('galleryContent');
-
-    // 显示弹窗
-    modal.classList.remove('hidden');
-    document.body.style.overflow = 'hidden';
-
-    // 强制重绘以触发动画
-    setTimeout(() => {
-        // 背景动画：从透明到半透明
-        backdrop.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
-        backdrop.style.backdropFilter = 'blur(8px)';
-
-        // 内容动画：从缩小透明到正常
-        content.style.opacity = '1';
-        content.style.transform = 'scale(1)';
-    }, 10);
-};
-
-// 修改你原有的关闭函数
-window.closeFullGallery = function() {
-    const backdrop = document.getElementById('galleryBackdrop');
-    const content = document.getElementById('galleryContent');
-    const modal = document.getElementById('fullGalleryModal');
-
-    backdrop.style.backgroundColor = 'rgba(0, 0, 0, 0)';
-    backdrop.style.backdropFilter = 'blur(0px)';
-    content.style.opacity = '0';
-    content.style.transform = 'scale(0.9)';
-
-    setTimeout(() => {
-        modal.classList.add('hidden');
-        document.body.style.overflow = 'auto';
-
-        // 关键：只有用户点过“删除”或“精选”成功后，关闭时才强制刷新同步主页预览图
-        if (hasChangedGallery) {
-            location.reload();
-        }
-    }, 500);
-};
-
-// 增强下载功能（处理跨域图片下载）
-document.querySelectorAll('[download]').forEach(anchor => {
-    anchor.addEventListener('click', function(e) {
-        // 如果图片在不同域名下，普通的 download 属性可能失效
-        // 这里可以保持默认，现代浏览器对于同源或配置了 CORS 的媒体文件支持良好
-    });
-});
-// work_detail.html 的 script 区域
-
-window.deleteGalleryImage = function(imageId, deleteUrl) {
-    if (!confirm('确定要从作品图集中移除这张图片吗？')) return;
-
-    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-
-    fetch(deleteUrl, {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': csrfToken,
-            'X-Requested-With': 'XMLHttpRequest'
-        }
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.status === 'success') {
-            const element = document.getElementById(`gallery-item-${imageId}`);
-            // 简单动效
-            element.style.opacity = '0';
-            element.style.transform = 'scale(0.9)';
-            setTimeout(() => {
-                element.remove();
-                // 可选：如果图片删完了，可以刷新页面或显示占位符
-            }, 300);
-            hasChangedGallery = true;
-        } else {
-            alert(data.message || '删除失败');
-        }
-    })
-    .catch(err => {
-        console.error(err);
-        alert('通讯错误，请稍后重试');
-    });
-};
-window.toggleFeatured = function(imageId, url) {
-    const btn = document.getElementById(`feature-btn-${imageId}`);
-    const btnText = btn.querySelector('.btn-text');
-    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-
-    // 发起异步请求
-    fetch(url, {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': csrfToken,
-            'X-Requested-With': 'XMLHttpRequest'
-        }
-    })
-    .then(res => {
-        if (!res.ok) {
-            // 如果后端返回 400（达到上限），则抛出错误进入 catch
-            return res.json().then(err => { throw err; });
-        }
-        return res.json();
-    })
-    .then(data => {
-        if (data.status === 'success') {
-            // 1. 标记发生了变动，关闭弹窗时将刷新
-            hasChangedGallery = true;
-
-            // 2. 更新当前按钮的视觉状态
-            if (data.is_featured) {
-                // 变为“已精选”状态
-                btn.classList.remove('bg-white', 'text-yellow-600', 'border-yellow-200', 'hover:bg-yellow-50');
-                btn.classList.add('bg-yellow-400', 'text-white', 'border-yellow-500');
-                btnText.innerText = '取消精选';
-            } else {
-                // 恢复为“未精选”状态
-                btn.classList.remove('bg-yellow-400', 'text-white', 'border-yellow-500');
-                btn.classList.add('bg-white', 'text-yellow-600', 'border-yellow-200', 'hover:bg-yellow-50');
-                btnText.innerText = '设为精选';
-            }
-
-            // 提示：因为逻辑比较复杂（涉及到其他按钮是否该变灰），
-            // 我们通过 hasChangedGallery 让用户在关闭弹窗时看到最终排序效果。
-        }
-    })
-    .catch(err => {
-        console.error('Error:', err);
-        // 显示后端传回的“精选图片数量已经达到上限”或其他错误
-        alert(err.message || '操作失败，请重试');
-    });
-};
-// work_detail.html 的 script 区域
-
-// 用于存储哪些图片处于“待确认”状态
-let deleteConfirmTimeout = {};
-
-window.confirmDelete = function(imageId, deleteUrl) {
-    const btn = document.getElementById(`delete-btn-${imageId}`);
-    const textSpan = btn.querySelector('.delete-text');
-    const icon = btn.querySelector('i');
-
-    // 如果按钮目前不是“待确认”状态
-    if (!btn.dataset.confirming) {
-        // 1. 进入待确认状态
-        btn.dataset.confirming = "true";
-
-        // 2. 修改样式：加深红色背景，文字变白
-        btn.classList.remove('bg-red-50', 'text-red-500');
-        btn.classList.add('bg-red-600', 'text-white', 'border-red-700');
-        textSpan.innerText = "确认删除该图片吗？";
-        icon.classList.replace('fa-trash-can', 'fa-circle-exclamation');
-
-        // 3. 设置 3 秒超时重置，防止用户反悔后按钮一直卡在红色
-        if (deleteConfirmTimeout[imageId]) clearTimeout(deleteConfirmTimeout[imageId]);
-        deleteConfirmTimeout[imageId] = setTimeout(() => {
-            resetDeleteButton(imageId);
-        }, 3000);
-
-    } else {
-        // 如果已经是待确认状态，执行真正的删除操作
-        executeActualDelete(imageId, deleteUrl);
-    }
-};
-
-// 恢复按钮初始状态的函数
-function resetDeleteButton(imageId) {
-    const btn = document.getElementById(`delete-btn-${imageId}`);
-    if (!btn) return;
-    const textSpan = btn.querySelector('.delete-text');
-    const icon = btn.querySelector('i');
-
-    delete btn.dataset.confirming;
-    btn.classList.remove('bg-red-600', 'text-white', 'border-red-700');
-    btn.classList.add('bg-red-50', 'text-red-500');
-    textSpan.innerText = "删除此图片";
-    icon.classList.replace('fa-circle-exclamation', 'fa-trash-can');
-}
-
-// 真正的 Ajax 删除执行逻辑
-function executeActualDelete(imageId, deleteUrl) {
-    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-
-    // 按钮显示加载状态
-    const btn = document.getElementById(`delete-btn-${imageId}`);
-    btn.style.opacity = "0.5";
-    btn.disabled = true;
-
-    fetch(deleteUrl, {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': csrfToken,
-            'X-Requested-With': 'XMLHttpRequest'
-        }
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.status === 'success') {
-            const card = document.getElementById(`gallery-item-${imageId}`);
-            card.style.transform = 'scale(0.9) translateY(20px)';
-            card.style.opacity = '0';
-
-            // 标记已改动，关闭弹窗时刷新
-            hasChangedGallery = true;
-
-            setTimeout(() => {
-                card.remove();
-            }, 300);
-        } else {
-            alert(data.message || '删除失败');
-            resetDeleteButton(imageId);
-        }
-    })
-    .catch(err => {
-        alert('通讯错误');
-        resetDeleteButton(imageId);
-    });
-}
-let tagChanged = false;
-
-window.openTagManagerModal = function() {
-    const modal = document.getElementById('tagManagerModal');
-    const content = document.getElementById('tagModalContent');
-    modal.classList.remove('hidden');
-    setTimeout(() => {
-        content.classList.replace('scale-95', 'scale-100');
-        content.classList.replace('opacity-0', 'opacity-100');
-    }, 10);
-    document.body.style.overflow = 'hidden';
-};
-
-window.closeTagManagerModal = function() {
-    const modal = document.getElementById('tagManagerModal');
-    const content = document.getElementById('tagModalContent');
-    content.classList.replace('scale-100', 'scale-95');
-    content.classList.replace('opacity-100', 'opacity-0');
-
-    setTimeout(() => {
-        modal.classList.add('hidden');
-        document.body.style.overflow = 'auto';
-        if (tagChanged) {
-            location.reload(); // 如果有删除操作，关闭时刷新界面
-        }
-    }, 300);
-};
-
-window.deleteUserTag = function(tagId, btnElement) {
-    // 删除了 if(!confirm) 判断，直接开始执行请求
-    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-    const url = "{% url 'masterpieces:delete_user_tag' 999 %}".replace('999', tagId);
-
-    // 增加视觉反馈：立即半透明，让用户知道已经点到了
-    btnElement.style.opacity = '0.5';
-    btnElement.style.pointerEvents = 'none'; // 防止连续点击
-
-    fetch(url, {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': csrfToken,
-            'X-Requested-With': 'XMLHttpRequest'
-        }
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.status === 'success') {
-            tagChanged = true;
-            // 执行消失动画
-            btnElement.style.transform = 'scale(0.8)';
-            btnElement.style.opacity = '0';
-            setTimeout(() => btnElement.remove(), 250);
-        } else {
-            // 只有报错时才提示
-            btnElement.style.opacity = '1';
-            btnElement.style.pointerEvents = 'auto';
-            console.error(data.message);
-        }
-    })
-    .catch(err => {
-        btnElement.style.opacity = '1';
-        btnElement.style.pointerEvents = 'auto';
-        console.error(err);
-    });
-};
 </script>
-<div id="deleteConfirmModal" class="hidden fixed inset-0 z-[110] flex items-center justify-center p-4 transition-opacity duration-300">
-    <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-md opacity-0 transition-opacity duration-300" id="modalBackdrop"></div>
+<div id="deleteConfirmModal"
+    class="hidden fixed inset-0 z-[110] flex items-center justify-center p-4 transition-opacity duration-300">
+    <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-md opacity-0 transition-opacity duration-300"
+        id="modalBackdrop"></div>
 
-    <div id="modalContent" class="relative bg-white w-full max-w-sm rounded-[24px] p-8 shadow-2xl transform scale-95 opacity-0 transition-all duration-300">
+    <div id="modalContent"
+        class="relative bg-white w-full max-w-sm rounded-[24px] p-8 shadow-2xl transform scale-95 opacity-0 transition-all duration-300">
         <div class="text-center">
             <div class="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
                 <i class="fa-solid fa-triangle-exclamation text-2xl"></i>
@@ -987,11 +1048,11 @@ window.deleteUserTag = function(tagId, btnElement) {
 
             <div class="flex gap-3">
                 <button type="button" onclick="closeDeleteModal()"
-                        class="flex-1 py-3 bg-gray-100 text-gray-600 rounded-xl font-bold hover:bg-gray-200 transition-all">
+                    class="flex-1 py-3 bg-gray-100 text-gray-600 rounded-xl font-bold hover:bg-gray-200 transition-all">
                     取消
                 </button>
                 <button type="button" id="confirmDeleteBtn"
-                        class="flex-1 py-3 bg-red-500 text-white rounded-xl font-bold shadow-lg shadow-red-200 hover:bg-red-600 transition-all">
+                    class="flex-1 py-3 bg-red-500 text-white rounded-xl font-bold shadow-lg shadow-red-200 hover:bg-red-600 transition-all">
                     确认删除
                 </button>
             </div>
@@ -999,19 +1060,19 @@ window.deleteUserTag = function(tagId, btnElement) {
     </div>
 </div>
 <div id="fullGalleryModal" class="hidden fixed inset-0 z-[120] flex items-center justify-center p-4">
-    <div class="absolute inset-0 bg-black/0 backdrop-blur-0 transition-all duration-500 ease-out"
-         id="galleryBackdrop"
-         onclick="closeFullGallery()"></div>
+    <div class="absolute inset-0 bg-black/0 backdrop-blur-0 transition-all duration-500 ease-out" id="galleryBackdrop"
+        onclick="closeFullGallery()"></div>
 
     <div class="relative bg-white/90 w-full max-w-5xl max-h-[90vh] rounded-[32px] shadow-2xl overflow-hidden flex flex-col opacity-0 scale-90 transition-all duration-500 ease-out"
-         id="galleryContent">
+        id="galleryContent">
 
         <div class="p-6 border-b bg-white/80 backdrop-blur-md flex justify-between items-center sticky top-0 z-10">
             <div>
                 <h3 class="text-xl font-black text-gray-800">全部图集资源</h3>
                 <p class="text-xs text-gray-400">共 {{ work.gallery.count|add:1 }} 张高清资源</p>
             </div>
-            <button onclick="closeFullGallery()" class="text-gray-400 hover:text-pink-500 transition-all hover:rotate-90">
+            <button onclick="closeFullGallery()"
+                class="text-gray-400 hover:text-pink-500 transition-all hover:rotate-90">
                 <i class="fa-solid fa-circle-xmark text-3xl"></i>
             </button>
         </div>
@@ -1020,17 +1081,20 @@ window.deleteUserTag = function(tagId, btnElement) {
 
             <div class="bg-white p-4 rounded-3xl shadow-sm border border-gray-100">
                 <div class="flex flex-col md:flex-row gap-8 items-start">
-                    <div class="w-full md:w-1/2 rounded-2xl overflow-hidden bg-gray-50 flex items-center justify-center">
+                    <div
+                        class="w-full md:w-1/2 rounded-2xl overflow-hidden bg-gray-50 flex items-center justify-center">
                         <img src="{{ work.cover.url }}" class="w-full h-auto object-contain shadow-inner" />
                     </div>
 
                     <div class="w-full md:w-1/2 flex flex-col justify-center self-center">
-                        <span class="px-3 py-1 bg-pink-100 text-pink-500 rounded-full text-xs font-bold w-fit mb-4">核心封面图</span>
+                        <span
+                            class="px-3 py-1 bg-pink-100 text-pink-500 rounded-full text-xs font-bold w-fit mb-4">核心封面图</span>
                         <div class="space-y-2 mb-6">
-                            <p class="text-gray-500 text-sm">上传者：<span class="font-bold text-gray-800">{{ work.owner.username }}</span></p>
-                            </div>
+                            <p class="text-gray-500 text-sm">上传者：<span class="font-bold text-gray-800">{{
+                                    work.owner.username }}</span></p>
+                        </div>
                         <a href="{{ work.cover.url }}" download="cover_{{ work.id }}.jpg"
-                           class="flex items-center justify-center gap-3 py-4 bg-gray-900 text-white rounded-2xl text-base font-bold hover:bg-pink-500 shadow-xl transition-all active:scale-95">
+                            class="flex items-center justify-center gap-3 py-4 bg-gray-900 text-white rounded-2xl text-base font-bold hover:bg-pink-500 shadow-xl transition-all active:scale-95">
                             <i class="fa-solid fa-download"></i> 保存原图
                         </a>
                     </div>
@@ -1038,36 +1102,40 @@ window.deleteUserTag = function(tagId, btnElement) {
             </div>
 
             {% for item in work.gallery.all %}
-                <div class="bg-white p-4 rounded-3xl shadow-sm border border-gray-100 gallery-image-card" id="gallery-item-{{ item.id }}">
-                    <div class="flex flex-col md:flex-row gap-8 items-start">
-                        <div class="w-full md:w-1/2 rounded-2xl overflow-hidden bg-gray-50 flex items-center justify-center">
-                            <img src="{{ item.image.url }}" class="w-full h-auto object-contain shadow-inner" />
+            <div class="bg-white p-4 rounded-3xl shadow-sm border border-gray-100 gallery-image-card"
+                id="gallery-item-{{ item.id }}">
+                <div class="flex flex-col md:flex-row gap-8 items-start">
+                    <div
+                        class="w-full md:w-1/2 rounded-2xl overflow-hidden bg-gray-50 flex items-center justify-center">
+                        <img src="{{ item.image.url }}" class="w-full h-auto object-contain shadow-inner" />
+                    </div>
+
+                    <div class="w-full md:w-1/2 flex flex-col justify-center self-center">
+                        <span class="px-3 py-1 bg-blue-100 text-blue-500 rounded-full text-xs font-bold w-fit mb-4">作品插图
+                            #{{ forloop.counter }}</span>
+                        <div class="space-y-2 mb-6">
+                            <p class="text-gray-500 text-sm">上传者：<span class="font-bold text-gray-800">{{
+                                    item.uploader.username|default:work.owner.username }}</span></p>
                         </div>
 
-                        <div class="w-full md:w-1/2 flex flex-col justify-center self-center">
-                            <span class="px-3 py-1 bg-blue-100 text-blue-500 rounded-full text-xs font-bold w-fit mb-4">作品插图 #{{ forloop.counter }}</span>
-                            <div class="space-y-2 mb-6">
-                                <p class="text-gray-500 text-sm">上传者：<span class="font-bold text-gray-800">{{ item.uploader.username|default:work.owner.username }}</span></p>
-                            </div>
+                        <div class="flex flex-col gap-3">
+                            <a href="{{ item.image.url }}" download="gallery_{{ item.id }}.jpg"
+                                class="flex items-center justify-center gap-3 py-4 bg-gray-900 text-white rounded-2xl text-base font-bold hover:bg-blue-500 shadow-xl transition-all active:scale-95">
+                                <i class="fa-solid fa-download"></i> 保存原图
+                            </a>
 
-                            <div class="flex flex-col gap-3">
-                                <a href="{{ item.image.url }}" download="gallery_{{ item.id }}.jpg"
-                                   class="flex items-center justify-center gap-3 py-4 bg-gray-900 text-white rounded-2xl text-base font-bold hover:bg-blue-500 shadow-xl transition-all active:scale-95">
-                                    <i class="fa-solid fa-download"></i> 保存原图
-                                </a>
-
-                                {% if user.is_staff or work.owner == user or item.uploader == user %}
-                                    <button id="delete-btn-{{ item.id }}"
-                                            onclick="confirmDelete({{ item.id }}, '{% url 'masterpieces:delete_gallery_image' item.id %}')"
-                                            class="flex items-center justify-center gap-3 py-3 bg-red-50 text-red-500 rounded-2xl text-sm font-bold hover:bg-red-100 transition-all border border-red-100">
-                                        <i class="fa-solid fa-trash-can"></i>
-                                        <span class="delete-text">删除此图片</span>
-                                    </button>
-                                {% endif %}
-                                {% if user.is_staff or work.owner == user %}
-                                    <button id="feature-btn-{{ item.id }}"
-                                            onclick="toggleFeatured({{ item.id }}, '{% url 'masterpieces:toggle_gallery_featured' item.id %}')"
-                                            class="flex items-center justify-center gap-3 py-3 rounded-2xl text-sm font-bold transition-all border
+                            {% if user.is_staff or work.owner == user or item.uploader == user %}
+                            <button id="delete-btn-{{ item.id }}"
+                                onclick="confirmDelete({{ item.id }}, '{% url 'masterpieces:delete_gallery_image' item.id %}')"
+                                class="flex items-center justify-center gap-3 py-3 bg-red-50 text-red-500 rounded-2xl text-sm font-bold hover:bg-red-100 transition-all border border-red-100">
+                                <i class="fa-solid fa-trash-can"></i>
+                                <span class="delete-text">删除此图片</span>
+                            </button>
+                            {% endif %}
+                            {% if user.is_staff or work.owner == user %}
+                            <button id="feature-btn-{{ item.id }}"
+                                onclick="toggleFeatured({{ item.id }}, '{% url 'masterpieces:toggle_gallery_featured' item.id %}')"
+                                class="flex items-center justify-center gap-3 py-3 rounded-2xl text-sm font-bold transition-all border
                                             {% if item.is_featured %}
                                                 bg-yellow-400 text-white border-yellow-500
                                             {% else %}
@@ -1076,29 +1144,32 @@ window.deleteUserTag = function(tagId, btnElement) {
                                                 {% else %}
                                                     bg-white text-yellow-600 border-yellow-200 hover:bg-yellow-50
                                                 {% endif %}
-                                            {% endif %}"
-                                            {% if not item.is_featured and work.gallery.filter.is_featured.count >= 4 %} disabled {% endif %}>
-                                        <i class="fa-solid fa-star"></i>
-                                        <span class="btn-text">
-                                            {% if item.is_featured %}取消精选{% else %}
-                                                {% if work.gallery.filter.is_featured.count >= 4 %}精选图片数量已经达到上限{% else %}设为精选{% endif %}
-                                            {% endif %}
-                                        </span>
-                                    </button>
-                                {% endif %}
-                            </div>
+                                            {% endif %}" {% if not item.is_featured and
+                                work.gallery.filter.is_featured.count>= 4 %} disabled {% endif %}>
+                                <i class="fa-solid fa-star"></i>
+                                <span class="btn-text">
+                                    {% if item.is_featured %}取消精选{% else %}
+                                    {% if work.gallery.filter.is_featured.count >= 4 %}精选图片数量已经达到上限{% else %}设为精选{%
+                                    endif %}
+                                    {% endif %}
+                                </span>
+                            </button>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
-                {% endfor %}
+            </div>
+            {% endfor %}
 
         </div>
     </div>
 </div>
-    <div id="tagManagerModal" class="hidden fixed inset-0 z-[130] flex items-center justify-center p-4">
-    <div class="absolute inset-0 bg-white/20 backdrop-blur-xl transition-all duration-300" onclick="closeTagManagerModal()"></div>
+<div id="tagManagerModal" class="hidden fixed inset-0 z-[130] flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-white/20 backdrop-blur-xl transition-all duration-300"
+        onclick="closeTagManagerModal()"></div>
 
-    <div class="relative bg-white/80 backdrop-blur-md w-full max-w-md rounded-[32px] p-8 shadow-2xl border border-white/50 transform transition-all duration-500 scale-95 opacity-0" id="tagModalContent">
+    <div class="relative bg-white/80 backdrop-blur-md w-full max-w-md rounded-[32px] p-8 shadow-2xl border border-white/50 transform transition-all duration-500 scale-95 opacity-0"
+        id="tagModalContent">
         <div class="flex justify-between items-center mb-6">
             <div>
                 <h3 class="text-xl font-black text-gray-800">标签管理</h3>
@@ -1111,39 +1182,40 @@ window.deleteUserTag = function(tagId, btnElement) {
 
         <div class="flex flex-wrap gap-3 max-h-[40vh] overflow-y-auto p-2" id="manage-tags-list">
             {% for tag in work.user_tags.all %}
-                {% if user.is_staff or work.owner == user or tag.user == user %}
-                <button onclick="deleteUserTag({{ tag.id }}, this)"
-                        class="group relative flex items-center px-4 py-2 bg-white/50 border border-gray-100 text-gray-600 rounded-2xl text-sm font-bold hover:bg-red-50 hover:text-red-500 hover:border-red-100 transition-all">
-                    # {{ tag.name }}
-                    <i class="fa-solid fa-xmark ml-2 opacity-0 group-hover:opacity-100 transition-opacity"></i>
-                </button>
-                {% endif %}
+            {% if user.is_staff or work.owner == user or tag.user == user %}
+            <button onclick="deleteUserTag({{ tag.id }}, this)"
+                class="group relative flex items-center px-4 py-2 bg-white/50 border border-gray-100 text-gray-600 rounded-2xl text-sm font-bold hover:bg-red-50 hover:text-red-500 hover:border-red-100 transition-all">
+                # {{ tag.name }}
+                <i class="fa-solid fa-xmark ml-2 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+            </button>
+            {% endif %}
             {% endfor %}
         </div>
 
         <div class="mt-8">
-            <button onclick="closeTagManagerModal()" class="w-full py-4 bg-gray-900 text-white rounded-2xl font-bold shadow-lg hover:shadow-gray-300 transition-all active:scale-95">
+            <button onclick="closeTagManagerModal()"
+                class="w-full py-4 bg-gray-900 text-white rounded-2xl font-bold shadow-lg hover:shadow-gray-300 transition-all active:scale-95">
                 关闭管理
             </button>
         </div>
     </div>
 </div>
-    <script>
+<script>
     // 当页面加载完成后，通知小柚
-window.addEventListener('load', () => {
-    // 延迟一小会儿执行，确保看板娘组件已加载完成
-    setTimeout(() => {
-        // 获取作品名称（通过 Django 模板变量）
-        const workTitle = "{{ work.title|escapejs }}";
+    window.addEventListener('load', () => {
+        // 延迟一小会儿执行，确保看板娘组件已加载完成
+        setTimeout(() => {
+            // 获取作品名称（通过 Django 模板变量）
+            const workTitle = "{{ work.title|escapejs }}";
 
-        // 调用看板娘的对话函数
-        // 建议使用 'GENERAL' 或自定义一个 'DETAIL' 类型
-        if (typeof askXiaoYou === 'function') {
-            // 这里可以自定义发送给后端的消息内容，让 AI 生成开场白
-            askXiaoYou('GENERAL', `用户进入了作品《${workTitle}》的详情界面`);
-        }
-    }, 1000);
-});
-    </script>
+            // 调用看板娘的对话函数
+            // 建议使用 'GENERAL' 或自定义一个 'DETAIL' 类型
+            if (typeof askXiaoYou === 'function') {
+                // 这里可以自定义发送给后端的消息内容，让 AI 生成开场白
+                askXiaoYou('GENERAL', `用户进入了作品《${workTitle}》的详情界面`);
+            }
+        }, 1000);
+    });
+</script>
 
 {% endblock %}
