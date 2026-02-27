@@ -130,37 +130,52 @@
         </div>
 
         <div class="space-y-4">
-            <div class="flex items-center justify-between px-2">
-                <h2 class="text-2xl acg-font text-gray-800"><i class="fa-solid fa-heart mr-2 text-pink-400"></i>热门作品</h2>
-                <a href="{% url 'masterpieces:works_center' %}" class="text-sm text-pink-400 hover:text-pink-600">作品中心 <i class="fa-solid fa-angle-right"></i></a>
+    <div class="flex items-center justify-between px-2">
+        <h2 class="text-2xl acg-font text-gray-800"><i class="fa-solid fa-heart mr-2 text-pink-400"></i>热门作品</h2>
+        <a href="{% url 'masterpieces:works_center' %}" class="text-sm text-pink-400 hover:text-pink-600">作品中心 <i class="fa-solid fa-angle-right"></i></a>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+        {% if random_anime %}
+        <div onclick="window.location.href='{% url 'masterpieces:work_detail' random_anime.id %}'" class="glass-card p-4 hover:shadow-2xl transition-all cursor-pointer group">
+            <div class="h-40 bg-gray-200 rounded-xl mb-3 overflow-hidden relative">
+                <img src="{{ random_anime.cover.url }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                <div class="absolute top-2 right-2 bg-black/50 backdrop-blur-md text-white text-[10px] px-2 py-1 rounded">TV动画</div>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="glass-card p-4 hover:shadow-2xl transition-all cursor-pointer group">
-                    <div class="h-40 bg-gray-200 rounded-xl mb-3 overflow-hidden relative">
-                        <img src="https://picsum.photos/400/300?random=1" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-                        <div class="absolute top-2 right-2 bg-black/50 backdrop-blur-md text-white text-[10px] px-2 py-1 rounded">TV动画</div>
-                    </div>
-                    <h4 class="font-bold text-lg text-gray-800 group-hover:text-pink-500">孤独摇滚！</h4>
-                    <p class="text-sm text-gray-500 line-clamp-2 mt-1">每一位社恐的福音，用音乐治愈世界...</p>
-                    <div class="mt-4 flex justify-between items-center text-xs">
-                        <span class="text-orange-500 font-bold">⭐ 9.9分</span>
-                        <span class="text-gray-400"><i class="fa-regular fa-comment-dots mr-1"></i>12.5k</span>
-                    </div>
-                </div>
-                <div class="glass-card p-4 hover:shadow-2xl transition-all cursor-pointer group">
-                    <div class="h-40 bg-gray-200 rounded-xl mb-3 overflow-hidden relative">
-                        <img src="https://picsum.photos/400/300?random=2" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-                        <div class="absolute top-2 right-2 bg-black/50 backdrop-blur-md text-white text-[10px] px-2 py-1 rounded">Visual Novel</div>
-                    </div>
-                    <h4 class="font-bold text-lg text-gray-800 group-hover:text-blue-500">Summer Pockets</h4>
-                    <p class="text-sm text-gray-500 line-clamp-2 mt-1">在那个永恒的夏天，我们相遇并告别。</p>
-                    <div class="mt-4 flex justify-between items-center text-xs">
-                        <span class="text-blue-500 font-bold">推荐指数: 🔥🔥🔥</span>
-                        <span class="text-gray-400"><i class="fa-regular fa-comment-dots mr-1"></i>5.2k</span>
-                    </div>
-                </div>
+            <h4 class="font-bold text-lg text-gray-800 group-hover:text-pink-500 line-clamp-1">{{ random_anime.title }}</h4>
+            <p class="text-sm text-gray-500 line-clamp-1 mt-1">{{ random_anime.description }}</p>
+            <div class="mt-4 flex justify-between items-center text-xs">
+                {% if random_anime.hot_score > 0 %}
+                    <span class="text-orange-500 font-bold">⭐ {{ random_anime.hot_score }}分</span>
+                {% else %}
+                    <span class="text-gray-400">⭐ 暂无评分</span>
+                {% endif %}
+                <span class="text-gray-400"><i class="fa-regular fa-comment-dots mr-1"></i>{{ random_anime.views }}</span>
             </div>
         </div>
+        {% endif %}
+
+        {% if random_galgame %}
+        <div onclick="window.location.href='{% url 'masterpieces:work_detail' random_galgame.id %}'" class="glass-card p-4 hover:shadow-2xl transition-all cursor-pointer group">
+            <div class="h-40 bg-gray-200 rounded-xl mb-3 overflow-hidden relative">
+                <img src="{{ random_galgame.cover.url }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                <div class="absolute top-2 right-2 bg-black/50 backdrop-blur-md text-white text-[10px] px-2 py-1 rounded">Visual Novel</div>
+            </div>
+            <h4 class="font-bold text-lg text-gray-800 group-hover:text-blue-500 line-clamp-1">{{ random_galgame.title }}</h4>
+            <p class="text-sm text-gray-500 line-clamp-1 mt-1">{{ random_galgame.description }}</p>
+            <div class="mt-4 flex justify-between items-center text-xs">
+                {% if random_galgame.hot_score > 0 %}
+                    <span class="text-orange-500 font-bold">⭐ {{ random_galgame.hot_score }}分</span>
+                {% else %}
+                    <span class="text-gray-400">推荐指数: 暂无评分</span>
+                {% endif %}
+                <span class="text-gray-400"><i class="fa-regular fa-comment-dots mr-1"></i>{{ random_galgame.views }}</span>
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+</div>
     </section>
 
     <aside class="col-span-12 lg:col-span-3 space-y-6 animate__animated animate__fadeInRight">

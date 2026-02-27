@@ -115,19 +115,24 @@ def kanban_chat(request):
 
 # views.py
 
+import random # 记得在文件顶部导入
+
 def index(request):
-    # 确保导入了 Work 模型
     from masterpieces.models import Work
 
-    # 1. 使用数据库实际存储的 'anime' 和 'galgame' 进行过滤
-    # 2. 排序使用 hot_score (这是数据库字段)
-    anime_ranks = Work.objects.filter(zone='anime').order_by('-hot_score')[:10]
-    galgame_ranks = Work.objects.filter(zone='galgame').order_by('-hot_score')[:10]
+    # 1. 获取排行榜数据（前10名）
+    anime_list = list(Work.objects.filter(zone='anime').order_by('-hot_score')[:10])
+    galgame_list = list(Work.objects.filter(zone='galgame').order_by('-hot_score')[:10])
 
-    # 3. 将变量放入 context 传给前端
+    # 2. 从中随机各取一个（增加判空保护，防止数据库没数据时报错）
+    random_anime = random.choice(anime_list) if anime_list else None
+    random_galgame = random.choice(galgame_list) if galgame_list else None
+
     context = {
-        'anime_ranks': anime_ranks,
-        'galgame_ranks': galgame_ranks,
+        'anime_ranks': anime_list,
+        'galgame_ranks': galgame_list,
+        'random_anime': random_anime,     # 新增：随机番剧
+        'random_galgame': random_galgame, # 新增：随机Galgame
     }
     return render(request, 'index.html', context)
 from django.db import IntegrityError
