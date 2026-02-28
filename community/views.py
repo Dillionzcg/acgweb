@@ -253,6 +253,32 @@ def like_news(request, pk):
     return JsonResponse({'error': 'Invalid request'}, status=400)
 
 @login_required
+def delete_news_comment(request, pk):
+    """删除资讯评论 (仅作者或管理员)"""
+    comment = get_object_or_404(NewsComment, pk=pk)
+    news_pk = comment.news.pk
+    if request.user != comment.author and not request.user.is_superuser:
+        messages.error(request, '你没有权限删除该评论。')
+        return redirect('news_detail', pk=news_pk)
+    
+    comment.delete()
+    messages.success(request, '评论已成功删除。')
+    return redirect('news_detail', pk=news_pk)
+
+@login_required
+def delete_topic_comment(request, pk):
+    """删除话题评论 (仅作者或管理员)"""
+    comment = get_object_or_404(TopicComment, pk=pk)
+    topic_pk = comment.topic.pk
+    if request.user != comment.author and not request.user.is_superuser:
+        messages.error(request, '你没有权限删除该评论。')
+        return redirect('topic_detail', pk=topic_pk)
+    
+    comment.delete()
+    messages.success(request, '评论已成功删除。')
+    return redirect('topic_detail', pk=topic_pk)
+
+@login_required
 def delete_news(request, pk):
     """删除资讯 (仅作者或管理员)"""
     news = get_object_or_404(News, pk=pk)
