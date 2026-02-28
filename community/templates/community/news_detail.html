@@ -179,10 +179,20 @@
                                     </div>
                                     <p class="text-sm text-gray-600 leading-relaxed">{{ comment.content|linebreaksbr }}</p>
                                     
-                                    <!-- Reply Button -->
-                                    <button onclick="toggleReplyForm('reply-form-{{ comment.id }}')" class="absolute bottom-2 right-4 text-xs text-blue-400 hover:text-blue-600 font-bold opacity-0 group-hover:opacity-100 transition-opacity">
-                                        回复
-                                    </button>
+                                    <div class="absolute bottom-2 right-4 flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        {% if user.is_authenticated and user == comment.author or user.is_superuser %}
+                                        <form action="{% url 'delete_news_comment' comment.id %}" method="post" class="inline" onsubmit="return confirm('确定要删除这条评论吗？')">
+                                            {% csrf_token %}
+                                            <button type="submit" class="text-xs text-red-400 hover:text-red-600 font-bold">
+                                                删除
+                                            </button>
+                                        </form>
+                                        {% endif %}
+                                        <!-- Reply Button -->
+                                        <button onclick="toggleReplyForm('reply-form-{{ comment.id }}')" class="text-xs text-blue-400 hover:text-blue-600 font-bold">
+                                            回复
+                                        </button>
+                                    </div>
                                 </div>
 
                                 <!-- Reply Form -->
@@ -226,6 +236,14 @@
                                                                                                 </span>
                                                                                                 {% endif %}
                                                                                                 <span class="text-[10px] text-gray-400">{{ reply.created_at|date:"m-d H:i" }}</span>
+                                                                                                {% if user.is_authenticated and user == reply.author or user.is_superuser %}
+                                                                                                <form action="{% url 'delete_news_comment' reply.id %}" method="post" class="inline ml-auto" onsubmit="return confirm('确定要删除这条回复吗？')">
+                                                                                                    {% csrf_token %}
+                                                                                                    <button type="submit" class="text-[10px] text-red-400 hover:text-red-600 font-bold opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                                                        删除
+                                                                                                    </button>
+                                                                                                </form>
+                                                                                                {% endif %}
                                                                                             </div>                                                <p class="text-xs text-gray-600">{{ reply.content|linebreaksbr }}</p>
                                             </div>
                                         </div>
@@ -305,12 +323,18 @@
                                             <div class="shrink-0">
                                                 <img src="${data.avatar_url}" class="w-8 h-8 rounded-full border border-white shadow-sm">
                                             </div>
-                                            <div class="flex-1">
-                                                <div class="bg-gray-50 p-3 rounded-xl">
+                                            <div class="flex-1 group">
+                                                <div class="bg-gray-50 p-3 rounded-xl relative">
                                                     <div class="flex items-center gap-2 mb-1">
                                                         <span class="font-bold text-xs text-gray-700">${data.username}</span>
                                                         ${officialBadge}
                                                         <span class="text-[10px] text-gray-400">${data.created_at}</span>
+                                                        <form action="/community/news/comment/${data.comment_id}/delete/" method="post" class="inline ml-auto" onsubmit="return confirm('确定要删除这条回复吗？')">
+                                                            <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                                                            <button type="submit" class="text-[10px] text-red-400 hover:text-red-600 font-bold opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                删除
+                                                            </button>
+                                                        </form>
                                                     </div>
                                                     <p class="text-xs text-gray-600">${data.content.replace(/\n/g, '<br>')}</p>
                                                 </div>
@@ -349,9 +373,17 @@
                                                     </div>
                                                     <p class="text-sm text-gray-600 leading-relaxed">${data.content.replace(/\n/g, '<br>')}</p>
                                                     
-                                                     <button onclick="toggleReplyForm('reply-form-${data.comment_id}')" class="absolute bottom-2 right-4 text-xs text-blue-400 hover:text-blue-600 font-bold opacity-0 group-hover:opacity-100 transition-opacity">
-                                                        回复
-                                                    </button>
+                                                    <div class="absolute bottom-2 right-4 flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <form action="/community/news/comment/${data.comment_id}/delete/" method="post" class="inline" onsubmit="return confirm('确定要删除这条评论吗？')">
+                                                            <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                                                            <button type="submit" class="text-xs text-red-400 hover:text-red-600 font-bold">
+                                                                删除
+                                                            </button>
+                                                        </form>
+                                                        <button onclick="toggleReplyForm('reply-form-${data.comment_id}')" class="text-xs text-blue-400 hover:text-blue-600 font-bold">
+                                                            回复
+                                                        </button>
+                                                    </div>
                                                 </div>
 
                                                 <div id="reply-form-${data.comment_id}" class="hidden mt-3 ml-4 animate__animated animate__fadeIn">
