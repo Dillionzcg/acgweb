@@ -214,26 +214,34 @@ def save_preferences(request):
             data = json.loads(request.body)
             user = request.user
 
-            # 1. 将 Q1 和 Q2 存入专门的偏好字段
+            # 1. 保存偏好设置 (用于 Q1 种类 和 Q2 类型的高亮还原)
+            # 确保即使前端传空，数据库里也是 {'interests': [], 'genres': []}
             user.preferences = {
                 'interests': data.get('interests', []),
                 'genres': data.get('genres', [])
             }
 
-            # 2. 将 Q3 (用户自己填写的标签) 存入原有的 tags 字段
-            custom_tags = data.get('user_tags', [])
-            if custom_tags:
-                # 合并新旧标签并去重
-                user.tags = list(set(user.tags + custom_tags))
+            # 2. 保存用户标签 (Q3 手填的标签)
+            # 在个人中心点击“确定保存”时，建议直接覆盖为当前弹窗内确认的标签列表
+            # 这样用户在弹窗里删除某个标签后，保存才能生效
+            user.tags = data.get('user_tags', [])
 
             user.save()
 
+            # 3. 清理 Session 标记
+            # 如果是从注册后的初始化弹窗进来的，关闭强制弹出
             if 'show_survey' in request.session:
                 del request.session['show_survey']
 
             return JsonResponse({'status': 'success'})
+
+        except json.JSONDecodeError:
+            return JsonResponse({'status': 'error', 'message': '数据格式解析失败喵...'}, status=400)
         except Exception as e:
-            return JsonResponse({'status': 'error', 'message': str(e)})
+            print(f"Save Preferences Error: {e}")
+            return JsonResponse({'status': 'error', 'message': '保存偏好时出错了喵~'}, status=500)
+
+    return JsonResponse({'status': 'error', 'message': '仅支持 POST 请求喵！'}, status=405)
 # views.py
 def my_view(request):
     context = {

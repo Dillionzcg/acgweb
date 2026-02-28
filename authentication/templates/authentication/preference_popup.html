@@ -141,18 +141,43 @@
         renderCustomTags();
     }
 
-    async function submitSurvey() {
+    // preference_popup.html 中的 submitSurvey 函数
+
+async function submitSurvey() {
+    // 构造发送给后端的数据
+    const payload = {
+        interests: selections.interests,
+        genres: selections.genres,
+        user_tags: selections.customTags
+    };
+
+    try {
         const res = await fetch("{% url 'save_preferences' %}", {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
-            body: JSON.stringify({
-                interests: selections.interests,
-                genres: selections.genres,
-                user_tags: selections.customTags
-            })
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify(payload)
         });
-        if (res.ok) closeSurvey(true);
+
+        if (res.ok) {
+            // 1. 先关闭弹窗（带动画）
+            closeSurvey(true);
+
+            // 2. 延迟 800ms 刷新页面 (500ms 是弹窗关闭动画时间 + 300ms 让用户看清提示)
+            setTimeout(() => {
+                window.location.reload();
+            }, 1200);
+        } else {
+            const errData = await res.json();
+            alert("同步失败喵：" + (errData.message || "未知错误"));
+        }
+    } catch (error) {
+        console.error("Submit Error:", error);
+        alert("网络似乎开小差了喵...");
     }
+}
 
     function closeSurvey(isSubmit) {
         const modal = document.getElementById('survey-modal');

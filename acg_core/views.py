@@ -166,8 +166,6 @@ def user_center(request):
             user.email = data.get('email')
 
             # --- 核心修复：接收并保存滑块状态 ---
-            # 从前端 payload 中读取 is_phone_real 和 is_email_real
-            # 使用 .get() 并设置默认值，确保代码健壮性
             if 'is_phone_real' in data:
                 user.is_phone_real = data.get('is_phone_real')
 
@@ -177,12 +175,16 @@ def user_center(request):
             # 保存标签
             user.tags = data.get('tags', [])
 
+            # --- 新增：如果同步了偏好设置，也在此保存 ---
+            if 'preferences' in data:
+                user.preferences = data.get('preferences')
+
             # 执行保存
             user.save()
             return JsonResponse({'status': 'success'})
 
         except IntegrityError as e:
-            # 捕获数据库重复冲突（手机号/邮箱唯一性检查）
+            # 捕获数据库重复冲突
             error_msg = str(e).lower()
             if 'phone' in error_msg or '手机' in error_msg:
                 msg = "该手机号已被其他账号占用喵！"
@@ -196,7 +198,21 @@ def user_center(request):
             print(f"User Center Error: {e}")
             return JsonResponse({'status': 'error', 'message': '同步档案时发生了意外喵...'}, status=500)
 
-    return render(request, 'user_center.html')
+    # --- GET 请求逻辑：准备高亮所需的数据 ---
+    # 从 JSONField 中提取偏好数据
+    user_prefs = user.preferences if isinstance(user.preferences, dict) else {}
+
+    context = {
+        'user': user,
+        # 提取具体的兴趣和类型数组，供前端 openPreferenceEdit 使用
+        'user_interests': user_prefs.get('interests', []),
+        'user_genres': user_prefs.get('genres', []),
+        # 预设的备选项（需与 index 页面逻辑一致）
+        'interest_list': ['番剧', 'galgame', '小说', '漫画'],
+        'genre_list': ['恋爱', '搞笑', '萌系', '音乐', '催泪', '治愈', '偶像', '校园', '纯爱', '热血', '悬疑', '奇幻'],
+    }
+
+    return render(request, 'user_center.html', context)
 
 @login_required
 def bond_system_view(request):
