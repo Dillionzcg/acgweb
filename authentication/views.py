@@ -34,6 +34,17 @@ def register_view(request):
         form = RegisterForm(request.POST)
         if form.is_valid():
             data = form.cleaned_data
+
+            # --- 核心修改位置 ---
+            pwd = data.get('password')
+            cpwd = data.get('confirm_password')  # 对应 forms.py 里的变量名
+
+            if pwd != cpwd:
+                # 必须指定 confirm_password，这样红字才会挂在确认密码框下面
+                form.add_error('confirm_password', '两次输入的密码不一致喵！(っ°Д°;)っ')
+                return render(request, 'authentication/register.html', {'form': form})
+            # --------------------------
+
             try:
                 is_p_real = request.POST.get('is_phone_real') == 'true'
                 is_e_real = request.POST.get('is_email_real') == 'true'
@@ -42,17 +53,15 @@ def register_view(request):
                     email=data['email'],
                     phone=data['phone'],
                     password=data['password'],
-                    is_phone_real = is_p_real,
-                    is_email_real = is_e_real
+                    is_phone_real=is_p_real,
+                    is_email_real=is_e_real
                 )
-                # 显式指定 backend 防止 ValueError
                 login(request, user, backend='django.contrib.auth.backends.ModelBackend')
                 request.session['show_survey'] = True
                 return redirect('index')
             except Exception as e:
                 messages.error(request, f"FORM_INVALID:数据库保存失败啦：{str(e)}")
         else:
-            # 提取第一个错误发送给小柚
             error_msg = next((f"{f.label}{f.errors[0]}" for f in form if f.errors),
                              form.non_field_errors()[0] if form.non_field_errors() else "表单错误")
             messages.error(request, f"FORM_INVALID:{error_msg}")

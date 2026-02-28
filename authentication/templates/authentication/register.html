@@ -31,9 +31,18 @@
                             <div class="custom-input-wrap">
                                 {{ field }}
                             </div>
-                            <p class="error-text text-red-400 text-xs ml-4 italic {% if not field.errors %}hidden{% endif %}">
-                                {% if field.errors %}{{ field.errors.0 }}{% endif %}
+
+                            <p class="error-text text-red-400 text-xs ml-4 mt-1 italic {% if not field.errors %}hidden{% endif %}">
+                                {% if field.errors %}
+                                    <i class="fa-solid fa-circle-exclamation mr-1"></i>{{ field.errors.0 }}
+                                {% endif %}
                             </p>
+
+                            {% if field.name == 'confirm_password' %}
+                            <p id="re-password-error" class="text-red-400 text-xs ml-4 mt-1 italic hidden">
+                                <i class="fa-solid fa-circle-exclamation mr-1"></i>两次输入的密码不一致喵！(っ°Д°;)っ
+                            </p>
+                            {% endif %}
                         </div>
                         {% endfor %}
                     </div>
@@ -133,6 +142,25 @@
 </style>
 
 <script>
+function checkPasswordMatch() {
+    // 注意：Django 根据 forms.py 中的 confirm_password 生成的 ID 是 id_confirm_password
+    const p1 = document.getElementById('id_password');
+    const p2 = document.getElementById('id_confirm_password');
+    const errorEl = document.getElementById('re-password-error');
+
+    if (!p1 || !p2 || !errorEl) return true;
+
+    // 只有当两个框都有值，或者确认密码框不为空时才校验
+    if (p2.value && p1.value !== p2.value) {
+        errorEl.classList.remove('hidden');
+        p2.classList.add('border-red-400', 'bg-red-50');
+        return false;
+    } else {
+        errorEl.classList.add('hidden');
+        p2.classList.remove('border-red-400', 'bg-red-50');
+        return true;
+    }
+}
     let choices = { phone: null, email: null };
 
     // 1. 选择属性
@@ -171,22 +199,36 @@
 
     // 监听所有输入框变化
     document.querySelectorAll('#register-form input').forEach(input => {
-        input.addEventListener('input', refreshButtonStatus);
+    input.addEventListener('input', () => {
+        // 修改这里的 ID 判断
+        if (input.id === 'id_password' || input.id === 'id_confirm_password') {
+            checkPasswordMatch();
+        }
+        refreshButtonStatus();
     });
+});
 
     // 3. 点击按钮的逻辑
-    function validateAndSubmit() {
-        const btn = document.getElementById('final-reg-btn');
-        if (!btn.classList.contains('reg-btn-active')) {
-            if (typeof askXiaoYou === "function") {
-                askXiaoYou('FORM_ERROR', '档案还没填全');
-            }
-            return;
-        }
+    // 修改点击提交按钮的逻辑 validateAndSubmit
+function validateAndSubmit() {
+    const btn = document.getElementById('final-reg-btn');
+    const form = document.getElementById('register-form');
 
-        // 如果激活了，直接提交（格式由 Django 后端统一校验，返回后触发小柚报错）
-        document.getElementById('register-form').submit();
+    // 增加密码一致性二次检查
+    const isPasswordMatch = checkPasswordMatch();
+
+    if (btn.classList.contains('reg-btn-active') && isPasswordMatch) {
+        form.submit();
+    } else if (!isPasswordMatch) {
+        if (typeof askXiaoYou === "function") {
+            askXiaoYou('FORM_ERROR', '两次密码不一样，检查一下喵！');
+        }
+    } else {
+        if (typeof askXiaoYou === "function") {
+            askXiaoYou('FORM_ERROR', '档案还没填全呢，Master再检查一下？');
+        }
     }
+}
 
     // 4. 页面加载逻辑：处理 Django 传回的错误
     window.addEventListener('load', () => {
