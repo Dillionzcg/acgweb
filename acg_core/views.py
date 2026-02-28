@@ -133,6 +133,8 @@ def index(request):
         'galgame_ranks': galgame_list,
         'random_anime': random_anime,     # 新增：随机番剧
         'random_galgame': random_galgame, # 新增：随机Galgame
+        'interest_list': ['番剧', 'galgame', '小说', '漫画'],
+        'genre_list': ['恋爱', '搞笑', '萌系', '音乐', '催泪', '治愈', '偶像', '校园', '纯爱', '热血', '悬疑', '奇幻'],
     }
     return render(request, 'index.html', context)
 from django.db import IntegrityError

@@ -14,10 +14,12 @@ class User(AbstractUser):
 
     # 你完善用户信息功能所需的核心字段
     avatar = models.ImageField(upload_to='avatars/', null=True, blank=True, verbose_name="头像")
-    gender = models.CharField(max_length=20, default='female', verbose_name="性别")
+    gender = models.CharField(max_length=20, default='male', verbose_name="性别")
     birthday = models.DateField(null=True, blank=True, verbose_name="生日")
     bio = models.TextField(max_length=200, blank=True, verbose_name="个人简介")
     tags = models.JSONField(default=list, blank=True, verbose_name="标签")
+    preferences = models.JSONField(default=dict, blank=True, verbose_name="偏好设置")
+    viewed_tags = models.JSONField(default=dict, blank=True, verbose_name="插画标签浏览统计")
 
     class Meta:
         db_table = 'acg_user'  # 保持表名一致，防止迁移冲突

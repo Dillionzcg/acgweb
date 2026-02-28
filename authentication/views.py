@@ -47,6 +47,7 @@ def register_view(request):
                 )
                 # 显式指定 backend 防止 ValueError
                 login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+                request.session['show_survey'] = True
                 return redirect('index')
             except Exception as e:
                 messages.error(request, f"FORM_INVALID:数据库保存失败啦：{str(e)}")
@@ -204,3 +205,39 @@ def user_list_api(request):
         return JsonResponse([], safe=False)
     users = User.objects.exclude(id=request.user.id).values('id', 'username')
     return JsonResponse(list(users), safe=False)
+
+
+@login_required
+def save_preferences(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            user = request.user
+
+            # 1. 将 Q1 和 Q2 存入专门的偏好字段
+            user.preferences = {
+                'interests': data.get('interests', []),
+                'genres': data.get('genres', [])
+            }
+
+            # 2. 将 Q3 (用户自己填写的标签) 存入原有的 tags 字段
+            custom_tags = data.get('user_tags', [])
+            if custom_tags:
+                # 合并新旧标签并去重
+                user.tags = list(set(user.tags + custom_tags))
+
+            user.save()
+
+            if 'show_survey' in request.session:
+                del request.session['show_survey']
+
+            return JsonResponse({'status': 'success'})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)})
+# views.py
+def my_view(request):
+    context = {
+        'interest_list': ['番剧', 'galgame', '小说', '漫画'],
+        'genre_list': ['恋爱', '搞笑', '萌系', '音乐', '催泪', '治愈', '偶像', '校园', '纯爱', '热血', '悬疑', '奇幻']
+    }
+    return render(request, 'index.html', context)

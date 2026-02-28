@@ -73,6 +73,12 @@
                     <input type="file" id="avatar-input" class="hidden" accept="image/*">
                 </div>
 
+                <div class="mt-4 px-2">
+                    <button onclick="openPreferenceEdit()" class="w-full py-3 bg-pink-50 text-pink-500 rounded-2xl font-bold text-sm border border-pink-100 hover:bg-pink-500 hover:text-white transition-all shadow-sm group">
+                        <i class="fa-solid fa-tags mr-2 group-hover:animate-pulse"></i>修改我的爱好
+                    </button>
+                </div>
+
                 <h2 class="text-2xl font-bold text-gray-800">{{ user.username }}</h2>
                 <p id="side-bio" class="text-sm text-pink-400 mt-2 italic">“ {{ user.bio|default:"Master还没写简介呢～" }} ”</p>
 
@@ -463,6 +469,30 @@
     function safeAskXiaoYou(type, content = '') {
         if (window.askXiaoYou) window.askXiaoYou(type, content);
     }
+    // user_center.html 中的脚本部分
+function openPreferenceEdit() {
+    const modal = document.getElementById('survey-modal');
+    if (modal) {
+        // 1. 显示弹窗
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+
+        // 2. 提取当前页面上已显示的兴趣和标签数据
+        // 假设您的后端将兴趣分类和类型存在了 hidden input 或直接渲染在 JS 变量中
+        // 如果没有后端变量，可以从页面已有的 UI 元素中抓取文字
+        const currentInterests = {{ user_interests|safe|default:"[]" }}; // 后端传来的兴趣数组
+        const currentGenres = {{ user_genres|safe|default:"[]" }};      // 后端传来的类型数组
+
+        // 抓取个性化标签（从 tag-container 中提取文字）
+        const currentTags = Array.from(document.querySelectorAll('#tag-container span'))
+                                 .map(s => s.innerText.replace('# ', '').trim());
+
+        // 3. 调用弹窗的初始化函数
+        if (window.initSurveyData) {
+            window.initSurveyData(currentInterests, currentGenres, currentTags, true);
+        }
+    }
+}
 
     window.addEventListener('DOMContentLoaded', () => {
         initDateSelects();

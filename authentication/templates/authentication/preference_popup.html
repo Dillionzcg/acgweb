@@ -1,0 +1,182 @@
+<div id="survey-modal" class="{% if not request.session.show_survey %}hidden{% else %}flex{% endif %} fixed inset-0 z-[100] items-center justify-center p-4 bg-black/20 backdrop-blur-md animate__animated animate__fadeIn">
+    <div class="bg-white/70 backdrop-blur-xl rounded-[40px] border-2 border-white/50 shadow-2xl w-full max-w-2xl overflow-hidden relative">
+        <button onclick="closeSurvey(false)" class="absolute top-6 right-6 text-gray-400 hover:text-pink-500 transition-colors">
+            <i class="fa-solid fa-circle-xmark text-2xl"></i>
+        </button>
+
+        <div class="p-8 md:p-12">
+            <div class="text-center mb-8">
+                <h2 class="text-2xl font-bold text-pink-500 mb-2">🎉 修改我的兴趣爱好</h2>
+                <p class="text-gray-500 text-sm">在这里调整你的次元偏好 (⁄ ⁄•⁄ω⁄•⁄ ⁄)</p>
+            </div>
+
+            <div class="space-y-8 max-h-[60vh] overflow-y-auto px-2 custom-scrollbar">
+                <section>
+                    <label class="block text-gray-700 font-bold mb-3 text-sm flex justify-between">
+                        1. 您对哪些种类的作品感兴趣？
+                        <span id="q1-error" class="text-rose-400 text-xs font-normal opacity-0 transition-opacity">请至少选择一项喵~</span>
+                    </label>
+                    <div class="flex flex-wrap gap-3" id="q1-options">
+                        {% for item in interest_list %}
+                        <div onclick="toggleTag(this, 'interests')" class="tag-item px-5 py-2 rounded-full border-2 border-pink-100 bg-white/50 text-gray-600 cursor-pointer hover:border-pink-300 transition-all text-sm select-none">
+                            {{ item }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </section>
+
+                <section>
+                    <label class="block text-gray-700 font-bold mb-3 text-sm flex justify-between">
+                        2. 喜欢的作品类型 (1-7项)
+                        <span id="q2-error" class="text-rose-400 text-xs font-normal opacity-0 transition-opacity">数量不对哦 (1-7项)</span>
+                    </label>
+                    <div class="flex flex-wrap gap-2" id="q2-options">
+                        {% for g in genre_list %}
+                        <div onclick="toggleTag(this, 'genres', 7)" class="tag-item px-4 py-1.5 rounded-full border-2 border-blue-100 bg-white/50 text-gray-600 cursor-pointer hover:border-blue-300 transition-all text-xs select-none">
+                            {{ g }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </section>
+
+                <section>
+                    <label class="block text-gray-700 font-bold mb-3 text-sm">3. 为自己添加个性标签（输入后回车添加）</label>
+                    <div id="custom-tag-container" class="flex flex-wrap gap-2 mb-3"></div>
+                    <input type="text" id="user-custom-tags-input"
+                           onkeydown="if(event.key==='Enter') addCustomTag()"
+                           placeholder="输入后回车，例如：资深白毛控..."
+                           class="w-full px-6 py-3 rounded-2xl border-2 border-white bg-white/40 focus:border-pink-200 outline-none transition-all text-sm">
+                </section>
+            </div>
+
+            <div class="mt-10 flex flex-col items-center">
+                <button onclick="submitSurvey()" id="submit-survey-btn" class="w-full py-4 bg-gradient-to-r from-pink-400 to-rose-400 text-white rounded-full font-bold shadow-lg shadow-pink-200 hover:scale-[1.01] active:scale-95 transition-all">
+                    确认保存修改
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .tag-selected-pink { border-color: #f472b6 !important; background-color: #fdf2f8 !important; color: #db2777 !important; font-weight: bold; }
+    .tag-selected-blue { border-color: #60a5fa !important; background-color: #eff6ff !important; color: #2563eb !important; font-weight: bold; }
+    .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(244, 114, 182, 0.2); border-radius: 10px; }
+</style>
+
+<script>
+    let selections = { interests: [], genres: [], customTags: [], isEditMode: false };
+
+    // --- 核心逻辑：初始化并高亮已有标签 ---
+    window.initSurveyData = function(interests = [], genres = [], tags = [], isEdit = false) {
+        selections.interests = [...interests];
+        selections.genres = [...genres];
+        selections.customTags = [...tags];
+        selections.isEditMode = isEdit;
+
+        // 遍历所有选项卡片
+        document.querySelectorAll('.tag-item').forEach(el => {
+            const text = el.innerText.trim();
+            // 重置样式
+            el.classList.remove('tag-selected-pink', 'tag-selected-blue');
+
+            // 如果在用户的兴趣列表中，添加粉色高亮
+            if (selections.interests.includes(text)) {
+                el.classList.add('tag-selected-pink');
+            }
+            // 如果在用户的类型列表中，添加蓝色高亮
+            if (selections.genres.includes(text)) {
+                el.classList.add('tag-selected-blue');
+            }
+        });
+
+        // 渲染自定义标签区域
+        renderCustomTags();
+    };
+
+    function renderCustomTags() {
+        const container = document.getElementById('custom-tag-container');
+        container.innerHTML = selections.customTags.map(tag => `
+            <div class="px-3 py-1 bg-pink-50 text-pink-500 rounded-full text-xs font-bold border border-pink-100 flex items-center">
+                <span># ${tag}</span>
+                <button onclick="removeCustomTag('${tag}')" class="ml-2 hover:text-red-500">
+                    <i class="fa-solid fa-circle-xmark"></i>
+                </button>
+            </div>
+        `).join('');
+    }
+
+    // 标签切换逻辑
+    function toggleTag(el, type, max = 99) {
+        const text = el.innerText.trim();
+        const index = selections[type].indexOf(text);
+        if (index > -1) {
+            selections[type].splice(index, 1);
+            el.classList.remove(type === 'interests' ? 'tag-selected-pink' : 'tag-selected-blue');
+        } else {
+            if (selections[type].length >= max) {
+                const errId = type === 'interests' ? 'q1-error' : 'q2-error';
+                document.getElementById(errId).style.opacity = '1';
+                setTimeout(() => document.getElementById(errId).style.opacity = '0', 2000);
+                return;
+            }
+            selections[type].push(text);
+            el.classList.add(type === 'interests' ? 'tag-selected-pink' : 'tag-selected-blue');
+        }
+    }
+
+    function addCustomTag() {
+        const input = document.getElementById('user-custom-tags-input');
+        const tag = input.value.trim().replace(/[#]/g, '');
+        if (tag && !selections.customTags.includes(tag)) {
+            selections.customTags.push(tag);
+            renderCustomTags();
+            input.value = '';
+        }
+    }
+
+    function removeCustomTag(tag) {
+        selections.customTags = selections.customTags.filter(t => t !== tag);
+        renderCustomTags();
+    }
+
+    async function submitSurvey() {
+        const res = await fetch("{% url 'save_preferences' %}", {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+            body: JSON.stringify({
+                interests: selections.interests,
+                genres: selections.genres,
+                user_tags: selections.customTags
+            })
+        });
+        if (res.ok) closeSurvey(true);
+    }
+
+    function closeSurvey(isSubmit) {
+        const modal = document.getElementById('survey-modal');
+        modal.classList.add('animate__fadeOut');
+        setTimeout(() => {
+            if (selections.isEditMode) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex', 'animate__fadeOut');
+                if (isSubmit) showCenterToast("✨ 个人爱好修改成功！");
+            } else {
+                modal.remove();
+                showCenterToast(isSubmit ? "✨ 档案同步成功！" : "✨ 偏好设置已跳过");
+            }
+        }, 500);
+    }
+
+    function showCenterToast(msg) {
+        const toast = document.createElement('div');
+        toast.className = "fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-black/70 backdrop-blur-lg text-white px-10 py-6 rounded-[32px] text-center z-[200] animate__animated animate__fadeIn";
+        toast.innerHTML = `<div class="font-bold text-lg">${msg}</div>`;
+        document.body.appendChild(toast);
+        setTimeout(() => {
+            toast.classList.replace('animate__fadeIn', 'animate__fadeOut');
+            setTimeout(() => toast.remove(), 800);
+        }, 2000);
+    }
+</script>
