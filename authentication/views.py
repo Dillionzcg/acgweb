@@ -246,6 +246,6 @@ def save_preferences(request):
 def my_view(request):
     context = {
         'interest_list': ['番剧', 'galgame', '小说', '漫画'],
-        'genre_list': ['恋爱', '搞笑', '萌系', '音乐', '催泪', '治愈', '偶像', '校园', '纯爱', '热血', '悬疑', '奇幻']
+        'genre_list': ['恋爱', '搞笑', '萌系', '音乐', '催泪', '治愈', '偶像', '校园', '热血', '冒险', '悬疑', '奇幻', '异世界']
     }
     return render(request, 'index.html', context)
