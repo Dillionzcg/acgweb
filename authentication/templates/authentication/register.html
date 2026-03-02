@@ -232,21 +232,35 @@ function validateAndSubmit() {
 
     // 4. 页面加载逻辑：处理 Django 传回的错误
     window.addEventListener('load', () => {
-        let errorFromDjango = "";
-        {% if messages %}
-            {% for message in messages %}
-                if ("{{ message }}".indexOf("FORM_INVALID") !== -1) {
-                    errorFromDjango = "{{ message }}".split(':')[1];
-                }
-            {% endfor %}
-        {% endif %}
+    let errorFromDjango = "";
 
-        if (errorFromDjango) {
-            sessionStorage.setItem('xiaoyou_handling_error', 'true');
-            setTimeout(() => { if(typeof askXiaoYou === "function") askXiaoYou('FORM_ERROR', errorFromDjango) }, 900);
-        } else {
-            setTimeout(() => { if(typeof askXiaoYou === "function") askXiaoYou('REGISTER') }, 900);
-        }
-    });
+    {% if messages %}
+        {% for message in messages %}
+            // 使用 escapejs 确保消息内容不会因为特殊字符导致 JS 报错
+            var currentMsg = "{{ message|escapejs }}";
+            if (currentMsg.indexOf("FORM_INVALID") !== -1) {
+                // 提取冒号后的错误信息
+                errorFromDjango = currentMsg.split(':')[1] || "表单内容有误";
+            }
+        {% endfor %}
+    {% endif %}
+
+    if (errorFromDjango) {
+        // 记录错误状态并触发特定逻辑
+        sessionStorage.setItem('xiaoyou_handling_error', 'true');
+        setTimeout(() => {
+            if (typeof askXiaoYou === "function") {
+                askXiaoYou('FORM_ERROR', errorFromDjango);
+            }
+        }, 900);
+    } else {
+        // 无错误时触发注册引导逻辑
+        setTimeout(() => {
+            if (typeof askXiaoYou === "function") {
+                askXiaoYou('REGISTER');
+            }
+        }, 900);
+    }
+});
 </script>
 {% endblock %}
