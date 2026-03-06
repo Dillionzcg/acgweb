@@ -190,44 +190,59 @@ function generateGridHtml(items) {
     </div>`;
 }
 
-    function renderSection(zone, data, ranks) {
-        const mainContainer = document.getElementById(`items-${zone}`);
-        const rankContainer = document.getElementById(`rank-${zone}`);
-        const accentClass = zoneConfigs[zone].accent;
+function renderSection(zone, data, ranks) {
+    const mainContainer = document.getElementById(`items-${zone}`);
+    const rankContainer = document.getElementById(`rank-${zone}`);
+    const accentClass = zoneConfigs[zone].accent;
 
-        // 1. 处理“为你推荐”部分的 HTML
+
+    const getHeaderHtml = (title, category, showEdit = false) => `
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-xl font-bold text-gray-700 flex items-center">
+                <span class="w-2 h-6 ${accentClass} rounded-full mr-3"></span>${title}
+            </h3>
+            <div class="flex items-center gap-4">
+                ${showEdit ? `
+                    <a href="http://127.0.0.1:8000/user_center/" class="text-xs font-bold text-pink-500 hover:text-pink-600 flex items-center bg-pink-50 px-3 py-1 rounded-full transition-colors">
+                        <i class="fa-solid fa-tags mr-1"></i> 修改我的爱好
+                    </a>
+                ` : ''}
+                <a href="{% url 'masterpieces:all_works' %}?zone=${zone}&category=${category}" class="text-sm text-gray-400 hover:text-pink-500 transition-colors font-medium">
+                    查看全部 <i class="fa-solid fa-chevron-right text-[10px] ml-1"></i>
+                </a>
+            </div>
+        </div>
+    `;
+
+    // 1. 处理“为你推荐”部分的 HTML 逻辑
     let recommendContent = '';
     if (data.recommend && data.recommend.length > 0) {
         recommendContent = generateGridHtml(data.recommend);
     } else {
         // 无重合标签或未设置喜好时的空状态
         recommendContent = `
-            <div class="empty-state border-pink-200 bg-pink-50/50 flex flex-col items-center justify-center py-10">
+            <div class="empty-state border-pink-200 bg-pink-50/50 flex flex-col items-center justify-center py-10 rounded-2xl border-2 border-dashed">
                 <p class="text-gray-400 text-sm italic mb-4">暂无符合你口味的作品推介~</p>
                 <a href="http://127.0.0.1:8000/user_center/" class="px-6 py-2 bg-white border border-pink-400 text-pink-500 rounded-full hover:bg-pink-500 hover:text-white transition-all text-sm font-bold shadow-sm">
-                    <i class="fa-solid fa-tags mr-2"></i> 编辑我的爱好
+                    <i class="fa-solid fa-plus-circle mr-2"></i> 去设置兴趣标签
                 </a>
             </div>`;
     }
 
-    // 2. 渲染主内容区
+    // 2. 渲染主内容区（番剧/galgame/小说漫画共用此逻辑）
     mainContainer.innerHTML = `
         <div class="sub-section">
-            <h3 class="text-xl font-bold text-gray-700 flex items-center mb-6">
-                <span class="w-2 h-6 ${accentClass} rounded-full mr-3"></span>为你推荐
-            </h3>
+            ${getHeaderHtml('为你推荐', 'recommend', true)}
             ${recommendContent}
         </div>
+
         <div class="sub-section mt-10">
-            <h3 class="text-xl font-bold text-gray-700 flex items-center mb-6">
-                <span class="w-2 h-6 ${accentClass} rounded-full mr-3"></span>热门作品
-            </h3>
+            ${getHeaderHtml('热门作品', 'hot', false)}
             ${generateGridHtml(data.hot)}
         </div>
+
         <div class="sub-section mt-10">
-            <h3 class="text-xl font-bold text-gray-700 flex items-center mb-6">
-                <span class="w-2 h-6 ${accentClass} rounded-full mr-3"></span>最新发布
-            </h3>
+            ${getHeaderHtml('最新发布', 'latest', false)}
             ${generateGridHtml(data.latest)}
         </div>
     `;

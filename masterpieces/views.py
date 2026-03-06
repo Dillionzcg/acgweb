@@ -396,3 +396,49 @@ def my_favorites(request):
     }
     # 使用一个新的模板，但逻辑复用 works_center
     return render(request, 'masterpieces/my_favorites.html', context)
+
+
+# views.py 增加以下函数
+
+def all_works_view(request):
+    zone = request.GET.get('zone', 'anime')
+    category = request.GET.get('category', 'hot')  # recommend, hot, latest
+
+    # 基础查询集：预加载标签并计算热度
+    all_works = Work.objects.prefetch_related('tags').annotate(
+        calculated_hot=ExpressionWrapper(
+            F('views') + Count('favorites', distinct=True) * 10 + Count('comments', distinct=True) * 5,
+            output_field=FloatField()
+        )
+    ).filter(zone=zone)
+
+    user_fav_ids = []
+    fav_tags = []
+    if request.user.is_authenticated:
+        fav_tags = request.user.preferences.get('genres', [])
+        user_fav_ids = list(request.user.favorite_works.values_list('id', flat=True))
+
+    # 根据类别筛选
+    if category == 'recommend':
+        # 逻辑与 works_center 一致，但不设数量限制
+        display_works = all_works.filter(tags__name__in=fav_tags).distinct().order_by('-calculated_hot')
+        title_prefix = "为你推荐"
+    elif category == 'latest':
+        display_works = all_works.order_by('-created_at')
+        title_prefix = "最新发布"
+    else:  # hot
+        display_works = all_works.order_by('-calculated_hot')
+        title_prefix = "热门作品"
+
+    # 映射分区中文名
+    zone_map = {'anime': '番剧', 'galgame': 'Galgame', 'manga': '小说和漫画'}
+
+    context = {
+        'works': display_works,
+        'page_title': f"{zone_map.get(zone, '')} - {title_prefix}",
+        'zone': zone,
+        'category': category,
+        'user_fav_ids': user_fav_ids,
+        'is_recommend': category == 'recommend'
+    }
+    return render(request, 'masterpieces/all_works.html', context)

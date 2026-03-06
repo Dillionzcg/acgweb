@@ -1,0 +1,199 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ page_title }} - 柚子次元壁{% endblock %}
+
+{% block content %}
+<style>
+    /* 完全复刻收藏界面的全局变量与容器动画 */
+    :root { --theme-color: #ff7675; }
+    .works-container { animation: slideUpIn 0.8s cubic-bezier(0.2, 0.8, 0.2, 1); padding-top: 80px; }
+    @keyframes slideUpIn { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* 卡片样式完全一致（与作品中心对齐） */
+    .work-card {
+        background: white; border-radius: 18px; overflow: hidden; transition: all 0.4s ease;
+        border: 1px solid rgba(255, 182, 193, 0.2); opacity: 0; transform: translateY(30px);
+    }
+    .work-card.show { opacity: 1; transform: translateY(0); }
+    .work-card:hover { transform: translateY(-8px); box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
+
+    .page-title { text-align: center; margin-bottom: 20px; }
+
+    /* 为收藏按钮的缩放动画补充定义（与作品中心一致） */
+    .scale-125 { transform: scale(1.25); }
+</style>
+
+<div class="works-container relative">
+    <!-- 左上返回按钮，与收藏界面完全一致 -->
+    <div class="absolute left-5 top-5 flex gap-3 z-10">
+        <a href="{% url 'masterpieces:works_center' %}" class="px-4 py-2 bg-white/90 backdrop-blur rounded-full shadow-sm text-pink-500 hover:bg-pink-500 hover:text-white transition-all acg-font border border-pink-100 flex items-center">
+            <i class="fa-solid fa-arrow-left mr-1"></i> 返回中心
+        </a>
+    </div>
+
+    <!-- 页面标题，完全一致 -->
+   <div class="page-title relative">
+    <div class="text-center">
+        <h2 class="text-3xl font-bold text-gray-700 acg-font">
+            <i class="fa-solid fa-box-archive text-pink-400 mr-2"></i>{{ page_title }}
+        </h2>
+        <p class="text-gray-400 text-sm mt-1">发现次元壁中的无限可能</p>
+    </div>
+    {% if is_recommend %}
+    <div class="absolute right-0 top-1/2 -translate-y-1/2">
+        <a href="http://127.0.0.1:8000/user_center/"
+           class="text-xs font-bold text-pink-500 hover:text-pink-600 flex items-center bg-pink-50 px-3 py-1 rounded-full transition-colors">
+            <i class="fa-solid fa-tags mr-1"></i> 修改我的爱好
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+    <!-- 作品网格，使用与收藏界面相同的列数和间距 -->
+    {% if works %}
+    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {% for item in works %}
+        <div class="work-card shadow-sm block relative">
+            <!-- 图片区域 + 悬浮蒙层（完全复刻作品中心） -->
+            <a href="{% url 'masterpieces:work_detail' item.id %}" class="hover:no-underline">
+                <div class="relative group">
+                    <img src="{% if item.cover %}{{ item.cover.url }}{% else %}https://picsum.photos/seed/{{item.id}}/300/400{% endif %}"
+                         class="w-full h-48 object-cover">
+                    <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <span class="px-3 py-1 bg-white/90 rounded-full text-pink-500 text-xs font-bold">查看详情</span>
+                    </div>
+                </div>
+            </a>
+
+            <div class="p-4">
+                <!-- 标签（从 tags 中取前三个，用斜杠分隔） -->
+                <span class="px-2 py-0.5 bg-pink-50 text-pink-400 text-[10px] font-bold rounded uppercase">
+                    {% for tag in item.tags.all|slice:":3" %}{{ tag.name }}{% if not forloop.last %}/{% endif %}{% endfor %}
+                </span>
+
+                <h4 class="font-bold text-gray-800 mt-2 truncate">{{ item.title }}</h4>
+
+                <div class="flex justify-between items-center mt-3">
+                    <!-- 热度显示：有热度则显示星星+数字，否则显示“暂无评分” -->
+                    <div class="flex items-center">
+                        {% if item.hot_score and item.hot_score > 0 %}
+                            <i class="fa-solid fa-star text-yellow-500 text-[10px] mr-1"></i>
+                            <span class="text-sm font-mono font-bold text-yellow-500">{{ item.hot_score }}</span>
+                        {% else %}
+                            <span class="text-xs text-gray-400 italic">暂无评分</span>
+                        {% endif %}
+                    </div>
+
+                    <!-- 收藏心形（直接使用 i 标签，与作品中心一致） -->
+                    <i class="fa-heart cursor-pointer transition-all duration-300
+                              {% if user.is_authenticated and item.id in user_fav_ids %}
+                                  fa-solid text-pink-500 scale-125
+                              {% else %}
+                                  fa-regular text-gray-300 hover:text-pink-400
+                              {% endif %}"
+                       onclick="toggleFavorite(this, {{ item.id }})"></i>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <!-- 空状态提示，与收藏界面的空状态风格统一 -->
+    <div class="py-20 text-center">
+        <p class="text-gray-400 italic">这里还没有作品入驻哦~</p>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // 逐个卡片入场动画，与收藏界面完全一致（延迟50ms间隔）
+        setTimeout(() => {
+            document.querySelectorAll('.work-card').forEach((card, i) => {
+                setTimeout(() => card.classList.add('show'), i * 50);
+            });
+        }, 100);
+
+        // 通知小柚主人（如存在）
+        if (typeof askXiaoYou === 'function') {
+            askXiaoYou('GENERAL', 'MASTER正在查看{{ page_title }}界面，里面有对应的信息。注意，绝对不要主动提及任何作品');
+        }
+    });
+
+    // 完全复刻作品中心（works_center.html）的 toggleFavorite 函数
+    async function toggleFavorite(el, workId) {
+        // 1. 检查登录状态
+        {% if not user.is_authenticated %}
+            alert("请先登录后再收藏哦~");
+            return;
+        {% endif %}
+
+        try {
+            const response = await fetch(`/masterpieces/work/${workId}/favorite/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+
+            if (!response.ok) throw new Error('网络请求失败');
+
+            const data = await response.json();
+            // 获取作品标题（用于小柚提示）
+            const card = el.closest('.work-card');
+            const cardTitle = card.querySelector('h4').innerText;
+
+            // 2. 创建浮动文字提示
+            const tip = document.createElement('span');
+            tip.className = 'absolute -top-8 left-1/2 -translate-x-1/2 text-xs font-bold py-1 px-2 rounded-full transition-all duration-500 pointer-events-none opacity-0';
+
+            if (data.is_favorite) {
+                // 变为已收藏状态
+                el.classList.remove('fa-regular', 'text-gray-300');
+                el.classList.add('fa-solid', 'text-pink-500', 'scale-125');
+
+                tip.innerText = '已收藏';
+                tip.classList.add('bg-pink-500', 'text-white');
+
+                // 联动看板娘小柚
+                if (typeof askXiaoYou === 'function') {
+                    askXiaoYou('USER_ACTION', `我刚刚收藏了作品《${cardTitle}》`);
+                }
+            } else {
+                // 变为未收藏状态
+                el.classList.remove('fa-solid', 'text-pink-500');
+                el.classList.add('fa-regular', 'text-gray-300');
+
+                tip.innerText = '已取消';
+                tip.classList.add('bg-gray-500', 'text-white');
+            }
+
+            // 3. 插入提示并执行动画
+            el.parentElement.style.position = 'relative'; // 确保父容器是相对定位
+            el.parentElement.appendChild(tip);
+
+            // 触发动画
+            requestAnimationFrame(() => {
+                tip.style.opacity = '1';
+                tip.style.transform = 'translate(-50%, -10px)';
+            });
+
+            // 4. 移除提示并恢复图标缩放
+            setTimeout(() => {
+                el.classList.remove('scale-125');
+                tip.style.opacity = '0';
+                setTimeout(() => tip.remove(), 500);
+            }, 800);
+
+        } catch (error) {
+            console.error("收藏失败:", error);
+            if (typeof askXiaoYou === 'function') {
+                askXiaoYou('GENERAL', "小柚，刚才收藏操作好像出错了，呜呜...");
+            }
+        }
+    }
+</script>
+{% endblock %}
