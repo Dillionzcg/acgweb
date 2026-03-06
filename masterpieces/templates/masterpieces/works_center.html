@@ -195,12 +195,42 @@ function generateGridHtml(items) {
         const rankContainer = document.getElementById(`rank-${zone}`);
         const accentClass = zoneConfigs[zone].accent;
 
-        // 1. 渲染主内容区 (为你推荐/热门/最新)
-        mainContainer.innerHTML = `
-            <div class="sub-section"><h3 class="text-xl font-bold text-gray-700 flex items-center mb-6"><span class="w-2 h-6 ${accentClass} rounded-full mr-3"></span>为你推荐</h3>${generateGridHtml(data.recommend)}</div>
-            <div class="sub-section"><h3 class="text-xl font-bold text-gray-700 flex items-center mb-6"><span class="w-2 h-6 ${accentClass} rounded-full mr-3"></span>热门作品</h3>${generateGridHtml(data.hot)}</div>
-            <div class="sub-section"><h3 class="text-xl font-bold text-gray-700 flex items-center mb-6"><span class="w-2 h-6 ${accentClass} rounded-full mr-3"></span>最新发布</h3>${generateGridHtml(data.latest)}</div>
-        `;
+        // 1. 处理“为你推荐”部分的 HTML
+    let recommendContent = '';
+    if (data.recommend && data.recommend.length > 0) {
+        recommendContent = generateGridHtml(data.recommend);
+    } else {
+        // 无重合标签或未设置喜好时的空状态
+        recommendContent = `
+            <div class="empty-state border-pink-200 bg-pink-50/50 flex flex-col items-center justify-center py-10">
+                <p class="text-gray-400 text-sm italic mb-4">暂无符合你口味的作品推介~</p>
+                <a href="http://127.0.0.1:8000/user_center/" class="px-6 py-2 bg-white border border-pink-400 text-pink-500 rounded-full hover:bg-pink-500 hover:text-white transition-all text-sm font-bold shadow-sm">
+                    <i class="fa-solid fa-tags mr-2"></i> 编辑我的爱好
+                </a>
+            </div>`;
+    }
+
+    // 2. 渲染主内容区
+    mainContainer.innerHTML = `
+        <div class="sub-section">
+            <h3 class="text-xl font-bold text-gray-700 flex items-center mb-6">
+                <span class="w-2 h-6 ${accentClass} rounded-full mr-3"></span>为你推荐
+            </h3>
+            ${recommendContent}
+        </div>
+        <div class="sub-section mt-10">
+            <h3 class="text-xl font-bold text-gray-700 flex items-center mb-6">
+                <span class="w-2 h-6 ${accentClass} rounded-full mr-3"></span>热门作品
+            </h3>
+            ${generateGridHtml(data.hot)}
+        </div>
+        <div class="sub-section mt-10">
+            <h3 class="text-xl font-bold text-gray-700 flex items-center mb-6">
+                <span class="w-2 h-6 ${accentClass} rounded-full mr-3"></span>最新发布
+            </h3>
+            ${generateGridHtml(data.latest)}
+        </div>
+    `;
 
 
         // 2. 渲染排行榜区
@@ -260,18 +290,18 @@ function generateGridHtml(items) {
 
     document.addEventListener('DOMContentLoaded', () => {
 // 1. 渲染番剧专区
+// 1. 渲染 动画专区
 renderSection('anime', {
     recommend: [
-        {% for item in anime_list %}{
+        {% for item in anime_recommend %}{
             id: "{{ item.id }}",
             url: "{% url 'masterpieces:work_detail' item.id %}",
             title: "{{ item.title|escapejs }}",
             tag: "{% for t in item.tags.all|slice:':3' %}{{ t.name }}{% if not forloop.last %}/{% endif %}{% endfor %}",
             hot: "{{ item.hot_score|default:'0' }}",
             img: "{% if item.cover %}{{ item.cover.url }}{% else %}https://picsum.photos/seed/a{{item.id}}/300/400{% endif %}",
-            // 新增：判断当前用户是否已收藏
             is_fav: {% if user.is_authenticated and user in item.favorites.all %}true{% else %}false{% endif %}
-        },{% endfor %}
+        }{% if not forloop.last %},{% endif %}{% endfor %}
     ],
     hot: [
         {% for item in anime_hot %}{
@@ -282,7 +312,7 @@ renderSection('anime', {
             hot: "{{ item.hot_score|default:'0' }}",
             img: "{% if item.cover %}{{ item.cover.url }}{% else %}https://picsum.photos/seed/ah{{item.id}}/300/400{% endif %}",
             is_fav: {% if user.is_authenticated and user in item.favorites.all %}true{% else %}false{% endif %}
-        },{% endfor %}
+        }{% if not forloop.last %},{% endif %}{% endfor %}
     ],
     latest: [
         {% for item in anime_list %}{
@@ -293,7 +323,7 @@ renderSection('anime', {
             hot: "{{ item.hot_score|default:'0' }}",
             img: "{% if item.cover %}{{ item.cover.url }}{% else %}https://picsum.photos/seed/al{{item.id}}/300/400{% endif %}",
             is_fav: {% if user.is_authenticated and user in item.favorites.all %}true{% else %}false{% endif %}
-        },{% endfor %}
+        }{% if not forloop.last %},{% endif %}{% endfor %}
     ]
 }, [
     {% for r in anime_ranks %}{
@@ -305,7 +335,7 @@ renderSection('anime', {
 // 2. 渲染 Galgame 专区
 renderSection('galgame', {
     recommend: [
-        {% for item in galgame_list %}{
+        {% for item in galgame_recommend %}{
             id: "{{ item.id }}",
             url: "{% url 'masterpieces:work_detail' item.id %}",
             title: "{{ item.title|escapejs }}",
@@ -313,7 +343,7 @@ renderSection('galgame', {
             hot: "{{ item.hot_score|default:'0' }}",
             img: "{% if item.cover %}{{ item.cover.url }}{% else %}https://picsum.photos/seed/g{{item.id}}/300/400{% endif %}",
             is_fav: {% if user.is_authenticated and user in item.favorites.all %}true{% else %}false{% endif %}
-        },{% endfor %}
+        }{% if not forloop.last %},{% endif %}{% endfor %}
     ],
     hot: [
         {% for item in galgame_hot %}{
@@ -324,7 +354,7 @@ renderSection('galgame', {
             hot: "{{ item.hot_score|default:'0' }}",
             img: "{% if item.cover %}{{ item.cover.url }}{% else %}https://picsum.photos/seed/gh{{item.id}}/300/400{% endif %}",
             is_fav: {% if user.is_authenticated and user in item.favorites.all %}true{% else %}false{% endif %}
-        },{% endfor %}
+        }{% if not forloop.last %},{% endif %}{% endfor %}
     ],
     latest: [
         {% for item in galgame_list %}{
@@ -335,7 +365,7 @@ renderSection('galgame', {
             hot: "{{ item.hot_score|default:'0' }}",
             img: "{% if item.cover %}{{ item.cover.url }}{% else %}https://picsum.photos/seed/gl{{item.id}}/300/400{% endif %}",
             is_fav: {% if user.is_authenticated and user in item.favorites.all %}true{% else %}false{% endif %}
-        },{% endfor %}
+        }{% if not forloop.last %},{% endif %}{% endfor %}
     ]
 }, [
     {% for r in galgame_ranks %}{
@@ -347,7 +377,7 @@ renderSection('galgame', {
 // 3. 渲染 小说/漫画 专区
 renderSection('manga', {
     recommend: [
-        {% for item in manga_list %}{
+        {% for item in manga_recommend %}{
             id: "{{ item.id }}",
             url: "{% url 'masterpieces:work_detail' item.id %}",
             title: "{{ item.title|escapejs }}",
@@ -355,7 +385,7 @@ renderSection('manga', {
             hot: "{{ item.hot_score|default:'0' }}",
             img: "{% if item.cover %}{{ item.cover.url }}{% else %}https://picsum.photos/seed/m{{item.id}}/300/400{% endif %}",
             is_fav: {% if user.is_authenticated and user in item.favorites.all %}true{% else %}false{% endif %}
-        },{% endfor %}
+        }{% if not forloop.last %},{% endif %}{% endfor %}
     ],
     hot: [
         {% for item in manga_hot %}{
@@ -366,7 +396,7 @@ renderSection('manga', {
             hot: "{{ item.hot_score|default:'0' }}",
             img: "{% if item.cover %}{{ item.cover.url }}{% else %}https://picsum.photos/seed/mh{{item.id}}/300/400{% endif %}",
             is_fav: {% if user.is_authenticated and user in item.favorites.all %}true{% else %}false{% endif %}
-        },{% endfor %}
+        }{% if not forloop.last %},{% endif %}{% endfor %}
     ],
     latest: [
         {% for item in manga_list %}{
@@ -377,7 +407,7 @@ renderSection('manga', {
             hot: "{{ item.hot_score|default:'0' }}",
             img: "{% if item.cover %}{{ item.cover.url }}{% else %}https://picsum.photos/seed/ml{{item.id}}/300/400{% endif %}",
             is_fav: {% if user.is_authenticated and user in item.favorites.all %}true{% else %}false{% endif %}
-        },{% endfor %}
+        }{% if not forloop.last %},{% endif %}{% endfor %}
     ]
 }, [
     {% for r in manga_ranks %}{

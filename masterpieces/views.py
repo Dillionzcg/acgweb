@@ -12,30 +12,65 @@ from django.db.models import Count, F, ExpressionWrapper, FloatField
 def works_center(request):
     all_works = Work.objects.prefetch_related('tags').annotate(
         calculated_hot=ExpressionWrapper(
-            F('views') + Count('favorites', distinct=True) * 5 + Count('comments', distinct=True) * 3,
+            F('views') + Count('favorites', distinct=True) * 10 + Count('comments', distinct=True) * 5,
             output_field=FloatField()
         )
     )
-
+    fav_tags = []
+    user_fav_ids = []
+    if request.user.is_authenticated:
+        fav_tags = request.user.preferences.get('genres', [])
+        user_fav_ids = request.user.favorite_works.values_list('id', flat=True)
     def get_zone_data(zone_name):
         zone_works = all_works.filter(zone=zone_name)
+        # --- “为你推荐”核心过滤逻辑 ---
+        if fav_tags:
+            # 筛选作品标签名称在用户喜好列表中的作品
+            # 使用 .distinct() 防止因匹配多个标签导致的重复数据
+            recommend_queryset = zone_works.filter(
+                tags__name__in=fav_tags
+            ).exclude(id__in=user_fav_ids).distinct().order_by('-calculated_hot')
+
+            # 2. 取前 6 部
+            recommend_list = list(recommend_queryset[:6])
+
+            # 3. 可选逻辑：如果未收藏的推荐作品不足 6 部，可以用已收藏但符合标签的作品补齐
+            if len(recommend_list) < 6:
+                needed = 6 - len(recommend_list)
+                already_fav_recommend = zone_works.filter(
+                    tags__name__in=fav_tags,
+                    id__in=user_fav_ids
+                ).distinct().order_by('-calculated_hot')[:needed]
+                recommend_list.extend(list(already_fav_recommend))
+        else:
+            recommend_list = []
         return {
+            'recommend': recommend_list,
             'list': zone_works.order_by('-created_at')[:6],
             # 2. 排行榜按计算出的热度排序，取前10名
             'ranks': zone_works.order_by('-calculated_hot')[:15],
             'hot': zone_works.order_by('-calculated_hot')[:6],
         }
 
+    anime_data = get_zone_data('anime')
+    galgame_data = get_zone_data('galgame')
+    manga_data = get_zone_data('manga')
     context = {
-        'anime_list': get_zone_data('anime')['list'],
-        'anime_ranks': get_zone_data('anime')['ranks'],
-        'anime_hot': get_zone_data('anime')['hot'],
-        'galgame_list': get_zone_data('galgame')['list'],
-        'galgame_ranks': get_zone_data('galgame')['ranks'],
-        'galgame_hot': get_zone_data('galgame')['hot'],
-        'manga_list': get_zone_data('manga')['list'],
-        'manga_ranks': get_zone_data('manga')['ranks'],
-        'manga_hot': get_zone_data('manga')['hot'],
+        'anime_recommend': anime_data['recommend'],  # 确保传递了 recommend 变量
+        'anime_list': anime_data['list'],
+        'anime_ranks': anime_data['ranks'],
+        'anime_hot': anime_data['hot'],
+
+        'galgame_recommend': galgame_data['recommend'],
+        'galgame_list': galgame_data['list'],
+        'galgame_ranks': galgame_data['ranks'],
+        'galgame_hot': galgame_data['hot'],
+
+        'manga_recommend': manga_data['recommend'],
+        'manga_list': manga_data['list'],
+        'manga_ranks': manga_data['ranks'],
+        'manga_hot': manga_data['hot'],
+        'has_fav_tags': len(fav_tags) > 0
     }
     return render(request, 'masterpieces/works_center.html', context)
 
