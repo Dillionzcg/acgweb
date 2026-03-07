@@ -1,0 +1,272 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}发布画作 - 柚子次元壁{% endblock %}
+
+{% block content %}
+<style>
+    /* 1. 基础布局与动画：改为紫色调阴影 */
+    .recommend-container { animation: slideUpFade 0.8s cubic-bezier(0.2, 0.8, 0.2, 1); max-width: 950px; margin: 20px auto; }
+    @keyframes slideUpFade { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+    .form-card {
+        background: rgba(255, 255, 255, 0.75);
+        backdrop-filter: blur(20px);
+        border-radius: 32px;
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        box-shadow: 0 20px 40px rgba(162, 155, 254, 0.15); /* 紫色投影 */
+        padding: 40px;
+    }
+
+    /* 2. 滑块选择器：紫色主题 */
+    .zone-slider-wrapper {
+        position: relative; display: flex; background: #f1f3f5; border-radius: 16px; padding: 4px; margin-top: 8px;
+    }
+    .zone-item {
+        flex: 1; padding: 12px 0; text-align: center; font-weight: bold; color: #868e96; cursor: pointer; z-index: 10; transition: color 0.3s;
+    }
+    .zone-item.active { color: #6c5ce7; } /* 深紫色激活 */
+    .zone-cursor {
+        position: absolute; top: 4px; left: 4px; height: calc(100% - 8px); width: calc(50% - 4px);
+        background: white; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        /* 默认初始位置在右侧(搬运) */
+        transform: translateX(100%);
+    }
+
+    /* 3. 标签系统：改为紫色系 */
+    .tags-container {
+        display: flex; flex-wrap: wrap; gap: 8px; padding: 10px 16px;
+        background: rgba(255, 255, 255, 0.5); border: 2px solid #efefff; border-radius: 16px; transition: 0.3s;
+    }
+    .tags-container:focus-within { border-color: #a29bfe; background: white; }
+
+    .tag-badge {
+        display: flex; align-items: center; background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
+        color: white; padding: 4px 12px; border-radius: 50px; font-size: 13px; font-weight: bold;
+        animation: popIn 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+    }
+    .tag-badge i { margin-left: 6px; cursor: pointer; font-size: 11px; }
+    #tag-input { border: none; outline: none; background: transparent; flex: 1; min-width: 120px; color: #4b5563; }
+
+    .common-tags-box {
+        margin-top: 12px; padding: 15px; background: rgba(255, 255, 255, 0.3); border-radius: 16px; border: 1px dashed #a29bfe;
+    }
+    .preset-tag {
+        display: inline-block; padding: 4px 10px; margin: 4px; font-size: 12px;
+        background: white; color: #a29bfe; border: 1px solid #efefff; border-radius: 8px;
+        cursor: pointer; transition: all 0.2s;
+    }
+    .preset-tag:hover { background: #6c5ce7; color: white; border-color: #6c5ce7; transform: scale(1.05); }
+
+    /* 4. 输入框与按钮 */
+    .standard-input { width: 100%; padding: 14px 20px; background: rgba(255, 255, 255, 0.5); border: 2px solid #efefff; border-radius: 16px; outline: none; transition: 0.3s; }
+    .standard-input:focus { border-color: #a29bfe; background: white; }
+
+    .upload-box {
+        border: 3px dashed #a29bfe; border-radius: 24px; min-height: 520px; height: auto;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        cursor: pointer; background: rgba(255, 255, 255, 0.4); position: relative; overflow: hidden; transition: all 0.4s ease;
+    }
+    #preview-img { width: 100%; height: auto; display: block; border-radius: 20px; }
+
+    .submit-btn {
+        background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
+        color: white; padding: 16px 48px; border-radius: 50px; font-weight: bold; font-size: 18px;
+        box-shadow: 0 10px 20px rgba(108, 92, 231, 0.3); cursor: pointer; border: none; transition: 0.3s;
+    }
+    .submit-btn:hover { transform: translateY(-3px); box-shadow: 0 15px 25px rgba(108, 92, 231, 0.4); }
+
+    .toast-msg {
+        position: fixed; top: 10%; left: 50%; transform: translateX(-50%);
+        background: rgba(108, 92, 231, 0.95); color: white; padding: 12px 30px;
+        border-radius: 50px; font-weight: bold; z-index: 9999; box-shadow: 0 10px 25px rgba(108, 92, 231, 0.3);
+        display: flex; align-items: center; gap: 8px; animation: toastIn 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+    }
+    @keyframes toastIn { from { opacity: 0; transform: translate(-50%, -20px); } to { opacity: 1; transform: translate(-50%, 0); } }
+</style>
+
+<div class="recommend-container">
+    <div class="flex items-center justify-between mb-8">
+        <a href="{% url 'masterpieces:illustration_center' %}" class="flex items-center text-purple-500 hover:text-purple-600 font-bold">
+            <i class="fa-solid fa-arrow-left-long mr-2"></i> 返回插画中心
+        </a>
+        <h2 class="text-2xl acg-font text-gray-700">✨ 发布你的画作</h2>
+    </div>
+
+    <form class="form-card" id="postForm" method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="hidden" name="work_type" id="type-value" value="repost">
+        <input type="hidden" name="selected_tags" id="tags-data-value">
+
+        <div class="grid grid-cols-1 lg:grid-cols-5 gap-10">
+            <div class="lg:col-span-3 space-y-8">
+                <div>
+                    <label class="block font-bold text-gray-600 mb-2 ml-1">作品性质</label>
+                    <div class="zone-slider-wrapper">
+                        <div class="zone-cursor" id="type-cursor"></div>
+                        <div class="zone-item" onclick="setType('original', 0)">原创</div>
+                        <div class="zone-item active" onclick="setType('repost', 1)">搬运</div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-gray-600 mb-2 ml-1">作品标题</label>
+                    <input type="text" name="title" class="standard-input" placeholder="给你的作品起个好听的名字..." required>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-gray-600 mb-2 ml-1">作品介绍 / 搬运说明</label>
+                    <textarea name="description" class="standard-input" rows="7"
+                              placeholder="介绍一下这张画作，如果是搬运请注明出处或画师名哦..." required
+                              style="resize: none;"></textarea>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-gray-600 mb-2 ml-1">作品标签</label>
+                    <div class="tags-container" onclick="document.getElementById('tag-input').focus()">
+                        <div id="tags-list" class="flex flex-wrap gap-2"></div>
+                        <input type="text" id="tag-input" placeholder="输入后按回车添加...">
+                    </div>
+
+                    <div class="common-tags-box">
+                        <p class="text-[13px] text-purple-400 font-bold mb-2 ml-1 uppercase tracking-wider">常用推荐：</p>
+                        <div class="flex flex-wrap">
+                            {% for tag in illust_tags %}
+                                <span class="preset-tag" onclick="addPresetTag('{{ tag }}')"># {{ tag }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="lg:col-span-2">
+                <label class="block font-bold text-gray-600 mb-2 ml-1">上传高清原图</label>
+                <div class="upload-box group" id="upload-container" onclick="document.getElementById('fileInput').click()">
+
+                    <div id="upload-hint" class="text-center p-6 transition group-hover:scale-110">
+                        <div class="w-20 h-20 bg-purple-50 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+                            <i class="fa-solid fa-cloud-arrow-up text-3xl text-purple-400"></i>
+                        </div>
+                        <p class="text-lg font-bold text-gray-500 mb-2">点击或拖拽上传</p>
+                        <p class="text-xs text-gray-400 px-4">纵向高度将随原图比例自适应展示</p>
+                    </div>
+
+                    <img id="preview-img" src="" class="hidden">
+
+                    <div id="upload-overlay" class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center hidden">
+                        <div class="bg-white/90 backdrop-blur-sm px-6 py-3 rounded-2xl shadow-xl transform -translate-y-2 group-hover:translate-y-0 transition-transform">
+                            <p class="text-purple-500 font-bold flex items-center gap-2">
+                                <i class="fa-solid fa-sync"></i> 更换图片
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <input type="file" name="illustration" id="fileInput" class="hidden" accept="image/*" onchange="previewImage(this)" required>
+            </div>
+        </div>
+
+        <div class="mt-12 text-center border-t border-purple-50 pt-10">
+            <button type="submit" class="submit-btn acg-font tracking-widest">确认发布画作</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    // 1. 滑块逻辑 (默认显示在搬运位置)
+    function setType(val, index) {
+        document.getElementById('type-value').value = val;
+        document.getElementById('type-cursor').style.transform = `translateX(${index * 100}%)`;
+        document.querySelectorAll('.zone-item').forEach((el, i) => el.classList.toggle('active', i === index));
+    }
+
+    // 2. 标签逻辑 (与推荐页 UI/逻辑一致)
+    const tagInput = document.getElementById('tag-input');
+    const tagsList = document.getElementById('tags-list');
+    const tagsHiddenInput = document.getElementById('tags-data-value');
+    let tagsArray = [];
+
+    function addPresetTag(name) {
+        if (!tagsArray.includes(name)) {
+            tagsArray.push(name);
+            updateTagsUI();
+        }
+    }
+
+    tagInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const val = this.value.trim();
+            if (val && !tagsArray.includes(val)) {
+                tagsArray.push(val);
+                updateTagsUI();
+            }
+            this.value = '';
+        }
+    });
+
+    function updateTagsUI() {
+        tagsList.innerHTML = tagsArray.map((t, i) => `
+            <div class="tag-badge">${t} <i class="fa-solid fa-times" onclick="removeTag(${i})"></i></div>
+        `).join('');
+        tagsHiddenInput.value = tagsArray.join(',');
+    }
+
+    function removeTag(i) {
+        tagsArray.splice(i, 1);
+        updateTagsUI();
+    }
+
+    // 3. 图片预览：横向 100%，纵向自适应
+    function previewImage(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                const img = document.getElementById('preview-img');
+                const hint = document.getElementById('upload-hint');
+                const overlay = document.getElementById('upload-overlay');
+                const container = document.getElementById('upload-container');
+
+                img.src = e.target.result;
+                img.classList.remove('hidden');
+                hint.classList.add('hidden');
+                overlay.classList.remove('hidden');
+
+                container.style.justifyContent = 'flex-start';
+                container.style.minHeight = 'auto';
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    // 4. 紫色 Toast 提示
+    function showToast(message) {
+        const toast = document.createElement('div');
+        toast.className = 'toast-msg acg-font';
+        toast.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> ${message}`;
+        document.body.appendChild(toast);
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            setTimeout(() => toast.remove(), 400);
+        }, 3000);
+    }
+
+    // 5. 提交校验
+    document.getElementById('postForm').addEventListener('submit', function(e) {
+        const title = this.querySelector('[name="title"]').value.trim();
+        const tags = tagsHiddenInput.value;
+        const file = document.getElementById('fileInput').files.length;
+
+        if (!title) {
+            e.preventDefault();
+            showToast("给画作起个标题吧~");
+        } else if (!tags) {
+            e.preventDefault();
+            showToast("请至少添加一个标签喵~");
+        } else if (file === 0) {
+            e.preventDefault();
+            showToast("请上传画作原图~");
+        }
+    });
+</script>
+{% endblock %}

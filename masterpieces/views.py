@@ -6,6 +6,8 @@ from django.http import JsonResponse
 from django.db.models import Avg
 from .models import Work, Tag, Comment, WorkGallery  # 确保导入了所有新模型
 from django.db.models import Count, F, ExpressionWrapper, FloatField
+from django.db import models
+from django.db.models import Count
 
 
 # 1. 作品中心列表页
@@ -446,15 +448,77 @@ def all_works_view(request):
 
 # masterpieces/views.py
 
-def illustration_center(request):
-    """插画中心视图"""
-    # 如果你的 Work 模型中有区分（比如 zone='illustration'），可以这样筛选：
-    # illust_works = Work.objects.filter(zone='illustration').order_by('-created_at')
+# masterpieces/views.py
 
-    # 目前先按照你要求的“精致展示”逻辑，返回页面
+def illustration_center(request):
+    # 获取所有有作品关联的标签
+    from .models import Tag, Illustration
+    all_tags = Tag.objects.annotate(num_posts=models.Count('illustration')).filter(num_posts__gt=0)
+
+    # 获取最新作品
+    latest_illusts = Illustration.objects.all().order_by('-created_at')
+
     context = {
-        # 可以在这里传递真实数据，例如：
-        # 'illustrations': illust_works,
-        'active_nav': 'illustrations'
+        'all_tags': all_tags,
+        'illustrations_latest': latest_illusts,
+        # 其他栏目暂时也用这个数据
+        'illustrations_rec': latest_illusts,
+        'illustrations_following': latest_illusts,
+        'illustrations_hot': latest_illusts,
     }
     return render(request, 'masterpieces/illustration_center.html', context)
+
+# masterpieces/views.py
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from .models import Illustration, Tag  # 确保你已经根据下方说明创建了 Illustration 模型
+
+
+@login_required
+def post_illustration(request):
+    # 预设标签（保持不变，用于前端展示）
+    illust_tags = [
+        "原创角色", "女孩子", "少女", "萝莉", "同人", "二次元", "场景",
+        "唯美", "少年", "御姐", "白发", "OC", "Q版", "机甲", "私服",
+        "背景", "壁纸", "泳装", "女仆装", "涂鸦", "练习", "过程", "光影",
+        "氛围", "意境", "暗黑", "清新", "街头", "科幻"
+    ]
+
+    if request.method == 'POST':
+        # 1. 获取表单基础数据
+        title = request.POST.get('title')
+        # 如果前端没传，默认设为 'repost' (搬运)
+        work_type = request.POST.get('work_type', 'repost')
+        description = request.POST.get('description')
+
+        # 2. 获取上传的图片文件 (对应前端 <input name="illustration">)
+        illustration_file = request.FILES.get('illustration')
+
+        # 3. 获取并处理标签字符串 (前端 js 把数组 join(',') 后传给隐藏域 selected_tags)
+        tag_string = request.POST.get('selected_tags', '')
+        tag_names = [t.strip() for t in tag_string.split(',') if t.strip()]
+
+        # 4. 创建并保存作品对象
+        # 注意：这里移除了 author_bio，因为它在 UI 上已经去掉了
+        instance = Illustration.objects.create(
+            title=title,
+            work_type=work_type,
+            description=description,
+            image=illustration_file,
+            owner=request.user
+        )
+
+        # 5. 处理标签关联 (多对多关系)
+        for name in tag_names:
+            # 确保标签库中唯一，存在则获取，不存在则创建
+            tag_obj, created = Tag.objects.get_or_create(name=name)
+            instance.tags.add(tag_obj)
+
+        # 6. 发布成功后跳转
+        # 注意：这里需要确保你的 urls.py 中有一个 name='illustration_center' 的路由
+        return redirect('masterpieces:illustration_center')
+
+    # 如果是 GET 请求，显示发布页面
+    return render(request, 'masterpieces/post_illustration.html', {
+        'illust_tags': illust_tags
+    })

@@ -23,4 +23,5 @@ urlpatterns = [
     path('my-favorites/', views.my_favorites, name='my_favorites'),
     path('all/', views.all_works_view, name='all_works'),
     path('illustrations/', views.illustration_center, name='illustration_center'),
+    path('illustrations/post/', views.post_illustration, name='post_illustration'),
 ]

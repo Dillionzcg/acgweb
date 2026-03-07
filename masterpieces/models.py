@@ -2,6 +2,7 @@ from django.db import models
 from django.conf import settings  # 添加这行
 from django.contrib.auth.models import User  # 这行可以删除或保留
 
+
 class Tag(models.Model):
     name = models.CharField('标签名称', max_length=20, unique=True)
     def __str__(self):
@@ -90,3 +91,25 @@ class UserTag(models.Model):
 
     def __str__(self):
         return f"{self.work.title} - {self.name}"
+
+
+# masterpieces/models.py
+
+# masterpieces/models.py
+
+
+
+
+class Illustration(models.Model):
+    TYPE_CHOICES = [('original', '原创'), ('repost', '搬运')]
+
+    title = models.CharField('作品标题', max_length=200)
+    work_type = models.CharField('作品性质', max_length=20, choices=TYPE_CHOICES, default='repost')
+    description = models.TextField('作品描述')
+    image = models.ImageField('插画文件', upload_to='illustrations/%Y/%m/')
+    tags = models.ManyToManyField(Tag, verbose_name='标签', blank=True)
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name='发布者')
+    created_at = models.DateTimeField('发布时间', auto_now_add=True)
+
+    def __str__(self):
+        return self.title
