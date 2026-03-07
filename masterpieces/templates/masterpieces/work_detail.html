@@ -882,7 +882,6 @@ function executeActualDelete(imageId, deleteUrl) {
         method: 'POST',
         headers: {
             'X-CSRFToken': csrfToken,
-            'X-Requested-With': 'XMLHttpRequest'
         }
     })
     .then(res => res.json())

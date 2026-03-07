@@ -119,6 +119,7 @@ import random # 记得在文件顶部导入
 
 def index(request):
     from masterpieces.models import Work
+    from community.models import News
 
     # 1. 获取排行榜数据（前10名）
     anime_list = list(Work.objects.filter(zone='anime').order_by('-hot_score')[:10])
@@ -127,12 +128,16 @@ def index(request):
     # 2. 从中随机各取一个（增加判空保护，防止数据库没数据时报错）
     random_anime = random.choice(anime_list) if anime_list else None
     random_galgame = random.choice(galgame_list) if galgame_list else None
+    
+    # 3. 获取最新一条资讯
+    latest_news = News.objects.order_by('-created_at').first()
 
     context = {
         'anime_ranks': anime_list,
         'galgame_ranks': galgame_list,
         'random_anime': random_anime,     # 新增：随机番剧
         'random_galgame': random_galgame, # 新增：随机Galgame
+        'latest_news': latest_news,       # 新增：最新资讯
         'interest_list': ['番剧', 'galgame', '小说', '漫画'],
         'genre_list': ['恋爱', '搞笑', '萌系', '音乐', '催泪', '治愈', '偶像', '校园', '纯爱', '热血', '悬疑', '奇幻'],
     }

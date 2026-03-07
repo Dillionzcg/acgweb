@@ -118,14 +118,37 @@
         <div class="space-y-4">
             <div class="flex items-center justify-between px-2">
                 <h2 class="text-2xl acg-font text-gray-800"><i class="fa-solid fa-newspaper mr-2 text-blue-400"></i>热门资讯</h2>
-                <a href="#" class="text-sm text-pink-400 hover:text-pink-600">更多资讯 <i class="fa-solid fa-angle-right"></i></a>
+                <a href="{% url 'news_list' %}" class="text-sm text-pink-400 hover:text-pink-600">更多资讯 <i class="fa-solid fa-angle-right"></i></a>
             </div>
             <div class="relative h-56 glass-card overflow-hidden group shadow-2xl">
+                {% if latest_news %}
+                <a href="{% url 'news_detail' latest_news.id %}">
+                    {% if latest_news.cover_image %}
+                    <img src="{{ latest_news.cover_image.url }}" class="w-full h-full object-cover transition duration-700 group-hover:scale-110">
+                    {% else %}
+                    <img src="https://api.dujin.org/bing/1366.php" class="w-full h-full object-cover transition duration-700 group-hover:scale-110">
+                    {% endif %}
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent flex flex-col justify-end p-6">
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="px-3 py-1 bg-blue-500 text-white text-[10px] rounded-full shadow-lg uppercase">Latest News</span>
+                            {% if latest_news.category %}
+                            <span class="px-2 py-1 bg-white/20 backdrop-blur-md text-white text-[10px] rounded shadow-sm">{{ latest_news.category.name }}</span>
+                            {% endif %}
+                        </div>
+                        <h3 class="text-xl text-white font-bold group-hover:text-pink-300 transition-colors line-clamp-2">{{ latest_news.title }}</h3>
+                        <div class="flex items-center text-white/60 text-[10px] mt-2">
+                            <span><i class="fa-regular fa-clock mr-1"></i>{{ latest_news.created_at|date:"Y-m-d" }}</span>
+                            <span class="ml-3"><i class="fa-regular fa-user mr-1"></i>{{ latest_news.author.username }}</span>
+                        </div>
+                    </div>
+                </a>
+                {% else %}
                 <img src="https://api.dujin.org/bing/1366.php" class="w-full h-full object-cover transition duration-700 group-hover:scale-110">
                 <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent flex flex-col justify-end p-6">
-                    <span class="w-fit px-3 py-1 bg-blue-500 text-white text-[10px] rounded-full mb-3 shadow-lg">HOT NEWS</span>
+                    <span class="w-fit px-3 py-1 bg-blue-500 text-white text-[10px] rounded-full mb-3 shadow-lg uppercase">Hot News</span>
                     <h3 class="text-xl text-white font-bold group-hover:text-pink-300 transition-colors">本月最受期待：十月番剧霸权花落谁家？</h3>
                 </div>
+                {% endif %}
             </div>
         </div>
 
