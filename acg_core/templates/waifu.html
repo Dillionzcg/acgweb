@@ -88,9 +88,9 @@
             userText.innerText = "(触碰了小柚)";
             userBubble.classList.remove('hidden');
             const clickPrompts = [
-                "主人在摸你的头呢，快撒个娇吧～",
-                "主人在摸你的头，超级喜欢主人！（喜欢。6）",
-                "主人拍了一下你的头，你感到晕乎乎的",
+                "MASTER在摸你的头呢，快撒个娇吧～",
+                "MASTER在摸你的头，超级喜欢MASTER！（喜欢。6）",
+                "MASTER拍了一下你的头，你感到晕乎乎的",
             ];
             content = clickPrompts[Math.floor(Math.random() * clickPrompts.length)];
         } else {
@@ -130,7 +130,7 @@
                 console.log('请求被新指令覆盖：', type);
             } else {
                 console.error('API请求失败:', error);
-                tipsElement.innerHTML = "呜...小柚的信号好像断掉了...主人能再试一次吗？";
+                tipsElement.innerHTML = "呜...小柚的信号好像断掉了...能再试一次吗？";
             }
         } finally {
             isThinking = false;

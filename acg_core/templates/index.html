@@ -101,18 +101,18 @@
         </div>
     </a>
 
-    <a href="#"
-       onclick="handleCenterClick(event, '#', '插画中心')"
-       class="center-link col-span-2 h-48 relative group overflow-hidden rounded-2xl shadow-lg transition-all hover:-translate-y-1 bg-purple-900">
-        <div class="absolute inset-0 bg-cover bg-center opacity-75 transition-all duration-700 group-hover:scale-110 group-hover:opacity-60"
-             style="background-image: url('/static/images/bg4.jpg');"></div>
-        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
-        <div class="relative h-full p-5 flex flex-col justify-end text-white">
-            <i class="fa-solid fa-palette text-4xl opacity-30 absolute top-4 right-4 group-hover:rotate-12 transition-transform"></i>
-            <h3 class="text-2xl font-bold drop-shadow-lg">插画中心</h3>
-            <p class="text-sm opacity-80">绝美大图与视觉盛宴</p>
-        </div>
-    </a>
+    <a href="{% url 'masterpieces:illustration_center' %}"
+   onclick="handleCenterClick(event, '{% url 'masterpieces:illustration_center' %}', '插画中心')"
+   class="center-link col-span-2 h-48 relative group overflow-hidden rounded-2xl shadow-lg transition-all hover:-translate-y-1 bg-purple-900">
+    <div class="absolute inset-0 bg-cover bg-center opacity-75 transition-all duration-700 group-hover:scale-110 group-hover:opacity-60"
+         style="background-image: url('/static/images/bg4.jpg');"></div>
+    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+    <div class="relative h-full p-5 flex flex-col justify-end text-white">
+        <i class="fa-solid fa-palette text-4xl opacity-30 absolute top-4 right-4 group-hover:rotate-12 transition-transform"></i>
+        <h3 class="text-2xl font-bold drop-shadow-lg">插画中心</h3>
+        <p class="text-sm opacity-80">绝美大图与视觉盛宴</p>
+    </div>
+</a>
 </div>
 
         <div class="space-y-4">

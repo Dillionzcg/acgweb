@@ -1,0 +1,229 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}插画中心 - 柚子次元壁{% endblock %}
+
+{% block content %}
+<style>
+    :root { --illust-theme: #a29bfe; } /* 插画中心专属紫色 */
+
+    .illust-container {
+        animation: slideUpIn 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+        max-width: calc(100vw - 340px); /* 确保不被右侧看板娘遮挡 */
+    }
+    @keyframes slideUpIn { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* --- 1. 顶部标题与按钮 UI (同步自 center2) --- */
+    .acg-font { font-family: 'ZCOOL KuaiLe', 'Microsoft YaHei', sans-serif; } /* 确保字体类存在 */
+
+    /* --- 2. 顶部横幅 (Hero Banner) --- */
+    .illust-hero {
+        position: relative; height: 180px; border-radius: 24px; display: flex; align-items: center; justify-content: space-between;
+        padding: 0 50px; margin-bottom: 40px; overflow: hidden; border: 4px solid white; transition: all 0.4s ease; cursor: pointer;
+        background: linear-gradient(135deg, #a29bfe 0%, #6c5ce7 100%);
+        box-shadow: 0 10px 20px rgba(108, 92, 231, 0.2);
+    }
+    .illust-hero i.fa-palette { font-size: 80px; color: rgba(255, 255, 255, 0.3); position: absolute; right: -10px; bottom: -10px; transform: rotate(-15deg); }
+    .illust-hero:hover { transform: scale(1.01); box-shadow: 0 15px 30px rgba(108, 92, 231, 0.3); }
+
+    /* --- 3. 胶囊滑块 (原有逻辑保留) --- */
+    .zone-selector-wrapper { position: relative; display: flex; justify-content: center; margin-bottom: 30px; }
+    .zone-selector {
+        position: relative; display: inline-flex; background: rgba(255, 255, 255, 0.5);
+        backdrop-filter: blur(10px); padding: 5px; border-radius: 50px;
+        border: 1px solid rgba(255, 255, 255, 0.8); z-index: 1;
+    }
+    .active-slider {
+        position: absolute; height: calc(100% - 10px); top: 5px; left: 5px;
+        background: var(--illust-theme); border-radius: 50px;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 0;
+    }
+    .zone-btn {
+        position: relative; padding: 10px 25px; border-radius: 50px; font-size: 15px;
+        font-weight: bold; color: #666; cursor: pointer; transition: all 0.3s; z-index: 1;
+    }
+    .zone-btn.active { color: white; }
+
+    /* --- 4. 核心内容视口 --- */
+    .view-viewport { width: 100%; overflow: hidden; }
+    .view-canvas {
+        display: flex; width: 500%;
+        transition: transform 0.6s cubic-bezier(0.65, 0, 0.35, 1);
+    }
+    .view-page { width: 20%; flex-shrink: 0; padding: 0 10px; }
+
+    /* --- 5. 瀑布流布局 --- */
+    .waterfall-grid {
+        column-count: 4; column-gap: 20px; width: 100%;
+    }
+    @media (max-width: 1400px) { .waterfall-grid { column-count: 3; } }
+    @media (max-width: 768px) { .waterfall-grid { column-count: 2; } }
+
+    .illust-card {
+        break-inside: avoid; margin-bottom: 20px; background: white;
+        border-radius: 20px; overflow: hidden; border: 1px solid rgba(162, 155, 254, 0.1);
+        transition: all 0.4s ease;
+    }
+    .illust-card:hover { transform: translateY(-8px); box-shadow: 0 15px 30px rgba(108, 92, 231, 0.2); }
+
+    .illust-img-wrapper img {
+        width: 100%; height: auto;
+        display: block; transition: transform 0.6s ease;
+    }
+
+    .empty-placeholder { column-span: all; padding: 80px 0; text-align: center; color: #bdc3c7; }
+</style>
+
+<div class="illust-container pt-6">
+    <div class="flex justify-between items-start mb-10 px-2 relative">
+        <div class="w-1/4">
+            <a href="/" class="inline-flex px-6 py-3 bg-white/90 backdrop-blur rounded-full shadow-md text-purple-500 hover:bg-purple-500 hover:text-white transition-all acg-font border border-purple-100 items-center text-lg group">
+                <i class="fa-solid fa-arrow-left mr-2 group-hover:scale-110 transition-transform"></i> 返回首页
+            </a>
+        </div>
+
+        <div class="flex-1 text-center mt-4">
+            <div class="inline-block group cursor-default">
+                <h1 class="text-6xl md:text-7xl font-black tracking-tighter text-purple-500 drop-shadow-[0_2px_15px_rgba(162,155,254,0.3)] group-hover:drop-shadow-[0_2px_25px_rgba(162,155,254,0.5)] transition-all duration-500">
+                    插画中心
+                </h1>
+                <p class="text-[12px] uppercase tracking-[0.5em] text-purple-400/60 mt-2 font-medium">
+                    Illustration Art Gallery
+                </p>
+            </div>
+        </div>
+
+        <div class="w-1/4 flex justify-end">
+            <button class="inline-flex px-6 py-3 bg-white/90 backdrop-blur rounded-full shadow-md text-purple-500 hover:bg-purple-500 hover:text-white transition-all acg-font border border-purple-100 items-center text-lg group">
+                <i class="fa-solid fa-heart mr-2 group-hover:scale-110 transition-transform"></i> 我的收藏
+            </button>
+        </div>
+    </div>
+
+    <div class="illust-hero" onclick="location.href='#'">
+        <div>
+            <h2 class="text-3xl font-bold text-white mb-2 acg-font">触手云集，共赏画作</h2>
+            <p class="text-white/80">每一张图，都是一个正在呼吸的世界</p>
+        </div>
+        <div class="bg-white/20 px-8 py-4 rounded-2xl text-white font-bold text-xl border border-white/30 backdrop-blur">
+            上传我的作品 <i class="fa-solid fa-wand-magic-sparkles ml-2"></i>
+        </div>
+        <i class="fa-solid fa-palette"></i>
+    </div>
+
+    <div class="zone-selector-wrapper">
+        <div class="zone-selector">
+            <div class="active-slider" id="activeSlider"></div>
+            <div class="zone-btn active" onclick="switchView(0, this)">按标签</div>
+            <div class="zone-btn" onclick="switchView(1, this)">为你推荐</div>
+            <div class="zone-btn" onclick="switchView(2, this)">我的关注</div>
+            <div class="zone-btn" onclick="switchView(3, this)">最新作品</div>
+            <div class="zone-btn" onclick="switchView(4, this)">最热作品</div>
+        </div>
+    </div>
+
+    <div class="view-viewport">
+        <div class="view-canvas" id="viewCanvas">
+            <div class="view-page">
+                <div class="waterfall-grid">
+                    {% for item in illustrations_tags %}
+                        {% include 'includes/illust_card.html' with item=item %}
+                    {% empty %}
+                        <div class="empty-placeholder">
+                            <i class="fa-solid fa-ghost text-5xl mb-4 opacity-20"></i>
+                            <p>暂时没有作品哦</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="view-page">
+                <div class="waterfall-grid">
+                    {% for item in illustrations_rec %}
+                        {% include 'includes/illust_card.html' with item=item %}
+                    {% empty %}
+                        <div class="empty-placeholder">
+                            <i class="fa-solid fa-face-smile-wink text-5xl mb-4 opacity-20"></i>
+                            <p>还没有为你推荐的内容，先去逛逛吧</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="view-page">
+                <div class="waterfall-grid">
+                    {% for item in illustrations_following %}
+                        {% include 'includes/illust_card.html' with item=item %}
+                    {% empty %}
+                        <div class="empty-placeholder">
+                            <i class="fa-solid fa-user-plus text-5xl mb-4 opacity-20"></i>
+                            <p>关注的画师暂未投稿</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="view-page">
+                <div class="waterfall-grid">
+                    {% for item in illustrations_latest %}
+                        {% include 'includes/illust_card.html' with item=item %}
+                    {% empty %}
+                        <div class="empty-placeholder">
+                            <i class="fa-solid fa-clock text-5xl mb-4 opacity-20"></i>
+                            <p>最近还没有新作品发布哦~</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="view-page">
+                <div class="waterfall-grid">
+                    {% for item in illustrations_hot %}
+                        {% include 'includes/illust_card.html' with item=item %}
+                    {% empty %}
+                        <div class="empty-placeholder">
+                            <i class="fa-solid fa-fire text-5xl mb-4 opacity-20"></i>
+                            <p>暂时还没有热门作品上榜哦~</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function switchView(index, btn) {
+        const canvas = document.getElementById('viewCanvas');
+        const slider = document.getElementById('activeSlider');
+
+        // 1. 内容左右滑动
+        canvas.style.transform = `translateX(-${index * 20}%)`;
+
+        // 2. 更新按钮状态
+        document.querySelectorAll('.zone-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        // 3. 滑块背景跟随
+        slider.style.width = btn.offsetWidth + 'px';
+        slider.style.left = btn.offsetLeft + 'px';
+
+        // 注意：此处已删除原有的 askXiaoYou 调用，切换分类时不再发送消息
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // 初始化滑块位置
+        const activeBtn = document.querySelector('.zone-btn.active');
+        const slider = document.getElementById('activeSlider');
+        if (activeBtn && slider) {
+            slider.style.width = activeBtn.offsetWidth + 'px';
+            slider.style.left = activeBtn.offsetLeft + 'px';
+        }
+
+        // 仅在进入页面时触发语音
+        if (typeof askXiaoYou === 'function') {
+            askXiaoYou('CENTER_ENTER', '插画中心');
+        }
+    });
+</script>
+{% endblock %}

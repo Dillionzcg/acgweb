@@ -22,4 +22,5 @@ urlpatterns = [
     path('work/<int:work_id>/favorite/', views.toggle_favorite, name='toggle_favorite'),
     path('my-favorites/', views.my_favorites, name='my_favorites'),
     path('all/', views.all_works_view, name='all_works'),
+    path('illustrations/', views.illustration_center, name='illustration_center'),
 ]

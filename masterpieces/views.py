@@ -442,3 +442,19 @@ def all_works_view(request):
         'is_recommend': category == 'recommend'
     }
     return render(request, 'masterpieces/all_works.html', context)
+
+
+# masterpieces/views.py
+
+def illustration_center(request):
+    """插画中心视图"""
+    # 如果你的 Work 模型中有区分（比如 zone='illustration'），可以这样筛选：
+    # illust_works = Work.objects.filter(zone='illustration').order_by('-created_at')
+
+    # 目前先按照你要求的“精致展示”逻辑，返回页面
+    context = {
+        # 可以在这里传递真实数据，例如：
+        # 'illustrations': illust_works,
+        'active_nav': 'illustrations'
+    }
+    return render(request, 'masterpieces/illustration_center.html', context)
