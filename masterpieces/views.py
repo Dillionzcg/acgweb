@@ -10,6 +10,7 @@ from django.db import models
 from django.db.models import Count
 from django.db.models import F, Count, ExpressionWrapper, FloatField
 from .models import Illustration, Tag, UserProfile  # 确保导入了新模型
+import random
 
 
 def update_tag_score(user, tags, delta):
@@ -557,6 +558,37 @@ def illustration_center(request):
             output_field=FloatField()
         )
     ).prefetch_related('tags', 'owner')
+    tags_queryset = list(Tag.objects.annotate(num=Count('illustration'))
+                         .filter(num__gt=0)
+                         .prefetch_related('illustration_set'))
+
+
+    sample_size = min(len(tags_queryset), 30)
+    selected_tags = random.sample(tags_queryset, sample_size)
+
+    # 3. 封面图去重算法
+    used_illust_ids = set()
+    tag_data_list = []
+
+    for tag in selected_tags:
+        # 获取该标签下所有作品
+        available_illusts = list(tag.illustration_set.all())
+        # 尝试找一个还没被其他标签占用的封面
+        chosen_illust = None
+        for img in available_illusts:
+            if img.id not in used_illust_ids:
+                chosen_illust = img
+                used_illust_ids.add(img.id)
+                break
+
+        # 如果所有作品都被占用了，保底选第一个（或设为 None）
+        if not chosen_illust and available_illusts:
+            chosen_illust = available_illusts[0]
+
+        tag_data_list.append({
+            'tag': tag,
+            'cover_url': chosen_illust.image.url if chosen_illust else None
+        })
 
     # 1. 最新作品
     latest_illusts = all_illusts.order_by('-created_at')
@@ -566,6 +598,7 @@ def illustration_center(request):
     recommend_illusts = get_recommendation_data(request.user, all_illusts, target_count=50)
 
     context = {
+        'tag_data_list': tag_data_list,
         'all_tags': Tag.objects.annotate(num=Count('illustration')).filter(num__gt=0),
         'illustrations_latest': latest_illusts[:20],
         'illustrations_new': latest_illusts,  # 最新作品（全量，可用于分页）
@@ -734,3 +767,42 @@ def toggle_illustration_favorite(request, pk):
         update_tag_score(user, illust_tags, 10)
 
     return JsonResponse({'status': 'success', 'is_favorite': is_favorite})
+# masterpieces/views.py
+
+@login_required
+def my_favorite_illustrations(request):
+    # 获取当前用户收藏的所有插画
+    # 使用 prefetch_related 优化查询，并计算热度以供卡片展示（如果有逻辑需要）
+    favorite_illusts = request.user.favorite_illustrations.annotate(
+        comment_count=Count('comments', distinct=True),
+        favorite_count=Count('favorites', distinct=True),
+        calculated_hot=ExpressionWrapper(
+            F('views') + F('favorite_count') * 10 + F('comment_count') * 5,
+            output_field=FloatField()
+        )
+    ).prefetch_related('tags', 'owner').order_by('-created_at')
+
+    context = {
+        'favorite_illusts': favorite_illusts,
+    }
+    return render(request, 'masterpieces/my_favorite_illustrations.html', context)
+
+
+def illustration_by_tag(request, tag_name):
+    tag = get_object_or_404(Tag, name=tag_name)
+
+    # 获取该标签下的所有插画，并关联相关数据
+    illustrations = Illustration.objects.filter(tags=tag).annotate(
+        comment_count=Count('comments', distinct=True),
+        favorite_count=Count('favorites', distinct=True),
+        calculated_hot=ExpressionWrapper(
+            F('views') + F('favorite_count') * 10 + F('comment_count') * 5,
+            output_field=FloatField()
+        )
+    ).prefetch_related('tags', 'owner').order_by('-created_at')
+
+    context = {
+        'tag': tag,
+        'illustrations': illustrations,
+    }
+    return render(request, 'masterpieces/illustration_tag_detail.html', context)

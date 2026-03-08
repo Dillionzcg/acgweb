@@ -30,4 +30,6 @@ urlpatterns = [
     path('illust-comment/<int:comment_id>/like/', views.like_illust_comment, name='like_illust_comment'),
     path('illust-comment/<int:comment_id>/delete/', views.delete_illust_comment, name='delete_illust_comment'),
     path('illustration/<int:pk>/favorite/', views.toggle_illustration_favorite, name='toggle_illustration_favorite'),
+    path('illustrations/my-favorites/', views.my_favorite_illustrations, name='my_favorite_illustrations'),
+    path('illustrations/tag/<str:tag_name>/', views.illustration_by_tag, name='illustration_by_tag'),
 ]

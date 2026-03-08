@@ -179,8 +179,8 @@
 }
 </style>
 
-<a href="{% url 'masterpieces:illustration_center' %}" class="back-to-center" title="返回插画中心">
-    <i class="fa-solid fa-chevron-left text-xl"></i>
+<a href="javascript:history.back();" class="back-to-center group">
+    <i class="fa-solid fa-arrow-left group-hover:scale-120 transition-transform"></i>
 </a>
     <div id="favBtn"
      onclick="toggleFavorite({{ illustration.pk }})"

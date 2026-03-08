@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}# {{ tag.name }} - 插画分类{% endblock %}
+
+{% block content %}
+<style>
+    :root { --illust-theme: #a29bfe; }
+    .tag-container {
+        animation: slideUpIn 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+        max-width: calc(100vw - 340px);
+    }
+    @keyframes slideUpIn { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+    .acg-font { font-family: 'ZCOOL KuaiLe', 'Microsoft YaHei', sans-serif; }
+    .empty-placeholder { padding: 120px 0; text-align: center; color: #bdc3c7; }
+</style>
+
+<div class="tag-container pt-6">
+    <div class="flex justify-between items-start mb-10 px-2 relative">
+        <div class="w-1/4">
+            <a href="javascript:history.back()" class="inline-flex px-6 py-3 bg-white/90 backdrop-blur rounded-full shadow-md text-purple-500 hover:bg-purple-500 hover:text-white transition-all acg-font border border-purple-100 items-center text-lg group">
+                <i class="fa-solid fa-arrow-left mr-2 group-hover:scale-110 transition-transform"></i> 返回
+            </a>
+        </div>
+
+        <div class="flex-1 text-center mt-4">
+            <div class="inline-block group cursor-default">
+                <h1 class="text-5xl md:text-6xl font-black tracking-tighter text-purple-500 drop-shadow-[0_2px_15px_rgba(162,155,254,0.3)]">
+                    # {{ tag.name }}
+                </h1>
+                <p class="text-[12px] uppercase tracking-[0.5em] text-purple-400/60 mt-2 font-medium">
+                    Category Archives
+                </p>
+            </div>
+        </div>
+        <div class="w-1/4"></div>
+    </div>
+
+    <div class="px-4">
+        {% if illustrations %}
+            <div class="flex gap-5 items-start">
+                {% for i in "0123"|make_list %}
+                    <div class="flex-1 flex flex-col gap-5">
+                        {% for illust in illustrations %}
+                            {% if forloop.counter0|add:i|divisibleby:4 %}
+                                {% include 'masterpieces/includes/illust_card.html' with item=illust %}
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-placeholder bg-white/50 backdrop-blur rounded-3xl border-2 border-dashed border-purple-100">
+                <i class="fa-solid fa-ghost text-6xl mb-6 text-purple-200"></i>
+                <h3 class="text-2xl font-bold text-gray-400 acg-font">这个标签下暂时没有作品</h3>
+                <p class="text-gray-400 mt-2">点击上方“上传我的作品”来填补这里的空白吧！</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
