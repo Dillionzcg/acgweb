@@ -116,6 +116,7 @@ class Illustration(models.Model):
         blank=True,
         verbose_name='收藏者'
     )
+    views = models.PositiveIntegerField('浏览量', default=0)
 
     def __str__(self):
         return self.title
@@ -135,3 +136,19 @@ class IllustrationComment(models.Model):
     @property
     def like_count(self):
         return self.likes.count()
+# masterpieces/models.py
+# masterpieces/models.py
+from django.conf import settings  # 导入 settings
+from django.db import models
+
+class UserProfile(models.Model):
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,  # 修改这里，指向自定义用户模型
+        on_delete=models.CASCADE,
+        related_name='profile'
+    )
+    # 存储标签权重：{"标签ID": 权重值}
+    tag_preferences = models.JSONField(default=dict, verbose_name="标签偏好权重")
+
+    def __str__(self):
+        return f"{self.user.username} 的偏好设置"

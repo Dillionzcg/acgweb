@@ -8,7 +8,30 @@ from .models import Work, Tag, Comment, WorkGallery  # 确保导入了所有新�
 from django.db.models import Count, F, ExpressionWrapper, FloatField
 from django.db import models
 from django.db.models import Count
+from django.db.models import F, Count, ExpressionWrapper, FloatField
+from .models import Illustration, Tag, UserProfile  # 确保导入了新模型
 
+
+def update_tag_score(user, tags, delta):
+    """
+    通用标签权重更新逻辑
+    delta: 权重变化值 (查看+1, 收藏+10, 取消收藏-10)
+    """
+    if not user or not user.is_authenticated:
+        return
+
+    profile, _ = UserProfile.objects.get_or_create(user=user)
+    # 确保 preferences 是字典格式
+    prefs = profile.tag_preferences if isinstance(profile.tag_preferences, dict) else {}
+
+    for tag in tags:
+        tag_id = str(tag.id) # JSON 的 key 必须是字符串
+        current_score = prefs.get(tag_id, 0)
+        # 更新分数，最低保留为 0，避免出现负分导致逻辑混乱
+        prefs[tag_id] = max(0, current_score + delta)
+
+    profile.tag_preferences = prefs
+    profile.save()
 
 # 1. 作品中心列表页
 def works_center(request):
@@ -450,21 +473,105 @@ def all_works_view(request):
 
 # masterpieces/views.py
 
-def illustration_center(request):
-    # 获取所有有作品关联的标签
-    from .models import Tag, Illustration
-    all_tags = Tag.objects.annotate(num_posts=models.Count('illustration')).filter(num_posts__gt=0)
+# masterpieces/views.py
+from django.db.models import Count, F, ExpressionWrapper, FloatField
+from .models import Tag, Illustration
 
-    # 获取最新作品
-    latest_illusts = Illustration.objects.all().order_by('-created_at')
+from django.db.models import Count, F, ExpressionWrapper, FloatField
+from .models import Tag, Illustration, UserProfile  # 确保导入 UserProfile
+
+def get_recommendation_data(user, all_illusts, target_count=50, max_groups=10):
+    """
+    标签分组轮播推荐
+    - all_illusts: 带有 calculated_hot 注解的 QuerySet
+    - target_count: 目标推荐数量（默认50）
+    - max_groups: 最多使用多少组（每组3个标签）
+    """
+    # 获取用户所有正权重的标签
+    profile, _ = UserProfile.objects.get_or_create(user=user)
+    prefs = profile.tag_preferences  # 格式 {"1": 12, "5": 2, ...}
+
+    # 过滤出正权重标签ID（转换为整数）
+    tag_weights = {}
+    for tid_str, weight in prefs.items():
+        try:
+            tag_id = int(tid_str)
+            if weight > 0:
+                tag_weights[tag_id] = weight
+        except (ValueError, TypeError):
+            continue
+
+    # 若无偏好标签，直接返回热门
+    if not tag_weights:
+        return list(all_illusts.exclude(favorites=user).order_by('-calculated_hot')[:target_count])
+
+    # 按权重降序排序标签ID
+    sorted_tags = sorted(tag_weights.keys(), key=lambda tid: tag_weights[tid], reverse=True)
+    # 取前 max_groups*3 个标签（最多30个）
+    top_tags = sorted_tags[:max_groups * 3]
+
+    # 分成每组3个标签（最后一组可能不足3个）
+    groups = [top_tags[i:i+3] for i in range(0, len(top_tags), 3)]
+
+    recommendations = []
+    seen_ids = set()  # 记录已推荐作品ID，避免重复
+
+    # 按组顺序获取作品
+    for group in groups:
+        if len(recommendations) >= target_count:
+            break
+
+        need = target_count - len(recommendations)
+        # 查询包含该组任意标签、未收藏、未推荐的作品，按热度排序
+        qs = all_illusts.filter(
+            tags__id__in=group
+        ).exclude(
+            favorites=user
+        ).exclude(
+            id__in=seen_ids
+        ).distinct().order_by('-calculated_hot')[:need]
+
+        for illust in qs:
+            recommendations.append(illust)
+            seen_ids.add(illust.id)
+
+    # 若仍未达到目标，用热门补足（排除已推荐和已收藏）
+    if len(recommendations) < target_count:
+        need = target_count - len(recommendations)
+        hot_qs = all_illusts.exclude(
+            favorites=user
+        ).exclude(
+            id__in=seen_ids
+        ).order_by('-calculated_hot')[:need]
+        recommendations.extend(list(hot_qs))
+
+    return recommendations
+
+def illustration_center(request):
+    # 基础 QuerySet
+    all_illusts = Illustration.objects.annotate(
+        comment_count=Count('comments', distinct=True),
+        favorite_count=Count('favorites', distinct=True),
+        calculated_hot=ExpressionWrapper(
+            F('views') + F('favorite_count') * 10 + F('comment_count') * 5,
+            output_field=FloatField()
+        )
+    ).prefetch_related('tags', 'owner')
+
+    # 1. 最新作品
+    latest_illusts = all_illusts.order_by('-created_at')
+    # 2. 最热作品
+    hot_illusts = all_illusts.order_by('-calculated_hot')
+    # 3. 为你推荐 (调用优化后的算法)
+    recommend_illusts = get_recommendation_data(request.user, all_illusts, target_count=50)
 
     context = {
-        'all_tags': all_tags,
-        'illustrations_latest': latest_illusts,
-        # 其他栏目暂时也用这个数据
-        'illustrations_rec': latest_illusts,
-        'illustrations_following': latest_illusts,
-        'illustrations_hot': latest_illusts,
+        'all_tags': Tag.objects.annotate(num=Count('illustration')).filter(num__gt=0),
+        'illustrations_latest': latest_illusts[:20],
+        'illustrations_new': latest_illusts,  # 最新作品（全量，可用于分页）
+        'illustrations_hot': hot_illusts[:20],
+        'illustrations_rec': recommend_illusts,  # 为你推荐数据
+        'illustrations_follow': [],  # 我的关注（暂无功能，先置空）
     }
     return render(request, 'masterpieces/illustration_center.html', context)
 
@@ -529,16 +636,15 @@ from .models import Illustration
 
 
 def illustration_detail(request, pk):
-    # 获取对应的插画对象，如果不存在则返回 404
     illustration = get_object_or_404(Illustration, pk=pk)
+    illustration.views += 1
+    illustration.save(update_fields=['views'])
 
-    # 增加阅读数/浏览次数逻辑（可选）
-    # illustration.views += 1
-    # illustration.save()
+    if request.user.is_authenticated:
+        # 只要点击进入详情页，所有标签权重 +1
+        update_tag_score(request.user, illustration.tags.all(), 1)
 
-    return render(request, 'masterpieces/illustration_detail.html', {
-        'illustration': illustration
-    })
+    return render(request, 'masterpieces/illustration_detail.html', {'illustration': illustration})
 
 
 from django.contrib import messages
@@ -606,10 +712,25 @@ def delete_illust_comment(request, comment_id):
 @require_POST
 def toggle_illustration_favorite(request, pk):
     illustration = get_object_or_404(Illustration, pk=pk)
-    if request.user in illustration.favorites.all():
-        illustration.favorites.remove(request.user)
+    user = request.user
+
+    # 获取该作品关联的所有标签，用于后续权重计算
+    # 使用 .all() 获取 QuerySet
+    illust_tags = illustration.tags.all()
+
+    if user in illustration.favorites.all():
+        # --- 取消收藏逻辑 ---
+        illustration.favorites.remove(user)
         is_favorite = False
+
+        # 行为追踪：标签权重减 10
+        update_tag_score(user, illust_tags, -10)
     else:
-        illustration.favorites.add(request.user)
+        # --- 添加收藏逻辑 ---
+        illustration.favorites.add(user)
         is_favorite = True
+
+        # 行为追踪：标签权重加 10
+        update_tag_score(user, illust_tags, 10)
+
     return JsonResponse({'status': 'success', 'is_favorite': is_favorite})

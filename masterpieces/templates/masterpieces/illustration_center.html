@@ -154,62 +154,95 @@
     </div>
 
     <div class="view-page">
-        <div class="waterfall-grid">
-            {% for illust in illustrations_latest %}
-                {% include 'masterpieces/includes/illust_card.html' with item=illust %}
-            {% empty %}
-                <div class="empty-placeholder">
-                    <i class="fa-solid fa-face-smile-wink text-5xl mb-4 opacity-20"></i>
-                    <p>还没有内容，先去逛逛吧</p>
+    {% if illustrations_rec %}
+        <div class="flex gap-5 items-start px-4">
+            {% for i in "0123"|make_list %}
+                <div class="flex-1 flex flex-col gap-5">
+                    {% for illust in illustrations_rec %}
+                        {% if forloop.counter0|add:i|divisibleby:4 %}
+                            {% include 'masterpieces/includes/illust_card.html' with item=illust %}
+                        {% endif %}
+                    {% endfor %}
                 </div>
             {% endfor %}
         </div>
-    </div>
+    {% else %}
+        <div class="empty-placeholder">
+            <i class="fa-solid fa-face-smile-wink text-5xl mb-4 opacity-20"></i>
+            <p>暂时没有推荐内容，先去逛逛吧</p>
+        </div>
+    {% endif %}
+</div>
 
-    <div class="view-page">
-        <div class="waterfall-grid">
-            {% for illust in illustrations_follow %}
-                {% include 'masterpieces/includes/illust_card.html' with item=illust %}
-            {% empty %}
-                <div class="empty-placeholder">
-                    <i class="fa-solid fa-user-plus text-5xl mb-4 opacity-20"></i>
-                    <p>关注的作者还没有新作品哦</p>
+<div class="view-page">
+    {% if illustrations_follow %}
+        <div class="flex gap-5 items-start px-4">
+            {% for i in "0123"|make_list %}
+                <div class="flex-1 flex flex-col gap-5">
+                    {% for illust in illustrations_follow %}
+                        {% if forloop.counter0|add:i|divisibleby:4 %}
+                            {% include 'masterpieces/includes/illust_card.html' with item=illust %}
+                        {% endif %}
+                    {% endfor %}
                 </div>
             {% endfor %}
         </div>
-    </div>
+    {% else %}
+        <div class="empty-placeholder">
+            <i class="fa-solid fa-user-plus text-5xl mb-4 opacity-20"></i>
+            <p>关注的作者还没有新作品哦</p>
+        </div>
+    {% endif %}
+</div>
 
-    <div class="view-page">
-        <div class="waterfall-grid">
-            {% for illust in illustrations_new %}
-                {% include 'masterpieces/includes/illust_card.html' with item=illust %}
-            {% empty %}
-                <div class="empty-placeholder">
-                    <i class="fa-solid fa-clock text-5xl mb-4 opacity-20"></i>
-                    <p>最近还没有新作品发布哦~</p>
+<div class="view-page">
+    {% if illustrations_new %}
+        <div class="flex gap-5 items-start px-4">
+            {% for i in "0123"|make_list %}
+                <div class="flex-1 flex flex-col gap-5">
+                    {% for illust in illustrations_new %}
+                        {% if forloop.counter0|add:i|divisibleby:4 %}
+                            {% include 'masterpieces/includes/illust_card.html' with item=illust %}
+                        {% endif %}
+                    {% endfor %}
                 </div>
             {% endfor %}
         </div>
-    </div>
+    {% else %}
+        <div class="empty-placeholder">
+            <i class="fa-solid fa-clock text-5xl mb-4 opacity-20"></i>
+            <p>最近还没有新作品发布哦~</p>
+        </div>
+    {% endif %}
+</div>
 
-    <div class="view-page">
-        <div class="waterfall-grid">
-            {% for illust in illustrations_hot %}
-                {% include 'masterpieces/includes/illust_card.html' with item=illust %}
-            {% empty %}
-                <div class="empty-placeholder">
-                    <i class="fa-solid fa-fire text-5xl mb-4 opacity-20"></i>
-                    <p>暂时还没有作品上榜哦~</p>
+<div class="view-page">
+    {% if illustrations_hot %}
+        <div class="flex gap-5 items-start px-4">
+            {% for i in "0123"|make_list %}
+                <div class="flex-1 flex flex-col gap-5">
+                    {% for illust in illustrations_hot %}
+                        {% if forloop.counter0|add:i|divisibleby:4 %}
+                            {% include 'masterpieces/includes/illust_card.html' with item=illust %}
+                        {% endif %}
+                    {% endfor %}
                 </div>
             {% endfor %}
         </div>
-    </div>
+    {% else %}
+        <div class="empty-placeholder">
+            <i class="fa-solid fa-fire text-5xl mb-4 opacity-20"></i>
+            <p>暂时还没有作品上榜哦~</p>
+        </div>
+    {% endif %}
+</div>
 </div>
 </div>
 </div>
 
 <script>
-    function switchView(index, btn) {
+    // 统一切换逻辑
+    function switchView(index, btn, skipSave = false) {
         const canvas = document.getElementById('viewCanvas');
         const slider = document.getElementById('activeSlider');
 
@@ -217,26 +250,35 @@
         canvas.style.transform = `translateX(-${index * 20}%)`;
 
         // 2. 更新按钮状态
-        document.querySelectorAll('.zone-btn').forEach(b => b.classList.remove('active'));
+        const allBtns = document.querySelectorAll('.zone-btn');
+        allBtns.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
 
         // 3. 滑块背景跟随
         slider.style.width = btn.offsetWidth + 'px';
         slider.style.left = btn.offsetLeft + 'px';
 
-        // 注意：此处已删除原有的 askXiaoYou 调用，切换分类时不再发送消息
+        // 4. 保存状态到本地存储 (仅在手动点击时保存)
+        if (!skipSave) {
+            localStorage.setItem('illust_center_last_tab', index);
+        }
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-        // 初始化滑块位置
-        const activeBtn = document.querySelector('.zone-btn.active');
         const slider = document.getElementById('activeSlider');
-        if (activeBtn && slider) {
-            slider.style.width = activeBtn.offsetWidth + 'px';
-            slider.style.left = activeBtn.offsetLeft + 'px';
+        const allBtns = document.querySelectorAll('.zone-btn');
+
+        // 1. 读取上次存储的索引，如果没有则默认为 0 (按标签)
+        const lastIndex = localStorage.getItem('illust_center_last_tab') || 0;
+        const targetBtn = allBtns[lastIndex];
+
+        // 2. 初始化位置（不带动画效果或快速定位）
+        if (targetBtn && slider) {
+            // 立即切换到上次的状态，skipSave 设为 true 避免重复写入
+            switchView(parseInt(lastIndex), targetBtn, true);
         }
 
-        // 仅在进入页面时触发语音
+        // 3. 仅在进入页面时触发语音
         if (typeof askXiaoYou === 'function') {
             askXiaoYou('CENTER_ENTER', '插画中心');
         }
