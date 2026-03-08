@@ -1,0 +1,430 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ illustration.title }} - 插画详情 - 柚子次元壁{% endblock %}
+
+{% block content %}
+<style>
+    /* 1. 独立的返回按钮样式：使用 fixed 定位脱离文档流，解决闪现问题 */
+    .back-to-center {
+        position: fixed;
+        left: 40px;
+        top: 100px; /* 避开顶部导航栏 */
+        width: 50px;
+        height: 50px;
+        background: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 8px 20px rgba(162, 155, 254, 0.3);
+        color: #a29bfe;
+        z-index: 1000;
+        border: 2px solid #f0f0ff;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        /* 使用简单的淡入，不带位移，防止与主容器动画冲突 */
+        animation: simpleFade 0.6s ease-out;
+    }
+
+    @keyframes simpleFade {
+        from { opacity: 0; }
+        to   { opacity: 1; }
+    }
+
+    .back-to-center:hover {
+        background: #a29bfe;
+        color: white;
+        transform: scale(1.1);
+        box-shadow: 0 10px 25px rgba(162, 155, 254, 0.4);
+    }
+
+    /* 2. 核心内容容器 */
+    .illust-detail-container {
+        animation: fadeInSlide 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+        max-width: calc(100vw - 360px);
+        margin: 0 auto;
+        padding-bottom: 50px;
+        position: relative;
+    }
+
+    @keyframes fadeInSlide {
+        from { opacity: 0; transform: translateY(20px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* 插画展示区 */
+    .illust-main-display {
+        background: rgba(255, 255, 255, 0.5);
+        backdrop-filter: blur(10px);
+        border-radius: 32px;
+        border: 4px solid white;
+        overflow: hidden;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.05);
+        margin-bottom: 20px;
+        position: relative;
+    }
+
+    .illust-image {
+        display: block;
+        max-width: 100%;
+        height: auto;
+        margin: 0 auto;
+    }
+
+    /* 保存按钮 */
+    .save-illust-btn {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0 auto 30px;
+        padding: 12px 25px;
+        background: white;
+        border: 2px solid #a29bfe;
+        color: #a29bfe;
+        border-radius: 16px;
+        font-weight: bold;
+        transition: all 0.3s;
+        cursor: pointer;
+    }
+    .save-illust-btn:hover {
+        background: #a29bfe;
+        color: white;
+        box-shadow: 0 10px 20px rgba(162, 155, 254, 0.2);
+    }
+
+    /* 信息面板 */
+    .info-panel {
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(20px);
+        border-radius: 28px;
+        padding: 30px;
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        box-shadow: 0 10px 30px rgba(162, 155, 254, 0.1);
+    }
+
+    .tag-badge {
+        background: #f0f0ff;
+        color: #7d73e6;
+        padding: 6px 16px;
+        border-radius: 12px;
+        font-size: 0.85rem;
+        margin-right: 8px;
+    }
+
+    .author-avatar {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        border: 3px solid #fff;
+    }
+
+    /* 移动端适配 */
+    @media (max-width: 1200px) {
+        .back-to-center {
+            position: relative;
+            left: 0;
+            top: 0;
+            margin: 0 auto 20px;
+            border-radius: 15px;
+            width: fit-content;
+            padding: 0 20px;
+        }
+        .back-to-center::after {
+            content: " 返回列表";
+            font-size: 14px;
+            font-weight: bold;
+            margin-left: 8px;
+        }
+    }
+</style>
+
+<a href="{% url 'masterpieces:illustration_center' %}" class="back-to-center" title="返回插画中心">
+    <i class="fa-solid fa-chevron-left text-xl"></i>
+</a>
+
+<div class="illust-detail-container">
+    <div class="illust-main-display">
+        <img src="{{ illustration.image.url }}" alt="{{ illustration.title }}" class="illust-image">
+    </div>
+
+   <div class="flex flex-col items-center mb-8">
+    <a href="{{ illustration.image.url }}" download="{{ illustration.title }}" class="save-illust-btn w-fit !mb-2">
+        <i class="fa-solid fa-download"></i>
+        保存插画到本地
+    </a>
+
+    {% if user.is_staff or user == illustration.owner %}
+    <button id="deleteBtn" onclick="handleDeleteClick()"
+            class="flex items-center gap-2 px-6 py-2 text-red-400 border-2 border-red-400 rounded-xl font-bold transition-all active:scale-95 text-sm">
+        <i class="fa-solid fa-trash-can"></i>
+        <span id="deleteText">删除该插画</span>
+    </button>
+    {% endif %}
+</div>
+
+    <div class="info-panel">
+        <div class="flex flex-wrap justify-between items-start gap-6">
+            <div class="flex-1">
+                <div class="flex items-center gap-3 mb-3">
+                    <span class="px-3 py-1 bg-purple-500 text-white text-xs rounded-full">
+                        {{ illustration.get_work_type_display }}
+                    </span>
+                    <h1 class="text-3xl font-bold text-gray-800 acg-font">{{ illustration.title }}</h1>
+                </div>
+
+                <div class="flex flex-wrap gap-2 mb-6">
+                    {% for tag in illustration.tags.all %}
+                        <span class="tag-badge"># {{ tag.name }}</span>
+                    {% endfor %}
+                </div>
+
+                <div class="text-gray-600 leading-relaxed text-lg mb-6">
+                    {{ illustration.description|linebreaks }}
+                </div>
+
+                <div class="text-sm text-gray-400">
+                    发布时间：{{ illustration.created_at|date:"Y-m-d H:i" }}
+                </div>
+            </div>
+
+            <div class="w-full lg:w-64 bg-gray-50/50 rounded-3xl p-6 border border-gray-100 text-center">
+                <img src="{% if illustration.owner.avatar %}{{ illustration.owner.avatar.url }}{% else %}{% static 'images/default_head.png' %}{% endif %}"
+                     class="author-avatar mx-auto mb-3"
+                     alt="{{ illustration.owner.username }}的头像">
+
+                <h3 class="font-bold text-gray-800 mb-1">{{ illustration.owner.username }}</h3>
+                <p class="text-xs text-gray-400 mb-4">创作艺术家</p>
+                <button class="w-full py-2 bg-pink-400 text-white rounded-xl text-sm font-bold hover:bg-pink-500 transition-all">
+                    + 关注作者
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-10 bg-white/60 backdrop-blur-md rounded-[32px] p-8 shadow-sm border border-white">
+        <h2 class="text-xl font-bold mb-8 flex items-center gap-2 text-gray-800">
+            <i class="fa-solid fa-comments text-purple-400"></i>
+            评论讨论 <span class="text-sm font-normal text-gray-400">({{ illustration.comments.count }})</span>
+        </h2>
+
+        {% if user.is_authenticated %}
+        <form method="post" action="{% url 'masterpieces:submit_illust_comment' illustration.pk %}" class="mb-10">
+            {% csrf_token %}
+            <div class="flex gap-4">
+                <img src="{% if user.avatar %}{{ user.avatar.url }}{% else %}{% static 'images/default_head.png' %}{% endif %}"
+                     class="w-12 h-12 rounded-full border-2 border-white shadow-sm shrink-0">
+                <div class="relative flex-1">
+                    <textarea name="content" rows="3" required
+                              class="w-full p-4 bg-white/50 border border-gray-100 rounded-2xl focus:ring-4 focus:ring-purple-100 outline-none transition-all resize-none text-gray-700"
+                              placeholder="留个评论支持一下作者吧..."></textarea>
+                    <button type="submit"
+                            class="absolute bottom-3 right-3 px-6 py-2 bg-purple-500 text-white rounded-xl font-bold hover:bg-purple-600 transition-all shadow-lg hover:shadow-purple-200 active:scale-95">
+                        发布
+                    </button>
+                </div>
+            </div>
+        </form>
+        {% else %}
+        <div class="mb-10 p-6 bg-gray-50/50 rounded-2xl text-center border border-dashed border-gray-200">
+            <p class="text-gray-400">请先 <a href="{% url 'login' %}" class="text-purple-500 font-bold hover:underline">登录</a> 后发表评论</p>
+        </div>
+        {% endif %}
+
+        <div class="space-y-8">
+            {% for comment in illustration.comments.all %}
+                <div id="comment-box-{{ comment.id }}" class="flex gap-5 group transition-all duration-300">
+                    <img src="{% if comment.user.avatar %}{{ comment.user.avatar.url }}{% else %}{% static 'images/default_head.png' %}{% endif %}"
+                         class="w-12 h-12 rounded-full border-2 border-white shadow-sm shrink-0 transition-transform group-hover:rotate-6">
+
+                    <div class="flex-1">
+                        <div class="bg-white/80 p-4 rounded-2xl rounded-tl-none shadow-sm border border-purple-50/50">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="font-bold text-gray-700 text-sm">{{ comment.user.username }}</span>
+                                <span class="text-[10px] text-gray-400">{{ comment.created_at|timesince }}前</span>
+                            </div>
+                            <p class="text-gray-600 text-sm leading-relaxed">{{ comment.content }}</p>
+                        </div>
+
+                        <div class="flex items-center gap-4 mt-2 ml-1">
+                            <button onclick="toggleCommentLike(this, {{ comment.id }})"
+                                    class="flex items-center gap-1.5 text-xs font-semibold transition-colors {% if user in comment.likes.all %}text-pink-500{% else %}text-gray-400 hover:text-pink-400{% endif %}">
+                                <i class="{% if user in comment.likes.all %}fa-solid{% else %}fa-regular{% endif %} fa-heart"></i>
+                                <span class="like-count">{{ comment.like_count }}</span>
+                            </button>
+
+                            {% if user.is_staff or user == comment.user or user == illustration.owner %}
+                            <button onclick="openDeleteModal({{ comment.id }})"
+                                    class="text-[10px] text-gray-300 hover:text-red-400 transition-colors flex items-center gap-1">
+                                <i class="fa-solid fa-trash-can"></i>删除
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-16">
+                    <div class="text-5xl mb-4">Empty...</div>
+                    <p class="text-gray-300">还没有人评论，快来抢沙发~</p>
+                </div>
+                {% endfor %}
+        </div>
+    </div>
+</div>
+    <div id="commentDeleteModal" class="fixed inset-0 z-[2000] hidden flex items-center justify-center px-4">
+    <div class="absolute inset-0 bg-gray-900/40 backdrop-blur-sm transition-opacity"></div>
+    <div class="bg-white rounded-[24px] p-8 shadow-2xl relative z-10 w-full max-w-sm transform transition-all scale-95 opacity-0 duration-300" id="modalContent">
+        <div class="text-center">
+            <div class="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
+                <i class="fa-solid fa-trash-can"></i>
+            </div>
+            <h3 class="text-xl font-bold text-gray-800 mb-2">确认删除评论？</h3>
+            <p class="text-gray-500 text-sm mb-8">删除后内容将无法找回，请谨慎操作哦。</p>
+            <div class="flex gap-3">
+                <button onclick="closeDeleteModal()" class="flex-1 py-3 bg-gray-100 text-gray-600 rounded-xl font-bold hover:bg-gray-200 transition-all">取消</button>
+                <button id="confirmDeleteBtn" class="flex-1 py-3 bg-red-500 text-white rounded-xl font-bold hover:bg-red-600 shadow-lg shadow-red-200 transition-all">确认删除</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    document.querySelector('.save-illust-btn').addEventListener('click', function(e) {
+        if(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+            console.log("移动端点击下载");
+        }
+    });
+    let deleteConfirmState = false;
+
+    function handleDeleteClick() {
+        const btn = document.getElementById('deleteBtn');
+        const text = document.getElementById('deleteText');
+
+        if (!deleteConfirmState) {
+            // --- 第一次点击：切换为待确认状态 ---
+            deleteConfirmState = true;
+
+            // 样式变化：红色变深，文字改变
+            btn.classList.remove('text-red-400', 'border-red-400');
+            btn.classList.add('bg-red-600', 'text-white', 'border-red-600');
+            text.innerText = "确认要删除吗？";
+
+            // 3秒后自动重置状态（防止用户误触后反悔却一直显示删除态）
+            setTimeout(() => {
+                if (deleteConfirmState) {
+                    resetDeleteBtn();
+                }
+            }, 3000);
+
+        } else {
+            // --- 第二次点击：执行删除逻辑 ---
+            executeDelete();
+        }
+    }
+
+    function resetDeleteBtn() {
+        const btn = document.getElementById('deleteBtn');
+        const text = document.getElementById('deleteText');
+        deleteConfirmState = false;
+        btn.classList.add('text-red-400', 'border-red-400');
+        btn.classList.remove('bg-red-600', 'text-white', 'border-red-600');
+        text.innerText = "删除该插画";
+    }
+
+    function executeDelete() {
+        fetch("{% url 'masterpieces:delete_illustration' illustration.id %}", {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": "{{ csrf_token }}",
+            }
+        }).then(response => {
+            if (response.ok) {
+                // 直接跳转，不使用 alert
+                window.location.href = "{% url 'masterpieces:illustration_center' %}";
+            } else {
+                alert("权限不足或服务器错误");
+                resetDeleteBtn();
+            }
+        });
+    }
+    function toggleCommentLike(btn, commentId) {
+    if ("{{ user.is_authenticated }}" === "False") {
+        window.location.href = "{% url 'login' %}";
+        return;
+    }
+
+    const url = "{% url 'masterpieces:like_illust_comment' 0 %}".replace('0', commentId);
+    fetch(url, {
+        method: "POST",
+        headers: {
+            "X-CSRFToken": "{{ csrf_token }}",
+            "Content-Type": "application/json"
+        }
+    })
+// 后续代码不变
+    .then(response => response.json())
+    .then(data => {
+        const icon = btn.querySelector('i');
+        const countSpan = btn.querySelector('.like-count');
+
+        if (data.liked) {
+            btn.classList.remove('text-gray-400');
+            btn.classList.add('text-pink-500');
+            icon.classList.replace('fa-regular', 'fa-solid');
+        } else {
+            btn.classList.remove('text-pink-500');
+            btn.classList.add('text-gray-400');
+            icon.classList.replace('fa-solid', 'fa-regular');
+        }
+        countSpan.innerText = data.count;
+    });
+}
+let targetCommentId = null;
+
+function openDeleteModal(commentId) {
+    targetCommentId = commentId;
+    const modal = document.getElementById('commentDeleteModal');
+    const content = document.getElementById('modalContent');
+    modal.classList.remove('hidden');
+    setTimeout(() => {
+        content.classList.remove('scale-95', 'opacity-0');
+    }, 10);
+}
+
+function closeDeleteModal() {
+    const content = document.getElementById('modalContent');
+    content.classList.add('scale-95', 'opacity-0');
+    setTimeout(() => {
+        document.getElementById('commentDeleteModal').classList.add('hidden');
+        targetCommentId = null;
+    }, 300);
+}
+
+document.getElementById('confirmDeleteBtn').onclick = function() {
+    if (!targetCommentId) return;
+
+    const url = "{% url 'masterpieces:delete_illust_comment' 0 %}".replace('0', targetCommentId);
+    fetch(url, {
+        method: "POST",
+        headers: { "X-CSRFToken": "{{ csrf_token }}" }
+    })
+    .then(response => {
+        if (response.ok) return response.json();
+        throw new Error('网络请求错误或路径 404');
+    })
+    .then(data => {
+        if (data.status === 'success') {
+            const el = document.getElementById(`comment-box-${targetCommentId}`);  // 修改这一行
+            if (el) {
+                el.style.opacity = '0';
+                el.style.transform = 'translateX(-20px)';
+                setTimeout(() => el.remove(), 300);
+            }
+            closeDeleteModal();
+        }
+    })
+    .catch(error => console.error('错误详情:', error));
+};
+
+// 现有的 toggleCommentLike 函数保持不变...
+</script>
+
+{% endblock %}

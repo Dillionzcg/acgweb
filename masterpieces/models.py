@@ -113,3 +113,19 @@ class Illustration(models.Model):
 
     def __str__(self):
         return self.title
+# masterpieces/models.py
+
+class IllustrationComment(models.Model):
+    illustration = models.ForeignKey(Illustration, on_delete=models.CASCADE, related_name='comments')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    content = models.TextField('评论内容')
+    # 点赞多对多关系
+    likes = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='liked_illust_comments', blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    @property
+    def like_count(self):
+        return self.likes.count()

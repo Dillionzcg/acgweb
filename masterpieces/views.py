@@ -522,3 +522,80 @@ def post_illustration(request):
     return render(request, 'masterpieces/post_illustration.html', {
         'illust_tags': illust_tags
     })
+
+
+from django.shortcuts import render, get_object_or_404
+from .models import Illustration
+
+
+def illustration_detail(request, pk):
+    # 获取对应的插画对象，如果不存在则返回 404
+    illustration = get_object_or_404(Illustration, pk=pk)
+
+    # 增加阅读数/浏览次数逻辑（可选）
+    # illustration.views += 1
+    # illustration.save()
+
+    return render(request, 'masterpieces/illustration_detail.html', {
+        'illustration': illustration
+    })
+
+
+from django.contrib import messages
+from django.http import HttpResponseForbidden
+
+
+@login_required
+@require_POST
+def delete_illustration(request, pk):
+    illustration = get_object_or_404(Illustration, pk=pk)
+
+    # 安全检查：只有管理员或所有者可以删除
+    if not (request.user.is_staff or request.user == illustration.owner):
+        return HttpResponseForbidden("你没有权限删除此作品")
+
+    # 执行删除
+    illustration.delete()
+    return JsonResponse({"status": "success"})
+
+
+# masterpieces/views.py
+from .models import IllustrationComment
+@login_required
+@require_POST
+def submit_illust_comment(request, pk):
+    illustration = get_object_or_404(Illustration, pk=pk)
+    content = request.POST.get('content', '').strip()
+
+    if content:
+        IllustrationComment.objects.create(
+            illustration=illustration,
+            user=request.user,
+            content=content
+        )
+    return redirect('masterpieces:illustration_detail', pk=pk)
+
+
+# masterpieces/views.py
+
+@login_required
+@require_POST
+def like_illust_comment(request, comment_id):
+    comment = get_object_or_404(IllustrationComment, id=comment_id)
+    if request.user in comment.likes.all():
+        comment.likes.remove(request.user)
+        liked = False
+    else:
+        comment.likes.add(request.user)
+        liked = True
+    return JsonResponse({'liked': liked, 'count': comment.likes.count()})
+
+@login_required
+@require_POST
+def delete_illust_comment(request, comment_id):
+    comment = get_object_or_404(IllustrationComment, id=comment_id)
+    # 权限检查：管理员、插画作者、评论者本人
+    if request.user.is_staff or request.user == comment.user or request.user == comment.illustration.owner:
+        comment.delete()
+        return JsonResponse({'status': 'success'})
+    return JsonResponse({'status': 'error'}, status=403)

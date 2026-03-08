@@ -124,87 +124,87 @@
 
     <div class="view-viewport">
     <div class="view-canvas" id="viewCanvas">
-        <div class="view-page">
-            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-4">
-                {% for tag in all_tags %}
-                    <a href="?tag={{ tag.name }}" class="tag-category-card group">
-                        <div class="relative h-40 rounded-2xl overflow-hidden bg-gray-100 shadow-sm border border-white/50 transition-all group-hover:shadow-purple-200 group-hover:shadow-lg">
-                            {% with random_illust=tag.illustration_set.all|random %}
-                                {% if random_illust %}
-                                    <img src="{{ random_illust.image.url }}" class="w-full h-full object-cover transition duration-500 group-hover:scale-110">
-                                {% else %}
-                                    <div class="w-full h-full flex items-center justify-center bg-purple-50">
-                                        <i class="fa-solid fa-tag text-purple-200 text-3xl"></i>
-                                    </div>
-                                {% endif %}
-                            {% endwith %}
-                            <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex flex-col justify-end p-4">
-                                <span class="text-white font-bold text-lg acg-font"># {{ tag.name }}</span>
-                                <span class="text-white/80 text-xs">{{ tag.illustration_set.count }} 份作品</span>
-                            </div>
+    <div class="view-page">
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-4">
+            {% for tag in all_tags %}
+                <a href="?tag={{ tag.name }}" class="tag-category-card group">
+                    <div class="relative h-40 rounded-2xl overflow-hidden bg-gray-100 shadow-sm border border-white/50 transition-all group-hover:shadow-purple-200 group-hover:shadow-lg">
+                        {% with random_illust=tag.illustration_set.all|random %}
+                            {% if random_illust %}
+                                <img src="{{ random_illust.image.url }}" class="w-full h-full object-cover transition duration-500 group-hover:scale-110">
+                            {% else %}
+                                <div class="w-full h-full flex items-center justify-center bg-purple-50">
+                                    <i class="fa-solid fa-tag text-purple-200 text-3xl"></i>
+                                </div>
+                            {% endif %}
+                        {% endwith %}
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex flex-col justify-end p-4">
+                            <span class="text-white font-bold text-lg acg-font"># {{ tag.name }}</span>
+                            <span class="text-white/80 text-xs">{{ tag.illustration_set.count }} 份作品</span>
                         </div>
-                    </a>
-                {% empty %}
-                    <div class="col-span-full empty-placeholder">
-                        <i class="fa-solid fa-ghost text-5xl mb-4 opacity-20"></i>
-                        <p>还没有创建任何标签哦</p>
                     </div>
-                {% endfor %}
-            </div>
-        </div>
-
-        <div class="view-page">
-            <div class="waterfall-grid">
-                {% for item in illustrations_latest %}
-                    {% include 'masterpieces/includes/illust_card.html' with item=item %}
-                {% empty %}
-                    <div class="empty-placeholder">
-                        <i class="fa-solid fa-face-smile-wink text-5xl mb-4 opacity-20"></i>
-                        <p>还没有内容，先去逛逛吧</p>
-                    </div>
-                {% endfor %}
-            </div>
-        </div>
-
-        <div class="view-page">
-            <div class="waterfall-grid">
-                {% for item in illustrations_latest %}
-                    {% include 'masterpieces/includes/illust_card.html' with item=item %}
-                {% empty %}
-                    <div class="empty-placeholder">
-                        <i class="fa-solid fa-user-plus text-5xl mb-4 opacity-20"></i>
-                        <p>还没有新投稿哦</p>
-                    </div>
-                {% endfor %}
-            </div>
-        </div>
-
-        <div class="view-page">
-            <div class="waterfall-grid">
-                {% for item in illustrations_latest %}
-                    {% include 'masterpieces/includes/illust_card.html' with item=item %}
-                {% empty %}
-                    <div class="empty-placeholder">
-                        <i class="fa-solid fa-clock text-5xl mb-4 opacity-20"></i>
-                        <p>最近还没有新作品发布哦~</p>
-                    </div>
-                {% endfor %}
-            </div>
-        </div>
-
-        <div class="view-page">
-            <div class="waterfall-grid">
-                {% for item in illustrations_latest %}
-                    {% include 'masterpieces/includes/illust_card.html' with item=item %}
-                {% empty %}
-                    <div class="empty-placeholder">
-                        <i class="fa-solid fa-fire text-5xl mb-4 opacity-20"></i>
-                        <p>暂时还没有作品上榜哦~</p>
-                    </div>
-                {% endfor %}
-            </div>
+                </a>
+            {% empty %}
+                <div class="col-span-full empty-placeholder">
+                    <i class="fa-solid fa-ghost text-5xl mb-4 opacity-20"></i>
+                    <p>还没有创建任何标签哦</p>
+                </div>
+            {% endfor %}
         </div>
     </div>
+
+    <div class="view-page">
+        <div class="waterfall-grid">
+            {% for illust in illustrations_latest %}
+                {% include 'masterpieces/includes/illust_card.html' with item=illust %}
+            {% empty %}
+                <div class="empty-placeholder">
+                    <i class="fa-solid fa-face-smile-wink text-5xl mb-4 opacity-20"></i>
+                    <p>还没有内容，先去逛逛吧</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="view-page">
+        <div class="waterfall-grid">
+            {% for illust in illustrations_follow %}
+                {% include 'masterpieces/includes/illust_card.html' with item=illust %}
+            {% empty %}
+                <div class="empty-placeholder">
+                    <i class="fa-solid fa-user-plus text-5xl mb-4 opacity-20"></i>
+                    <p>关注的作者还没有新作品哦</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="view-page">
+        <div class="waterfall-grid">
+            {% for illust in illustrations_new %}
+                {% include 'masterpieces/includes/illust_card.html' with item=illust %}
+            {% empty %}
+                <div class="empty-placeholder">
+                    <i class="fa-solid fa-clock text-5xl mb-4 opacity-20"></i>
+                    <p>最近还没有新作品发布哦~</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="view-page">
+        <div class="waterfall-grid">
+            {% for illust in illustrations_hot %}
+                {% include 'masterpieces/includes/illust_card.html' with item=illust %}
+            {% empty %}
+                <div class="empty-placeholder">
+                    <i class="fa-solid fa-fire text-5xl mb-4 opacity-20"></i>
+                    <p>暂时还没有作品上榜哦~</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
 </div>
 </div>
 

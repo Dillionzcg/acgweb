@@ -24,4 +24,9 @@ urlpatterns = [
     path('all/', views.all_works_view, name='all_works'),
     path('illustrations/', views.illustration_center, name='illustration_center'),
     path('illustrations/post/', views.post_illustration, name='post_illustration'),
+    path('illustration/<int:pk>/', views.illustration_detail, name='illustration_detail'),
+    path('illustration/<int:pk>/delete/', views.delete_illustration, name='delete_illustration'),
+    path('illustration/<int:pk>/comment/', views.submit_illust_comment, name='submit_illust_comment'),
+    path('illust-comment/<int:comment_id>/like/', views.like_illust_comment, name='like_illust_comment'),
+    path('illust-comment/<int:comment_id>/delete/', views.delete_illust_comment, name='delete_illust_comment'),
 ]
