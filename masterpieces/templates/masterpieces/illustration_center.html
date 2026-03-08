@@ -97,6 +97,60 @@
             top: 0; left: 0; width: 100%; height: 100%;
         }
     }
+    /* --- 4. 核心内容视口优化 --- */
+.view-viewport {
+    width: 100%;
+    position: relative;
+    min-height: 600px; /* 避免切换时高度塌陷 */
+}
+
+.view-canvas {
+    display: block; /* 取消 flex */
+    width: 100%;
+}
+
+.view-page {
+    width: 100%;
+    position: absolute; /* 改为绝对定位重叠 */
+    top: 0;
+    left: 0;
+    opacity: 0;
+    pointer-events: none; /* 隐藏时不可点击 */
+    transform: translateY(30px);
+    transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1); /* 经典的平滑淡入曲线 */
+}
+
+/* 激活状态 */
+.view-page.active {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+    position: relative; /* 激活的页面撑开容器高度 */
+    z-index: 10;
+}
+
+/* 让作品卡片产生交错感 (Stagger) */
+.view-page.active .illust-card,
+.view-page.active .tag-category-card {
+    animation: cardRise 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* 为每一列设置不同的延迟，形成流式升起的效果 */
+.view-page.active .flex-1:nth-child(1) { animation-delay: 0.05s; }
+.view-page.active .flex-1:nth-child(2) { animation-delay: 0.15s; }
+.view-page.active .flex-1:nth-child(3) { animation-delay: 0.25s; }
+.view-page.active .flex-1:nth-child(4) { animation-delay: 0.35s; }
+
+@keyframes cardRise {
+    from {
+        opacity: 0;
+        transform: translateY(40px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
 </style>
 
 <div class="illust-container pt-6">
@@ -269,11 +323,17 @@
 <script>
     // 统一切换逻辑
     function switchView(index, btn, skipSave = false) {
-        const canvas = document.getElementById('viewCanvas');
+        const pages = document.querySelectorAll('.view-page');
         const slider = document.getElementById('activeSlider');
 
-        // 1. 内容左右滑动
-        canvas.style.transform = `translateX(-${index * 20}%)`;
+        // 1. 更新页面显隐状态
+        pages.forEach((page, i) => {
+            if (i === index) {
+                page.classList.add('active');
+            } else {
+                page.classList.remove('active');
+            }
+        });
 
         // 2. 更新按钮状态
         const allBtns = document.querySelectorAll('.zone-btn');
@@ -284,7 +344,7 @@
         slider.style.width = btn.offsetWidth + 'px';
         slider.style.left = btn.offsetLeft + 'px';
 
-        // 4. 保存状态到本地存储 (仅在手动点击时保存)
+        // 4. 保存状态
         if (!skipSave) {
             localStorage.setItem('illust_center_last_tab', index);
         }

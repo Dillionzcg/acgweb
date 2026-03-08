@@ -190,8 +190,13 @@
 </div>
 
 <div class="illust-detail-container">
-    <div class="illust-main-display">
-        <img src="{{ illustration.image.url }}" alt="{{ illustration.title }}" class="illust-image">
+<div class="flex justify-center w-full mb-8">
+        <div class="max-w-4xl w-full bg-white rounded-3xl shadow-xl overflow-hidden border border-purple-100 transition-all hover:shadow-2xl">
+            <img src="{{ illustration.image.url }}"
+                 class="w-full h-auto block cursor-zoom-in hover:opacity-95 transition-opacity"
+                 onclick="openIllustModal('{{ illustration.image.url }}')"
+                 alt="{{ illustration.title }}">
+        </div>
     </div>
 
    <div class="flex flex-col items-center mb-8">
@@ -219,11 +224,12 @@
                     <h1 class="text-3xl font-bold text-gray-800 acg-font">{{ illustration.title }}</h1>
                 </div>
 
-                <div class="flex flex-wrap gap-2 mb-6">
-                    {% for tag in illustration.tags.all %}
-                        <span class="tag-badge"># {{ tag.name }}</span>
-                    {% endfor %}
-                </div>
+                {% for tag in illustration.tags.all %}
+                    <a href="{% url 'masterpieces:illustration_by_tag' tag.name %}"
+                       class="px-3 py-1 bg-purple-50 text-purple-600 rounded-full text-sm border border-purple-100 hover:bg-purple-500 hover:text-white transition-colors cursor-pointer">
+                        # {{ tag.name }}
+                    </a>
+                {% endfor %}
 
                 <div class="text-gray-600 leading-relaxed text-lg mb-6">
                     {{ illustration.description|linebreaks }}
@@ -332,6 +338,26 @@
             </div>
         </div>
     </div>
+</div>
+    <div id="illustModal" class="fixed inset-0 z-[9999] hidden opacity-0 transition-all duration-300">
+    <div class="absolute inset-0 bg-white/10 backdrop-blur-xl" onclick="closeIllustModal()"></div>
+
+    <div class="absolute top-6 left-6 z-[10000]">
+        <button onclick="closeIllustModal()" class="flex items-center justify-center w-12 h-12 bg-white/20 hover:bg-white/40 text-white rounded-full backdrop-blur-md transition-all border border-white/30 group">
+            <i class="fa-solid fa-xmark text-xl group-hover:scale-110"></i>
+        </button>
+    </div>
+
+    <div class="absolute inset-0 flex items-center justify-center p-4 md:p-10 pointer-events-none">
+        <img id="modalImg" src="" class="max-w-full max-h-full object-contain shadow-2xl rounded-lg pointer-events-auto select-none" alt="Preview">
+    </div>
+
+    <div class="absolute bottom-8 left-8 z-[10000]">
+    <a id="modalDownload" href="" download class="flex items-center gap-2 px-6 py-3 bg-purple-500 hover:bg-purple-600 text-white rounded-full shadow-lg transition-all transform hover:scale-105 active:scale-95">
+        <i class="fa-solid fa-download"></i>
+        <span class="font-bold">保存原图</span>
+    </a>
+</div>
 </div>
 <script>
     document.querySelector('.save-illust-btn').addEventListener('click', function(e) {
@@ -500,6 +526,38 @@ function toggleFavorite(pk) {
     })
     .catch(error => console.error('Error:', error));
 }
+function openIllustModal(imgUrl) {
+    const modal = document.getElementById('illustModal');
+    const modalImg = document.getElementById('modalImg');
+    const modalDownload = document.getElementById('modalDownload');
+
+    modalImg.src = imgUrl;
+    modalDownload.href = imgUrl;
+
+    // 显示模态框
+    modal.classList.remove('hidden');
+    setTimeout(() => {
+        modal.classList.add('opacity-100');
+    }, 10);
+
+    // 禁止背景滚动
+    document.body.style.overflow = 'hidden';
+}
+
+function closeIllustModal() {
+    const modal = document.getElementById('illustModal');
+    modal.classList.remove('opacity-100');
+
+    setTimeout(() => {
+        modal.classList.add('hidden');
+        document.body.style.overflow = '';
+    }, 300);
+}
+
+// 支持 ESC 键关闭
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeIllustModal();
+});
 
 // 现有的 toggleCommentLike 函数保持不变...
 </script>
