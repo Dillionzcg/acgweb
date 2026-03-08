@@ -1,5 +1,14 @@
 <div class="illust-card group relative mb-6 break-inside-avoid">
     <div class="relative overflow-hidden rounded-2xl bg-gray-100 border border-white/50 shadow-sm transition-all duration-500 hover:shadow-purple-200 hover:shadow-xl hover:-translate-y-1">
+
+        {% if user.is_authenticated and user in item.favorites.all %}
+        <div class="absolute top-3 right-3 z-10 animate__animated animate__fadeIn">
+            <div class="bg-white/80 backdrop-blur-sm w-8 h-8 rounded-full flex items-center justify-center shadow-sm border border-pink-100">
+                <i class="fa-solid fa-heart text-pink-500 text-sm"></i>
+            </div>
+        </div>
+        {% endif %}
+
         <a href="{% url 'masterpieces:illustration_detail' item.id %}">
             <img src="{{ item.image.url }}" alt="{{ item.title }}"
                  class="w-full h-auto object-cover transition duration-700 group-hover:scale-105">
@@ -20,11 +29,5 @@
                 <span class="text-white/80 text-xs truncate">@{{ item.owner.username }}</span>
             </div>
         </div>
-    </div>
-
-    <div class="mt-2 flex flex-wrap gap-1 px-1">
-        {% for tag in item.tags.all|slice:":3" %}
-            <span class="text-[10px] text-purple-400 bg-purple-50 px-2 py-0.5 rounded-md italic">#{{ tag.name }}</span>
-        {% endfor %}
     </div>
 </div>

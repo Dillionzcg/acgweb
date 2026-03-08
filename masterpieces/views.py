@@ -599,3 +599,17 @@ def delete_illust_comment(request, comment_id):
         comment.delete()
         return JsonResponse({'status': 'success'})
     return JsonResponse({'status': 'error'}, status=403)
+# masterpieces/views.py
+
+# masterpieces/views.py
+@login_required
+@require_POST
+def toggle_illustration_favorite(request, pk):
+    illustration = get_object_or_404(Illustration, pk=pk)
+    if request.user in illustration.favorites.all():
+        illustration.favorites.remove(request.user)
+        is_favorite = False
+    else:
+        illustration.favorites.add(request.user)
+        is_favorite = True
+    return JsonResponse({'status': 'success', 'is_favorite': is_favorite})

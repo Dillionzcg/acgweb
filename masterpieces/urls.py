@@ -29,4 +29,5 @@ urlpatterns = [
     path('illustration/<int:pk>/comment/', views.submit_illust_comment, name='submit_illust_comment'),
     path('illust-comment/<int:comment_id>/like/', views.like_illust_comment, name='like_illust_comment'),
     path('illust-comment/<int:comment_id>/delete/', views.delete_illust_comment, name='delete_illust_comment'),
+    path('illustration/<int:pk>/favorite/', views.toggle_illustration_favorite, name='toggle_illustration_favorite'),
 ]

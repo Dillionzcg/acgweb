@@ -110,6 +110,12 @@ class Illustration(models.Model):
     tags = models.ManyToManyField(Tag, verbose_name='标签', blank=True)
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name='发布者')
     created_at = models.DateTimeField('发布时间', auto_now_add=True)
+    favorites = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        related_name='favorite_illustrations',
+        blank=True,
+        verbose_name='收藏者'
+    )
 
     def __str__(self):
         return self.title
