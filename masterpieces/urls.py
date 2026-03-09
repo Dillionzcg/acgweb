@@ -32,4 +32,5 @@ urlpatterns = [
     path('illustration/<int:pk>/favorite/', views.toggle_illustration_favorite, name='toggle_illustration_favorite'),
     path('illustrations/my-favorites/', views.my_favorite_illustrations, name='my_favorite_illustrations'),
     path('illustrations/tag/<str:tag_name>/', views.illustration_by_tag, name='illustration_by_tag'),
+    path('user/<int:user_id>/follow/', views.toggle_follow, name='toggle_follow'),
 ]

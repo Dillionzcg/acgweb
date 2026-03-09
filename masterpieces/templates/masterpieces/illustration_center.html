@@ -256,16 +256,55 @@
 
 <div class="view-page">
     {% if illustrations_follow %}
-        <div class="flex gap-5 items-start px-4">
-            {% for i in "0123"|make_list %}
-                <div class="flex-1 flex flex-col gap-5">
+        <div class="flex flex-col lg:flex-row gap-8 items-start px-4">
+
+            <div class="flex-1 flex gap-5 items-start">
+                {% for i in "012"|make_list %}
+                <div class="flex flex-col gap-5">
                     {% for illust in illustrations_follow %}
-                        {% if forloop.counter0|add:i|divisibleby:4 %}
-                            {% include 'masterpieces/includes/illust_card.html' with item=illust %}
+                        {# 限制显示 9 张作品（3列 * 3行 = 9） #}
+                        {% if forloop.counter0 < 9 %}
+                            {# 核心修改：将 divisibleby:4 改为 divisibleby:3 #}
+                            {% if forloop.counter0|add:i|divisibleby:3 %}
+                                {% include 'masterpieces/includes/illust_card.html' with item=illust %}
+                            {% endif %}
                         {% endif %}
                     {% endfor %}
                 </div>
             {% endfor %}
+            </div>
+
+            <div class="w-full lg:w-80 shrink-0">
+                <div class="bg-white/70 backdrop-blur-md rounded-3xl p-6 border border-white shadow-sm sticky top-24">
+                    <h3 class="font-bold text-gray-800 mb-5 flex items-center justify-between">
+                        <span>我的关注</span>
+                        <span class="text-xs font-normal text-gray-400">{{ following_list|length }} 人</span>
+                    </h3>
+
+                    <div class="space-y-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
+                        {% for f_user in following_list %}
+                        <div class="flex items-center justify-between group" id="follow-item-{{ f_user.id }}">
+                            <a href="/auth/user/{{ f_user.id }}/?tab=art" class="flex items-center gap-3 hover:opacity-80 transition-all">
+                                <div class="relative">
+                                    <img src="{% if f_user.avatar %}{{ f_user.avatar.url }}{% else %}{% static 'images/default_head.png' %}{% endif %}"
+                                         class="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm">
+                                </div>
+                                <span class="text-sm font-medium text-gray-700 truncate w-24">{{ f_user.username }}</span>
+                            </a>
+
+                            <button onclick="unfollowInList({{ f_user.id }})"
+                                    class="text-gray-300 hover:text-red-400 transition-colors p-2"
+                                    title="取消关注">
+                                <i class="fa-solid fa-circle-minus text-lg"></i>
+                            </button>
+                        </div>
+                        {% empty %}
+                        <p class="text-center text-gray-400 py-4 text-sm">暂无关注</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
         </div>
     {% else %}
         <div class="empty-placeholder">
@@ -369,5 +408,38 @@
             askXiaoYou('CENTER_ENTER', '插画中心');
         }
     });
+    function unfollowInList(userId) {
+    if (!confirm('确定要取消关注该作者吗？')) return;
+
+    // 这里使用你之前在 urls.py 定义的关注逻辑接口
+    const url = `/user/${userId}/follow/`;
+
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success' && !data.is_following) {
+            // 成功取消关注后，给列表项一个消失动画并移除
+            const item = document.getElementById(`follow-item-${userId}`);
+            if (item) {
+                item.style.opacity = '0';
+                item.style.transform = 'translateX(20px)';
+                item.style.transition = 'all 0.3s ease';
+                setTimeout(() => item.remove(), 300);
+            }
+        } else {
+            alert(data.message || '操作失败');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('网络请求出错');
+    });
+}
 </script>
 {% endblock %}

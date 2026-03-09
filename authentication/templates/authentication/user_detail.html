@@ -357,9 +357,21 @@ function renderEmpty() {
         </div>`;
 }
     // 初始化加载
-    document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. 解析当前 URL 的参数
+    const urlParams = new URLSearchParams(window.location.search);
+    const targetTab = urlParams.get('tab');
+
+    // 2. 逻辑判断：如果参数是 art，切换到插画栏目；否则默认加载动态
+    if (targetTab === 'art') {
+        switchTab('art');
+    } else if (targetTab === 'favs') {
+        switchTab('favs');
+    } else {
+        // 默认加载第一个 Tab
         switchTab('posts');
-    });
+    }
+});
 
     // 发送好友请求
 // 在 user_detail.html 的 <script> 标签中替换 sendRequest 函数

@@ -1,4 +1,6 @@
 import json
+
+from django.contrib.auth import get_user_model
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
@@ -596,6 +598,13 @@ def illustration_center(request):
     hot_illusts = all_illusts.order_by('-calculated_hot')
     # 3. 为你推荐 (调用优化后的算法)
     recommend_illusts = get_recommendation_data(request.user, all_illusts, target_count=50)
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    following_users = profile.following.all()
+
+    # 获取这些作者的最新作品（限制 15 个以接近“三行”的效果）
+    illustrations_follow = Illustration.objects.filter(
+        owner__in=following_users
+    ).order_by('-created_at')[:100]
 
     context = {
         'tag_data_list': tag_data_list,
@@ -604,7 +613,8 @@ def illustration_center(request):
         'illustrations_new': latest_illusts,  # 最新作品（全量，可用于分页）
         'illustrations_hot': hot_illusts[:20],
         'illustrations_rec': recommend_illusts,  # 为你推荐数据
-        'illustrations_follow': [],  # 我的关注（暂无功能，先置空）
+        'illustrations_follow': illustrations_follow, # 名字必须对应 HTML 里的循环
+        'following_list': following_users,
     }
     return render(request, 'masterpieces/illustration_center.html', context)
 
@@ -806,3 +816,36 @@ def illustration_by_tag(request, tag_name):
         'illustrations': illustrations,
     }
     return render(request, 'masterpieces/illustration_tag_detail.html', context)
+
+
+# masterpieces/views.py
+
+# masterpieces/views.py
+
+# masterpieces/views.py
+
+@login_required
+@require_POST
+def toggle_follow(request, user_id):
+    target_user = get_object_or_404(get_user_model(), id=user_id)
+    if target_user == request.user:
+        return JsonResponse({'status': 'error', 'message': '不能关注你自己'}, status=400)
+
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+
+    # 检查当前是否已关注
+    if target_user in profile.following.all():
+        profile.following.remove(target_user)
+        is_following = False
+        message = "已取消关注"
+    else:
+        profile.following.add(target_user)
+        is_following = True
+        message = "关注成功"
+
+    # --- 关键：必须返回这个 JsonResponse，否则前端收不到成功信号 ---
+    return JsonResponse({
+        'status': 'success',
+        'is_following': is_following,
+        'message': message
+    })

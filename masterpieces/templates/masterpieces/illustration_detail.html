@@ -241,14 +241,22 @@
             </div>
 
             <div class="w-full lg:w-64 bg-gray-50/50 rounded-3xl p-6 border border-gray-100 text-center">
-                <img src="{% if illustration.owner.avatar %}{{ illustration.owner.avatar.url }}{% else %}{% static 'images/default_head.png' %}{% endif %}"
-                     class="author-avatar mx-auto mb-3"
-                     alt="{{ illustration.owner.username }}的头像">
+                <a href="/auth/user/{{ illustration.owner.id }}/?tab=art" class="block group">
+                    <img src="{% if illustration.owner.avatar %}{{ illustration.owner.avatar.url }}{% else %}{% static 'images/default_head.png' %}{% endif %}"
+                         class="author-avatar mx-auto mb-3 group-hover:opacity-90 transition-all border-4 border-white shadow-sm"
+                         alt="{{ illustration.owner.username }}的头像">
 
-                <h3 class="font-bold text-gray-800 mb-1">{{ illustration.owner.username }}</h3>
+                    <h3 class="font-bold text-gray-800 mb-1 group-hover:text-pink-500 transition-colors">
+                        {{ illustration.owner.username }}
+                    </h3>
+                </a>
+
                 <p class="text-xs text-gray-400 mb-4">创作艺术家</p>
-                <button class="w-full py-2 bg-pink-400 text-white rounded-xl text-sm font-bold hover:bg-pink-500 transition-all">
-                    + 关注作者
+
+                <button id="followBtn"
+                        onclick="toggleFollow({{ illustration.owner.id }})"
+                        class="w-full py-2 {% if illustration.owner in request.user.profile.following.all %}bg-gray-400{% else %}bg-pink-400{% endif %} text-white rounded-xl text-sm font-bold hover:opacity-90 transition-all active:scale-95 shadow-sm">
+                    {% if illustration.owner in request.user.profile.following.all %}已关注{% else %}+ 关注作者{% endif %}
                 </button>
             </div>
         </div>
@@ -558,7 +566,54 @@ function closeIllustModal() {
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') closeIllustModal();
 });
+// 在模板中定义一个基础变量
+const followUrlBase = "{% url 'masterpieces:toggle_follow' 0 %}";
 
+// masterpieces/illustration_detail.html 中的脚本部分
+
+function toggleFollow(userId) {
+    const url = followUrlBase.replace('0', userId);
+    const btn = document.getElementById('followBtn'); // 获取按钮元素
+
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+    })
+    .then(response => {
+        if (!response.ok) {
+            // 如果没登录，Django 可能会重定向或返回 403
+            if (response.status === 403 || response.status === 401) {
+                window.location.href = "{% url 'login' %}";
+            }
+            throw new Error('网络响应错误');
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.status === 'success') {
+            // 根据后端返回的 is_following 状态实时更新按钮样式
+            if (data.is_following) {
+                btn.innerText = '已关注';
+                btn.classList.remove('bg-pink-400');
+                btn.classList.add('bg-gray-400');
+            } else {
+                btn.innerText = '+ 关注作者';
+                btn.classList.remove('bg-gray-400');
+                btn.classList.add('bg-pink-400');
+            }
+            console.log(data.message); // 调试信息
+        } else {
+            alert(data.message);
+        }
+    })
+    .catch(error => {
+        console.error('发生错误:', error);
+    });
+}
 // 现有的 toggleCommentLike 函数保持不变...
 </script>
 

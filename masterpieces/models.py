@@ -149,6 +149,11 @@ class UserProfile(models.Model):
     )
     # 存储标签权重：{"标签ID": 权重值}
     tag_preferences = models.JSONField(default=dict, verbose_name="标签偏好权重")
-
+    following = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        related_name='followers',
+        blank=True,
+        verbose_name='关注的人'
+    )
     def __str__(self):
         return f"{self.user.username} 的偏好设置"
