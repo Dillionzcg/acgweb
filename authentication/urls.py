@@ -15,4 +15,5 @@ urlpatterns = [
     path('api/friends/', views.get_friends_data, name='get_friends_data'),
     path('api/users/', views.user_list_api, name='user_list_api'),
     path('api/user/save_preferences/', views.save_preferences, name='save_preferences'),
+    path('user/<int:user_id>/', views.user_detail_view, name='user_detail'),
 ]

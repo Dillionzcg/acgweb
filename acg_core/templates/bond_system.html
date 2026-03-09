@@ -173,33 +173,32 @@
 
         container.innerHTML = friends.map(f => `
             <div class="flex items-center p-5 bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:border-pink-100 transition-all group relative">
-                <div class="relative">
-                    <img src="${f.avatar || '/static/images/default_head.png'}" class="w-14 h-14 rounded-full object-cover border-2 border-white shadow-sm group-hover:scale-105 transition-transform">
-                    <div class="absolute -bottom-1 -right-1 bg-white rounded-full px-1.5 py-0.5 border border-gray-100 shadow-sm text-[10px] font-bold text-pink-500">Lv.1</div>
-                </div>
-                <div class="ml-4 flex-1">
-                    <div class="flex justify-between items-center">
-                        <div class="font-bold text-gray-800">${f.username}</div>
-                        
-                        <!-- Relationship Tag (Click to change) -->
-                        <div class="relative group/rel">
-                            <span onclick="toggleRelMenu('${f.rel_id}')" class="cursor-pointer px-2 py-0.5 rounded-md text-[10px] font-bold ${typeLabels[f.relationship].color} hover:opacity-80 transition-opacity select-none">
-                                ${typeLabels[f.relationship].text} <i class="fa-solid fa-caret-down ml-1"></i>
-                            </span>
-                            
-                            <!-- Dropdown -->
-                            <div id="rel-menu-${f.rel_id}" class="hidden absolute right-0 top-6 w-24 bg-white border border-gray-100 rounded-xl shadow-lg z-20 overflow-hidden text-xs">
-                                <div onclick="updateRel('${f.rel_id}', 'normal')" class="px-3 py-2 hover:bg-gray-50 cursor-pointer text-gray-600">普通好友</div>
-                                <div onclick="updateRel('${f.rel_id}', 'bestie')" class="px-3 py-2 hover:bg-blue-50 cursor-pointer text-blue-500">基友/死党</div>
-                                <div onclick="updateRel('${f.rel_id}', 'lover')" class="px-3 py-2 hover:bg-pink-50 cursor-pointer text-pink-500">情侣/CP</div>
-                                <div onclick="updateRel('${f.rel_id}', 'family')" class="px-3 py-2 hover:bg-orange-50 cursor-pointer text-orange-500">家人</div>
-                            </div>
+                <a href="/auth/user/${f.id}/" class="flex items-center flex-1 min-w-0 cursor-pointer">
+                    <div class="relative shrink-0">
+                        <img src="${f.avatar || '/static/images/default_head.png'}" class="w-14 h-14 rounded-full object-cover border-2 border-white shadow-sm group-hover:scale-105 transition-transform">
+                        <div class="absolute -bottom-1 -right-1 bg-white rounded-full px-1.5 py-0.5 border border-gray-100 shadow-sm text-[10px] font-bold text-pink-500">Lv.1</div>
+                    </div>
+                    <div class="ml-4 flex-1 min-w-0">
+                        <div class="font-bold text-gray-800 truncate text-lg">${f.username}</div>
+                        <div class="text-xs text-gray-400 truncate mt-1 max-w-[180px]">${f.bio || '这家伙很神秘...'}</div>
+                    </div>
+                </a>
+
+                <div class="ml-2 flex items-center space-x-3 shrink-0">
+                    <div class="relative group/rel">
+                        <span onclick="event.stopPropagation(); toggleRelMenu('${f.rel_id}')" class="cursor-pointer px-2 py-0.5 rounded-md text-[10px] font-bold ${typeLabels[f.relationship].color} hover:opacity-80 transition-opacity select-none">
+                            ${typeLabels[f.relationship].text} <i class="fa-solid fa-caret-down ml-1"></i>
+                        </span>
+
+                        <div id="rel-menu-${f.rel_id}" class="hidden absolute right-0 top-6 w-24 bg-white border border-gray-100 rounded-xl shadow-lg z-20 overflow-hidden text-xs">
+                            <div onclick="event.stopPropagation(); updateRel('${f.rel_id}', 'normal')" class="px-3 py-2 hover:bg-gray-50 cursor-pointer text-gray-600">普通好友</div>
+                            <div onclick="event.stopPropagation(); updateRel('${f.rel_id}', 'bestie')" class="px-3 py-2 hover:bg-blue-50 cursor-pointer text-blue-500">基友/死党</div>
+                            <div onclick="event.stopPropagation(); updateRel('${f.rel_id}', 'lover')" class="px-3 py-2 hover:bg-pink-50 cursor-pointer text-pink-500">情侣/CP</div>
+                            <div onclick="event.stopPropagation(); updateRel('${f.rel_id}', 'family')" class="px-3 py-2 hover:bg-orange-50 cursor-pointer text-orange-500">家人</div>
                         </div>
                     </div>
-                    <div class="text-xs text-gray-400 truncate mt-1 max-w-[140px]">${f.bio || '这家伙很神秘...'}</div>
-                </div>
-                <div class="ml-2 flex space-x-2">
-                    <button onclick="startChat('${f.id}', '${f.username}')" class="w-9 h-9 flex items-center justify-center bg-blue-50 text-blue-500 rounded-xl hover:bg-blue-500 hover:text-white transition-all" title="发起聊天">
+
+                    <button onclick="event.stopPropagation(); event.preventDefault(); startChat('${f.id}', '${f.username}')" class="w-9 h-9 flex items-center justify-center bg-blue-50 text-blue-500 rounded-xl hover:bg-blue-500 hover:text-white transition-all" title="发起聊天">
                         <i class="fa-solid fa-comment-dots"></i>
                     </button>
                 </div>
@@ -266,17 +265,19 @@
                         actionBtn = `<button onclick="sendRequest(${u.id}, this)" class="px-4 py-1.5 bg-pink-500 text-white rounded-lg text-xs font-bold hover:bg-pink-600 transition-all shadow-md shadow-pink-200"><i class="fa-solid fa-plus mr-1"></i> 结缔</button>`;
                     }
                     
-                    return `
-                    <div class="flex items-center justify-between p-5 bg-white rounded-2xl border border-gray-100 hover:border-pink-200 transition-colors shadow-sm">
-                        <div class="flex items-center overflow-hidden">
-                            <img src="${u.avatar ? '/media/'+u.avatar : '/static/images/default_head.png'}" class="w-12 h-12 rounded-full object-cover mr-4 shrink-0">
-                            <div class="min-w-0">
-                                <div class="font-bold text-gray-800 truncate">${u.username}</div>
-                                <div class="text-xs text-gray-400 truncate">${u.bio || '这个星球的过客...'}</div>
-                            </div>
+                    // bond_system.html 内部
+
+                return `
+                <div class="flex items-center justify-between p-5 bg-white rounded-2xl border border-gray-100 hover:border-pink-200 transition-colors shadow-sm">
+                    <a href="/auth/user/${u.id}/" class="flex items-center overflow-hidden flex-1">
+                        <img src="${u.avatar ? '/media/'+u.avatar : '/static/images/default_head.png'}" class="w-12 h-12 rounded-full object-cover mr-4 shrink-0">
+                        <div class="min-w-0">
+                            <div class="font-bold text-gray-800 truncate">${u.username}</div>
+                            <div class="text-xs text-gray-400 truncate">${u.bio || '这个星球的过客...'}</div>
                         </div>
-                        <div class="ml-2 shrink-0">${actionBtn}</div>
-                    </div>`;
+                    </a>
+                    <div class="ml-2 shrink-0">${actionBtn}</div>
+                </div>`;
                 }).join('');
             }
         } catch(e) { console.error(e); }

@@ -258,3 +258,38 @@ def my_view(request):
         'genre_list': ['恋爱', '搞笑', '萌系', '音乐', '催泪', '治愈', '偶像', '校园', '热血', '冒险', '悬疑', '奇幻', '异世界']
     }
     return render(request, 'index.html', context)
+
+
+# views.py
+from django.shortcuts import render, get_object_or_404
+from .models import User, Friendship
+from community.models import Topic,News
+from masterpieces.models import Illustration
+
+def user_detail_view(request, user_id):
+    target_user = get_object_or_404(User, id=user_id)
+    user_topics = Topic.objects.filter(author=target_user).order_by('-created_at')[:10]
+    user_news = News.objects.filter(author=target_user).order_by('-created_at')[:10]
+    fav_works = target_user.favorite_works.all().order_by('-created_at')[:10]
+
+    # 3. 上传插画 (用户发布的插画 Illustration)
+    # 根据模型：Illustration.owner 是外键
+    user_illusions = Illustration.objects.filter(owner=target_user).order_by('-created_at')
+
+    # 检查当前登录用户是否与该用户是好友
+    is_friend = False
+    if request.user.is_authenticated:
+        is_friend = Friendship.objects.filter(
+            from_user=request.user, to_user=target_user, status='accepted'
+        ).exists() or Friendship.objects.filter(
+            from_user=target_user, to_user=request.user, status='accepted'
+        ).exists()
+
+    return render(request, 'authentication/user_detail.html', {
+        'target_user': target_user,
+        'is_friend': is_friend,
+        'user_topics': user_topics,
+        'user_news': user_news,
+        'fav_works': fav_works,
+        'user_illusions': user_illusions,
+    })
