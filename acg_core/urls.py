@@ -10,6 +10,7 @@ urlpatterns = [
     path('user_center/', views.user_center, name='user_center'),
     # 羁绊系统 (独立页面)
     path('bond_system/', views.bond_system_view, name='bond_system'),
+    path('search/', views.search_center, name='search_center'),
 ]
 
 # 静态文件访问（仅需在主 App 或总路由配置一次即可）

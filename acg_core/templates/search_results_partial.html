@@ -1,0 +1,171 @@
+{% load static %}
+<style>
+    /* 卡片入场动画 */
+    @keyframes cardFadeIn {
+        from { opacity: 0; transform: translateY(30px) scale(0.95); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* 标签弹出动画 */
+    @keyframes tagPop {
+        0% { transform: scale(0.8); opacity: 0; }
+        60% { transform: scale(1.1); }
+        100% { transform: scale(1); opacity: 1; }
+    }
+
+    .result-card {
+        transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        animation: cardFadeIn 0.6s ease-out both;
+        cursor: pointer;
+    }
+
+    .result-card:hover {
+        transform: translateY(-12px) scale(1.02);
+        box-shadow: 0 25px 50px -12px rgba(255, 118, 117, 0.25);
+    }
+
+    /* 玻璃拟态标签 */
+    .tag-jelly {
+        background: rgba(255, 255, 255, 0.6);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .tag-jelly:hover {
+        background: linear-gradient(135deg, #ff7675, #fab1a0);
+        color: white !important;
+        transform: scale(1.1) rotate(2deg);
+        box-shadow: 0 10px 20px rgba(255, 118, 117, 0.3);
+    }
+</style>
+
+{% if not has_results %}
+<div class="col-span-full flex flex-col items-center justify-center py-32 animate__animated animate__fadeIn">
+    <div class="relative mb-8">
+        <i class="fa-solid fa-box-open text-[10rem] text-gray-100"></i>
+        <div class="absolute inset-0 flex items-center justify-center">
+            <i class="fa-solid fa-magnifying-glass text-4xl text-pink-200 animate-pulse"></i>
+        </div>
+    </div>
+    <h3 class="acg-font text-3xl text-gray-400">次元中转站：未找到坐标点</h3>
+    <p class="text-gray-300 mt-2">试试换个关键词，或者去其他板块看看喵~</p>
+</div>
+{% endif %}
+
+{% for topic in results.topics %}
+<div class="result-card bg-white rounded-[2.5rem] p-7 border border-pink-50 relative overflow-hidden group shadow-sm"
+     onclick="location.href='/community/topics/{{ topic.pk }}/'"
+     style="animation-delay: {{ forloop.index0 }}00ms">
+    <div class="absolute top-0 right-0 p-6 opacity-[0.03] group-hover:opacity-10 transition-opacity">
+        <i class="fa-solid fa-comments text-7xl"></i>
+    </div>
+
+    <div class="flex items-center gap-3 mb-5">
+        <div class="relative">
+            <img src="{% if topic.author.avatar %}{{ topic.author.avatar.url }}{% else %}{% static 'images/default_head.png' %}{% endif %}"
+                 class="w-11 h-11 rounded-full ring-4 ring-pink-50 object-cover">
+        </div>
+        <div>
+            <p class="text-sm font-black text-gray-800">{{ topic.author.username }}</p>
+            <p class="text-[10px] text-gray-400 font-medium uppercase tracking-wider">{{ topic.created_at|date:"M d, Y" }}</p>
+        </div>
+    </div>
+
+    <h3 class="text-xl font-black text-gray-800 line-clamp-1 mb-3 group-hover:text-pink-500 transition-colors">
+        {{ topic.title }}
+    </h3>
+    <p class="text-sm text-gray-500 line-clamp-2 mb-8 leading-relaxed">{{ topic.content|striptags }}</p>
+
+    <div class="flex items-center justify-between mt-auto">
+        <span class="px-4 py-1.5 bg-gradient-to-r from-pink-50 to-orange-50 text-pink-500 rounded-full text-[10px] font-black tracking-widest uppercase">
+            # {{ topic.category.name }}
+        </span>
+        <div class="flex gap-4 text-gray-300">
+            <span class="flex items-center gap-1.5 text-xs"><i class="fa-regular fa-comment-dots"></i>{{ topic.comments.count }}</span>
+            <span class="flex items-center gap-1.5 text-xs"><i class="fa-regular fa-eye"></i>{{ topic.views }}</span>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+{% for n in results.news %}
+<div class="result-card bg-white rounded-[2.5rem] p-7 border-l-8 border-blue-400 relative overflow-hidden group shadow-sm"
+     onclick="location.href='/community/news/{{ n.pk }}/'"
+     style="animation-delay: {{ forloop.index0 }}00ms">
+    <div class="flex justify-between items-start mb-4">
+        <span class="px-3 py-1 bg-blue-50 text-blue-500 text-[10px] font-bold rounded-lg uppercase tracking-widest">{{ n.category.name }}</span>
+        <span class="text-gray-300 text-[10px]">{{ n.created_at|date:"Y-m-d" }}</span>
+    </div>
+    <h3 class="text-xl font-black text-gray-800 mb-3 group-hover:text-blue-500 transition-colors line-clamp-2">{{ n.title }}</h3>
+    <p class="text-sm text-gray-500 line-clamp-2 leading-relaxed">{{ n.content|striptags }}</p>
+</div>
+{% endfor %}
+
+{% for work in results.works %}
+<div class="result-card bg-gray-900 rounded-[2.5rem] overflow-hidden aspect-[3/4.2] relative group shadow-2xl"
+     onclick="location.href='/works/work/{{ work.id }}/'"
+     style="animation-delay: {{ forloop.index0 }}00ms">
+    <img src="{{ work.cover.url }}" class="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:scale-110 group-hover:opacity-100 transition-all duration-1000">
+    <div class="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent opacity-90"></div>
+
+    <div class="absolute top-4 left-4">
+        <span class="px-3 py-1 backdrop-blur-md bg-white/20 text-white text-[10px] rounded-lg font-bold border border-white/30 uppercase">
+            {{ work.get_zone_display }}
+        </span>
+    </div>
+
+    <div class="absolute inset-x-0 bottom-0 p-8">
+        <h3 class="text-white text-2xl font-black mb-2 leading-tight drop-shadow-lg">{{ work.title }}</h3>
+        <div class="w-10 h-1 bg-pink-500 rounded-full transition-all group-hover:w-full"></div>
+    </div>
+</div>
+{% endfor %}
+
+{% for illust in results.illustrations %}
+<div class="result-card bg-white p-3 rounded-[2.8rem] shadow-sm group border-2 border-transparent hover:border-pink-200"
+     onclick="location.href='/works/illustration/{{ illust.pk }}/'"
+     style="animation-delay: {{ forloop.index0 }}00ms">
+    <div class="rounded-[2.2rem] overflow-hidden aspect-square relative bg-gray-50">
+        <img src="{{ illust.image.url }}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+        <div class="absolute inset-0 bg-gradient-to-b from-transparent to-pink-600/60 opacity-0 group-hover:opacity-100 transition-all duration-500 flex items-end justify-center p-6">
+            <div class="text-white text-center">
+                <p class="font-black text-lg truncate w-40">{{ illust.title }}</p>
+                <p class="text-[10px] opacity-90">@{{ illust.owner.username }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+{% for u in results.users %}
+<div class="result-card bg-white rounded-[3rem] p-8 text-center relative overflow-hidden border border-gray-100"
+     style="animation-delay: {{ forloop.index0 }}00ms">
+    <div class="relative inline-block mb-4 mt-2">
+        <img src="{% if u.avatar %}{{ u.avatar.url }}{% else %}{% static 'images/default_head.png' %}{% endif %}"
+             class="relative w-24 h-24 rounded-full object-cover border-4 border-white shadow-xl">
+    </div>
+    <h4 class="text-xl font-black text-gray-800 mb-1">{{ u.username }}</h4>
+    <p class="text-xs text-gray-400 line-clamp-2 h-8 px-4 mb-6 italic">"{{ u.bio|default:"这个居民还没想好开场白..." }}"</p>
+</div>
+{% endfor %}
+
+{% if results.tags %}
+<div class="col-span-full mt-16 mb-10">
+    <div class="flex items-center gap-4 mb-8 px-4">
+        <div class="w-2 h-10 bg-gradient-to-b from-pink-400 to-purple-500 rounded-full"></div>
+        <h2 class="acg-font text-3xl text-gray-800">次元标签云</h2>
+    </div>
+
+    <div class="flex flex-wrap gap-4 px-2">
+        {% for tag in results.tags %}
+        <a href="/works/illustrations/tag/{{ tag.name|urlencode }}/"
+           class="tag-jelly px-7 py-3.5 rounded-[1.5rem] flex items-center gap-3 group"
+           style="animation: tagPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) {{ forloop.index0 }}0ms both">
+            <div class="w-2 h-2 rounded-full bg-pink-400 group-hover:bg-white"></div>
+            <span class="font-black text-gray-700 group-hover:text-white text-sm"># {{ tag.name }}</span>
+        </a>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}

@@ -1,0 +1,191 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}次元搜索中心 - 柚子次元壁{% endblock %}
+
+{% block content %}
+<style>
+    :root {
+        --search-pink: #ff7675;
+        --search-purple: #a29bfe;
+        --glass-white: rgba(255, 255, 255, 0.75);
+    }
+
+    .search-container {
+        max-width: calc(100vw - 380px);
+        margin-left: 40px;
+    }
+
+    /* --- 搜索结果容器：防闪烁 --- */
+    #results-grid {
+        min-height: 400px;
+        transition: opacity 0.3s ease;
+        position: relative;
+    }
+
+    /* --- 搜索框 UI --- */
+    .search-wrapper {
+        position: relative;
+        perspective: 1000px;
+        margin-bottom: 3rem;
+    }
+    .glass-input-box {
+        background: var(--glass-white);
+        backdrop-filter: blur(20px) saturate(180%);
+        border: 2px solid rgba(255, 255, 255, 0.5);
+        box-shadow: 0 8px 32px rgba(255, 118, 117, 0.1);
+        border-radius: 100px;
+        padding: 8px 15px;
+        transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    /* --- 分类滑动条：增加了宽度以容纳“标签” --- */
+    .nav-glass {
+        background: rgba(255, 255, 255, 0.5);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 5px;
+        border: 1px solid rgba(255,255,255,0.3);
+        display: flex; /* 确保水平排列 */
+    }
+    .zone-btn {
+        position: relative;
+        padding: 10px 18px; /* 稍微缩小边距以适应更多按钮 */
+        font-weight: 800;
+        color: #636e72;
+        transition: all 0.3s;
+        z-index: 2;
+        cursor: pointer;
+        font-size: 0.875rem;
+        white-space: nowrap; /* 防止换行 */
+    }
+    .zone-btn.active { color: white; }
+
+    .nav-slider {
+        position: absolute;
+        height: calc(100% - 10px);
+        background: linear-gradient(135deg, var(--search-pink), #fab1a0);
+        border-radius: 15px;
+        transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        z-index: 1;
+    }
+
+    /* --- 动画 --- */
+    @keyframes cardFadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes tagPop { 0% { transform: scale(0.8); opacity: 0; } 60% { transform: scale(1.1); } 100% { transform: scale(1); opacity: 1; } }
+
+    #search-loading {
+        position: absolute;
+        top: 100px; left: 50%; transform: translateX(-50%);
+        z-index: 50; display: none;
+    }
+</style>
+
+<div class="search-container animate__animated animate__fadeIn">
+    <div class="mb-12">
+        <h1 class="text-5xl font-black text-gray-800 acg-font tracking-tighter mb-4">
+            Dimension <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-orange-400">Search</span>
+        </h1>
+        <p class="text-gray-400 font-medium italic">这里可以搜索网站内的各种信息哦✨</p>
+    </div>
+
+    <div class="search-wrapper">
+        <div class="glass-input-box flex items-center gap-4">
+            <div class="flex-1 flex items-center px-4">
+                <i class="fa-solid fa-magnifying-glass text-pink-400 text-xl mr-4"></i>
+                <input type="text" id="ajax-query" value="{{ query|default:'' }}"
+                       class="w-full bg-transparent border-none focus:ring-0 text-xl font-bold text-gray-700 placeholder-pink-200"
+                       placeholder="输入关键词...">
+            </div>
+
+            <div class="flex items-center nav-glass relative mr-2">
+                <div id="navSlider" class="nav-slider"></div>
+                <div class="zone-btn active" data-type="all">全部</div>
+                <div class="zone-btn" data-type="topic">话题</div>
+                <div class="zone-btn" data-type="news">资讯</div>
+                <div class="zone-btn" data-type="work">作品</div>
+                <div class="zone-btn" data-type="illustration">插画</div>
+                <div class="zone-btn" data-type="tag">标签</div> <div class="zone-btn" data-type="user">居民</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="relative">
+        <div id="search-loading">
+            <div class="flex flex-col items-center">
+                <i class="fa-solid fa-spinner fa-spin text-4xl text-pink-500 mb-4"></i>
+                <span class="text-pink-500 font-bold acg-font">搜索波长同步中...</span>
+            </div>
+        </div>
+        <div id="results-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            {% include 'search_results_partial.html' %}
+        </div>
+    </div>
+</div>
+
+<script>
+    const navItems = document.querySelectorAll('.zone-btn');
+    const navSlider = document.getElementById('navSlider');
+    const grid = document.getElementById('results-grid');
+    const loading = document.getElementById('search-loading');
+    const searchInput = document.getElementById('ajax-query');
+
+    let currentSearchType = "{{ current_type|default:'all' }}";
+
+    function initSlider() {
+        const activeBtn = document.querySelector(`.zone-btn[data-type="${currentSearchType}"]`) || navItems[0];
+        moveSlider(activeBtn);
+    }
+
+    function moveSlider(el) {
+        navSlider.style.width = el.offsetWidth + 'px';
+        navSlider.style.left = el.offsetLeft + 'px';
+        navItems.forEach(i => i.classList.remove('active'));
+        el.classList.add('active');
+    }
+
+    async function executeSearch(type = currentSearchType) {
+        const query = searchInput.value.trim();
+        if(!query) { grid.innerHTML = ''; return; }
+
+        currentSearchType = type;
+        loading.style.display = 'block';
+        grid.style.opacity = '0.4';
+
+        try {
+            const res = await fetch(`?q=${encodeURIComponent(query)}&type=${type}`, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            const data = await res.json();
+            grid.innerHTML = data.html;
+
+            const cards = grid.querySelectorAll('.result-card, .tag-jelly');
+            cards.forEach((card, i) => {
+                if(card.classList.contains('tag-jelly')) {
+                    card.style.animation = `tagPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) ${i * 30}ms both`;
+                } else {
+                    card.style.animation = `cardFadeIn 0.5s ease-out ${i * 50}ms both`;
+                }
+            });
+        } catch (e) {
+            console.error(e);
+        } finally {
+            loading.style.display = 'none';
+            grid.style.opacity = '1';
+        }
+    }
+
+    navItems.forEach(item => {
+        item.addEventListener('click', function() {
+            moveSlider(this);
+            executeSearch(this.dataset.type);
+        });
+    });
+
+    searchInput.addEventListener('keypress', e => {
+        if(e.key === 'Enter') executeSearch(currentSearchType);
+    });
+
+    window.addEventListener('load', initSlider);
+</script>
+{% endblock %}

@@ -130,4 +130,19 @@
     </div>
 
 </div>
+    <script>
+    // 确保在页面加载后触发
+    window.addEventListener('load', () => {
+        // 延迟一小会儿执行，确保看板娘组件已初始化并避开初始加载冲突
+        setTimeout(() => {
+            if (typeof askXiaoYou === 'function') {
+                // 发送 GENERAL 类型请求，内容注明是“进入社区中心”
+                // 这样后端 DeepSeek 就能根据这个 Context 返回对应的欢迎语
+                askXiaoYou('GENERAL', '用户进入了资讯中心');
+            }
+        }, 1000);
+    });
+
+
+</script>
 {% endblock %}

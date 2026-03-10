@@ -261,7 +261,7 @@
                                 <p class="text-[10px] text-gray-400 line-clamp-1">{{ pf.bio|default:"这个居民很神秘..." }}</p>
                             </div>
                         </div>
-                        <button onclick="window.location.href='/authentication/user/{{ pf.id }}/'" class="px-3 py-1 bg-blue-50 text-blue-500 text-[10px] rounded-full hover:bg-blue-500 hover:text-white transition-all">
+                        <button onclick="window.location.href='/auth/user/{{ pf.id }}/'" class="px-3 py-1 bg-blue-50 text-blue-500 text-[10px] rounded-full hover:bg-blue-500 hover:text-white transition-all">
                             查看
                         </button>
                     </div>
@@ -282,7 +282,7 @@
                     <!-- 每一栏都推荐至少一个用户：这里推荐作品创作达人 -->
                     <div class="px-2 py-1 mb-1 border-b border-orange-50">
                         <p class="text-[9px] text-orange-400 font-bold mb-2"><i class="fa-solid fa-star mr-1"></i> 推荐创作者</p>
-                        <div onclick="window.location.href='/authentication/user/{{ featured_creator.id }}/'" class="flex items-center gap-2 p-1 hover:bg-orange-50 rounded-lg cursor-pointer">
+                        <div onclick="window.location.href='/auth/user/{{ featured_creator.id }}/'" class="flex items-center gap-2 p-1 hover:bg-orange-50 rounded-lg cursor-pointer">
                             <div class="w-8 h-8 rounded-full overflow-hidden border border-orange-100">
                                 {% if featured_creator.avatar %}
                                     <img src="{{ featured_creator.avatar.url }}" class="w-full h-full object-cover">
@@ -297,57 +297,50 @@
                     {% endif %}
 
                     {% for work in rec_works %}
-                    <div onclick="window.location.href='{% url 'masterpieces:work_detail' work.id %}'" class="flex items-center gap-3 p-2 hover:bg-orange-50/50 rounded-xl transition-all cursor-pointer group">
-                        <div class="w-12 h-16 rounded-md overflow-hidden shadow-sm">
-                            <img src="{{ work.cover.url }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform">
-                        </div>
-                        <div class="flex-1">
-                            <h4 class="text-xs font-bold text-gray-700 line-clamp-1">{{ work.title }}</h4>
-                            <div class="flex gap-1 mt-1">
-                                {% for tag in work.tags.all|slice:":2" %}
-                                <span class="text-[8px] bg-orange-100 text-orange-500 px-1.5 py-0.5 rounded">{{ tag.name }}</span>
-                                {% endfor %}
+                        <div onclick="window.location.href='{% url 'masterpieces:work_detail' work.id %}'"
+                             class="flex items-center gap-3 p-2 hover:bg-orange-50/50 rounded-xl transition-all cursor-pointer group">
+
+                            <div class="w-12 h-16 rounded-md overflow-hidden shadow-sm">
+                                {% if work.cover %}
+                                    <img src="{{ work.cover.url }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform">
+                                {% else %}
+                                    <div class="w-full h-full bg-gray-200 flex items-center justify-center">
+                                        <i class="fa-solid fa-image text-gray-400"></i>
+                                    </div>
+                                {% endif %}
                             </div>
-                            <p class="text-[9px] text-gray-400 mt-1">⭐ {{ work.hot_score }}分</p>
+
+                            <div class="flex-1">
+                                <h4 class="text-xs font-bold text-gray-700 line-clamp-1">{{ work.title }}</h4>
+                                <div class="flex gap-1 mt-1">
+                                    {% for tag in work.tags.all|slice:":2" %}
+                                    <span class="text-[8px] bg-orange-100 text-orange-500 px-1.5 py-0.5 rounded">{{ tag.name }}</span>
+                                    {% endfor %}
+                                </div>
+                                <p class="text-[9px] text-gray-400 mt-1">
+                                    <span class="text-orange-400">⭐ {{ work.hot_score|default:"0.0" }}</span>
+                                    <span class="ml-2"><i class="fa-regular fa-eye mr-1"></i>{{ work.views }}</span>
+                                </p>
+                            </div>
                         </div>
-                    </div>
-                    {% empty %}
-                    <div class="flex flex-col items-center justify-center h-full py-8">
-                        <div class="w-12 h-12 bg-orange-50 rounded-full flex items-center justify-center mb-3">
-                            <i class="fa-solid fa-book text-xl text-orange-200"></i>
+                        {% empty %}
+                        <div class="flex flex-col items-center justify-center h-full py-8">
+                            <div class="w-12 h-12 bg-orange-50 rounded-full flex items-center justify-center mb-3">
+                                <i class="fa-solid fa-ghost text-xl text-orange-200"></i>
+                            </div>
+                            <p class="text-[10px] text-gray-400">在“用户中心”设置兴趣偏好，</p>
+                            <p class="text-[10px] text-gray-400">小柚才能精准推荐喵~</p>
                         </div>
-                        <p class="text-[10px] text-gray-400">还没发现你喜欢的类型喵...</p>
+                        {% endfor %}
+
+                        <a href="{% url 'masterpieces:works_center' %}" class="block text-center text-[10px] text-orange-400 py-2 hover:underline">
+                            进入作品中心发现更多 <i class="fa-solid fa-angles-right"></i>
+                        </a>
                     </div>
-                    {% endfor %}
-                    <a href="{% url 'masterpieces:works_center' %}" class="block text-center text-[10px] text-orange-400 py-2">进入作品中心发现更多</a>
-                </div>
 
             </div>
         </div>
-        <div class="glass-card p-6 shadow-lg">
-            <h2 class="text-xl acg-font text-blue-600 mb-4 flex items-center">
-                <i class="fa-solid fa-bullhorn mr-2"></i> 资讯站公告
-            </h2>
-            <div class="space-y-4">
-                <div class="group cursor-pointer">
-                    <div class="flex items-center justify-between mb-1">
-                        <span class="text-[10px] bg-pink-100 text-pink-500 px-2 py-0.5 rounded">置顶</span>
-                        <span class="text-[10px] text-gray-400">2023-10-24</span>
-                    </div>
-                    <p class="text-sm text-gray-700 group-hover:text-pink-500 transition-colors line-clamp-1">关于社区文明发帖的规范公告</p>
-                </div>
-                <div class="group cursor-pointer">
-                    <div class="flex items-center justify-between mb-1">
-                        <span class="text-[10px] bg-blue-100 text-blue-500 px-2 py-0.5 rounded">活动</span>
-                        <span class="text-[10px] text-gray-400">2023-10-22</span>
-                    </div>
-                    <p class="text-sm text-gray-700 group-hover:text-blue-500 transition-colors line-clamp-1">十月番剧安利大赛正式开启！</p>
-                </div>
-                <div class="group cursor-pointer border-t border-gray-100 pt-3">
-                    <p class="text-xs text-center text-gray-400 hover:text-pink-400">查看更多公告...</p>
-                </div>
-            </div>
-        </div>
+
     </aside>
 
 </div>

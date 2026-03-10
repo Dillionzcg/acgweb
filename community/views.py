@@ -4,7 +4,8 @@ from django.http import JsonResponse
 from django.contrib import messages
 from .models import Topic, TopicCategory, News, NewsCategory, NewsComment, TopicComment
 from .forms import TopicForm, NewsForm, NewsCommentForm, TopicCommentForm
-
+from django.db.models import Count
+from django.contrib.auth import get_user_model
 @login_required
 def create_news(request):
     """发布新资讯"""
@@ -19,7 +20,7 @@ def create_news(request):
         form = NewsForm()
     
     return render(request, 'community/create_news.html', {'form': form})
-
+User = get_user_model()
 def community_home(request):
     """社区主页，展示热门话题和最新资讯"""
     pinned_topics = Topic.objects.filter(is_pinned=True).order_by('-created_at')[:3]
@@ -28,12 +29,16 @@ def community_home(request):
     
     # 实例化表单用于Modal
     topic_form = TopicForm()
+    active_users = User.objects.annotate(
+        topic_count=Count('topics')
+    ).filter(topic_count__gt=0).order_by('-topic_count')[:8]
 
     context = {
         'pinned_topics': pinned_topics,
         'recent_topics': recent_topics,
         'hot_news': hot_news,
         'topic_form': topic_form, # 添加到上下文
+        'active_users': active_users,
     }
     return render(request, 'community/index.html', context)
 

@@ -1,16 +1,13 @@
-import json
 import urllib.request
 import urllib.error
-from django.shortcuts import render, redirect
-from django.contrib.auth import login, authenticate, logout, get_user_model
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
+import urllib.request
+
 from django.conf import settings
-from django.contrib import messages
-from django.db import IntegrityError
-from django.shortcuts import render
+from django.contrib.auth import get_user_model
+from django.views.decorators.csrf import csrf_exempt
+from django.template.loader import render_to_string
+
 # 1. 确保导入 Work 模型
-from masterpieces.models import Work
 
 
 User = get_user_model()
@@ -115,50 +112,53 @@ def kanban_chat(request):
 
 # views.py
 
-import random # 记得在文件顶部导入
 
 def index(request):
-    from masterpieces.models import Work, Illustration, UserProfile, Tag
+    from masterpieces.models import Work, UserProfile
     from community.models import News
     from authentication.models import Friendship
     from django.db.models import Count, F, ExpressionWrapper, FloatField, Q
+    import random
 
-    # 1. 获取排行榜数据（前10名）
+    # 1. 获取排行榜数据（保持不变）
     anime_list = list(Work.objects.filter(zone='anime').order_by('-hot_score')[:10])
     galgame_list = list(Work.objects.filter(zone='galgame').order_by('-hot_score')[:10])
 
     # 2. 从中随机各取一个
     random_anime = random.choice(anime_list) if anime_list else None
     random_galgame = random.choice(galgame_list) if galgame_list else None
-    
+
     # 3. 获取最新一条资讯
     latest_news = News.objects.order_by('-created_at').first()
 
     # --- 核心：推荐系统逻辑 ---
     rec_friends = []
     rec_works = []
-    featured_creator = None  # 为“作品”栏准备的一个推荐用户
+    featured_creator = None
 
     if request.user.is_authenticated:
         user = request.user
         profile, _ = UserProfile.objects.get_or_create(user=user)
         user_tag_prefs = profile.tag_preferences or {}
+        # 获取用户在档案中勾选的：感兴趣的类型 (interests) 和 兴趣标签 (genres)
+        user_interests = user.preferences.get('interests', [])
         user_genres = user.preferences.get('genres', [])
 
-        # A. 推荐好友：基于标签偏好和兴趣重合度
+        # A. 推荐好友逻辑（保持不变）
         followed_ids = list(profile.following.values_list('id', flat=True))
-        friend_ids = list(Friendship.objects.filter(Q(from_user=user) | Q(to_user=user), status='accepted').values_list('from_user_id', 'to_user_id'))
+        friend_ids = list(Friendship.objects.filter(Q(from_user=user) | Q(to_user=user), status='accepted').values_list(
+            'from_user_id', 'to_user_id'))
         friend_ids = set([uid for pair in friend_ids for uid in pair])
         exclude_ids = set(followed_ids) | friend_ids | {user.id}
 
-        potential_friends = User.objects.exclude(id__in=exclude_ids).only('id', 'username', 'avatar', 'bio', 'preferences')
+        potential_friends = User.objects.exclude(id__in=exclude_ids).only('id', 'username', 'avatar', 'bio',
+                                                                          'preferences')
         scored_friends = []
         for pf in potential_friends[:100]:
             score = 0
             pf_genres = pf.preferences.get('genres', [])
             intersection = set(user_genres) & set(pf_genres)
             score += len(intersection) * 5
-            
             try:
                 pf_profile = pf.profile
                 pf_tag_prefs = pf_profile.tag_preferences or {}
@@ -167,39 +167,51 @@ def index(request):
                     score += min(user_tag_prefs[tid], pf_tag_prefs[tid]) * 0.1
             except:
                 pass
-            
-            if score > 0:
-                scored_friends.append((pf, score))
-        
+            if score > 0: scored_friends.append((pf, score))
         scored_friends.sort(key=lambda x: x[1], reverse=True)
         rec_friends = [f[0] for f in scored_friends[:5]]
-        
-        # 兜底逻辑：如果没找到有共同兴趣的人，随机推荐几个活跃用户（排除自己和已关注/好友）
         if not rec_friends:
-            fallback_friends = User.objects.exclude(id__in=exclude_ids).order_by('?')[:3]
-            rec_friends = list(fallback_friends)
+            rec_friends = list(User.objects.exclude(id__in=exclude_ids).order_by('?')[:3])
 
-        # B. 推荐作品：基于用户选中的 genres 和标签权重
+        # B. 推荐作品：类型(Zone) + 兴趣标签(Genres) 双重匹配
+        interest_map = {'番剧': 'anime', 'galgame': 'galgame', '小说': 'manga', '漫画': 'manga'}
+        target_zones = [interest_map[i] for i in user_interests if i in interest_map]
+
+        # 基础查询集：计算热度
         work_qs = Work.objects.annotate(
-            calculated_hot=ExpressionWrapper(
+            dynamic_hot=ExpressionWrapper(
                 F('views') + Count('favorites', distinct=True) * 10 + Count('comments', distinct=True) * 5,
                 output_field=FloatField()
             )
         ).prefetch_related('tags')
 
-        if user_genres:
-            rec_works = list(work_qs.filter(tags__name__in=user_genres).exclude(favorites=user).distinct().order_by('-calculated_hot')[:6])
-        
-        # 兜底逻辑：如果不够（或没有匹配），用全站最热补足，确保至少有一个
-        if len(rec_works) < 6:
-            more_works = work_qs.exclude(id__in=[w.id for w in rec_works]).exclude(favorites=user).order_by('-calculated_hot')[:max(1, 6-len(rec_works))]
-            rec_works.extend(list(more_works))
-            
-        # C. 额外推荐一个创作达人（从作品作者中选）
-        featured_creator = User.objects.exclude(id=user.id).order_by('?').first()
+        # --- 核心匹配逻辑 ---
+        if target_zones:
+            # 1. 尝试寻找：类型对得上 且 标签也对得上 的作品
+            matched_works = work_qs.filter(
+                zone__in=target_zones,
+                tags__name__in=user_genres
+            ).distinct().order_by('-dynamic_hot')[:6]
+
+            rec_works = list(matched_works)
+
+            # 2. 补足逻辑：如果双重匹配的作品不足6个，则在选中的类型(Zone)里按热度补齐
+            if len(rec_works) < 6:
+                existing_ids = [w.id for w in rec_works]
+                filler_works = work_qs.filter(zone__in=target_zones).exclude(id__in=existing_ids).order_by(
+                    '-dynamic_hot')[:6 - len(rec_works)]
+                rec_works.extend(list(filler_works))
+        else:
+            # 如果用户没选任何类型，则只按兴趣标签在全站搜索
+            if user_genres:
+                rec_works = list(work_qs.filter(tags__name__in=user_genres).distinct().order_by('-dynamic_hot')[:6])
+
+            # 如果还是没数据，全局推荐最火的
+            if not rec_works:
+                rec_works = list(work_qs.order_by('-dynamic_hot')[:6])
 
     else:
-        # 游客模式：随机推荐
+        # 游客模式
         rec_friends = list(User.objects.order_by('?')[:3])
         rec_works = list(Work.objects.order_by('-views')[:6])
         featured_creator = User.objects.order_by('?').first()
@@ -297,4 +309,58 @@ def user_center(request):
 @login_required
 def bond_system_view(request):
     return render(request, 'bond_system.html')
+from django.db.models import Q
+from authentication.models import User
+from community.models import Topic, News
+from masterpieces.models import Work, Illustration, Tag
 
+
+
+def search_center(request):
+    query = request.GET.get('q', '').strip()
+    search_type = request.GET.get('type', 'all')
+
+    results = {'topics': [], 'news': [], 'works': [], 'illustrations': [], 'tags': [], 'users': []}
+
+    if query:
+        # 预加载 author 和 category 减少 SQL 数量
+        if search_type in ['all', 'topic']:
+            results['topics'] = list(Topic.objects.filter(
+                Q(title__icontains=query) | Q(content__icontains=query)
+            ).select_related('author', 'category').distinct()[:12])
+
+        if search_type in ['all', 'news']:
+            results['news'] = list(News.objects.filter(
+                Q(title__icontains=query) | Q(summary__icontains=query)
+            ).distinct()[:12])
+
+        if search_type in ['all', 'work']:
+            results['works'] = list(Work.objects.filter(
+                Q(title__icontains=query) | Q(description__icontains=query)
+            )[:12])
+
+        if search_type in ['all', 'illustration']:
+            results['illustrations'] = list(Illustration.objects.filter(
+                Q(title__icontains=query)
+            ).select_related('owner')[:12])
+
+        if search_type in ['all', 'tag']:
+            results['tags'] = list(Tag.objects.filter(name__icontains=query)[:20])
+
+        if search_type in ['all', 'user']:
+            results['users'] = list(User.objects.filter(
+                Q(username__icontains=query) | Q(bio__icontains=query)
+            )[:12])
+
+    context = {
+        'query': query,
+        'current_type': search_type,
+        'results': results,
+        'has_results': any(results.values())
+    }
+
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        html = render_to_string('search_results_partial.html', context, request=request)
+        return JsonResponse({'status': 'success', 'html': html})
+
+    return render(request, 'search_center.html', context)

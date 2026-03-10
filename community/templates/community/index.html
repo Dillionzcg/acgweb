@@ -201,22 +201,51 @@
         </div>
 
         <div class="glass-card p-4">
-            <h3 class="text-sm font-bold text-gray-700 mb-3 border-b border-gray-100 pb-2">活跃用户</h3>
-            <div class="grid grid-cols-4 gap-2">
-                <!-- Placeholder Users -->
-                {% for i in "12345678" %}
-                <div class="aspect-square rounded-lg bg-gray-100 overflow-hidden relative group cursor-pointer">
-                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ forloop.counter }}" class="w-full h-full object-cover">
-                    <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <i class="fa-solid fa-plus text-white text-xs"></i>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-    </aside>
+    <h3 class="text-sm font-bold text-gray-700 mb-3 border-b border-gray-100 pb-2">活跃大佬</h3>
+    <div class="grid grid-cols-4 gap-y-4 gap-x-2"> {% for active_user in active_users %}
+        <div class="flex flex-col items-center"> <a href="/auth/user/{{ active_user.id }}/"
+               class="w-full aspect-square rounded-lg bg-gray-100 overflow-hidden relative group border border-pink-50 shadow-sm">
 
+                {% if active_user.avatar %}
+                    <img src="{{ active_user.avatar.url }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
+                {% else %}
+                    <img src="{% static 'images/default_head.png' %}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
+                {% endif %}
+
+                <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <span class="text-[9px] text-white font-bold">{{ active_user.topic_count }}帖</span>
+                </div>
+            </a>
+
+            <span class="text-[10px] text-gray-600 mt-1 truncate w-full text-center font-medium">
+                {{ active_user.username }}
+            </span>
+        </div>
+        {% empty %}
+        <div class="col-span-4 py-6 text-center">
+            <p class="text-[10px] text-gray-400">目前还没有人发帖喵~</p>
+        </div>
+        {% endfor %}
+    </div>
 </div>
+    </aside>
+</div>
+    </div>
 
 {% include 'community/create_topic_modal.html' %}
+    <script>
+    // 确保在页面加载后触发
+    window.addEventListener('load', () => {
+        // 延迟一小会儿执行，确保看板娘组件已初始化并避开初始加载冲突
+        setTimeout(() => {
+            if (typeof askXiaoYou === 'function') {
+                // 发送 GENERAL 类型请求，内容注明是“进入社区中心”
+                // 这样后端 DeepSeek 就能根据这个 Context 返回对应的欢迎语
+                askXiaoYou('GENERAL', '用户进入了社区中心');
+            }
+        }, 1000);
+    });
+
+
+</script>
 {% endblock %}

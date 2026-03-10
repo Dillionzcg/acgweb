@@ -85,13 +85,19 @@
                                     </div>
                                     {% endif %}
                                 </div>
-                                <div class="flex items-center gap-4">
-                                    <span class="flex items-center"><i class="fa-regular fa-eye mr-1"></i> {{
-                                        topic.views }}</span>
-                                    <span class="flex items-center"><i class="fa-regular fa-thumbs-up mr-1"></i> {{
-                                        topic.likes }}</span>
-                                    <span class="flex items-center"><i class="fa-regular fa-comment-dots mr-1"></i>
-                                        0</span>
+                                <div class="flex items-center gap-4 text-[10px] text-gray-400">
+                                    <span class="flex items-center">
+                                        <i class="fa-regular fa-eye mr-1"></i>
+                                        {{ topic.views }}
+                                    </span>
+                                    <span class="flex items-center">
+                                        <i class="fa-regular fa-thumbs-up mr-1"></i>
+                                        {{ topic.likes }}
+                                    </span>
+                                    <span class="flex items-center">
+                                        <i class="fa-regular fa-comment-dots mr-1"></i>
+                                        {{ topic.replies.count|default:0 }}
+                                    </span>
                                 </div>
                             </div>
                         </div>
