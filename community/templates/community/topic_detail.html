@@ -64,10 +64,6 @@
                 <i class="{% if user_liked %}fa-solid{% else %}fa-regular{% endif %} fa-thumbs-up mr-1"></i> 
                 <span id="like-text">{% if user_liked %}已点赞{% else %}点赞{% endif %}</span>
             </button>
-            <button
-                class="px-4 py-2 bg-gray-100 text-gray-500 rounded-full text-sm font-bold hover:bg-gray-200 transition-all">
-                <i class="fa-regular fa-star mr-1"></i> 收藏
-            </button>
             {% if user.is_authenticated and user == topic.author or user.is_superuser %}
             <button onclick="document.getElementById('delete-topic-modal').classList.remove('hidden')"
                 class="px-4 py-2 bg-red-100 text-red-500 rounded-full text-sm font-bold hover:bg-red-500 hover:text-white transition-all flex items-center gap-1">
