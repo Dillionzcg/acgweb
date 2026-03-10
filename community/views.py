@@ -61,6 +61,11 @@ def topic_detail(request, pk):
     topic.views += 1
     topic.save()
     
+    # 检查当前用户是否已点赞
+    user_liked = False
+    if request.user.is_authenticated:
+        user_liked = topic.liked_by.filter(id=request.user.id).exists()
+
     # 评论逻辑
     comment_form = TopicCommentForm()
     # 只获取顶级评论
@@ -68,10 +73,30 @@ def topic_detail(request, pk):
     
     context = {
         'topic': topic,
+        'user_liked': user_liked,
         'comment_form': comment_form,
         'comments': comments
     }
     return render(request, 'community/topic_detail.html', context)
+
+@login_required
+def like_topic(request, pk):
+    """为话题点赞/取消点赞 (AJAX)"""
+    if request.method == 'POST':
+        topic = get_object_or_404(Topic, pk=pk)
+        if topic.liked_by.filter(id=request.user.id).exists():
+            # 取消点赞
+            topic.liked_by.remove(request.user)
+            topic.likes = max(0, topic.likes - 1)
+            liked = False
+        else:
+            # 点赞
+            topic.liked_by.add(request.user)
+            topic.likes += 1
+            liked = True
+        topic.save()
+        return JsonResponse({'likes': topic.likes, 'liked': liked})
+    return JsonResponse({'error': 'Invalid request'}, status=400)
 
 @login_required
 def add_topic_comment(request, pk):

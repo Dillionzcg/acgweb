@@ -49,7 +49,7 @@
                 </div>
                 <div class="flex items-center gap-4 text-gray-400 text-sm">
                     <span><i class="fa-solid fa-eye mr-1"></i> {{ topic.views }}</span>
-                    <span><i class="fa-solid fa-thumbs-up mr-1"></i> {{ topic.likes }}</span>
+                    <span id="topic-likes-count"><i class="fa-solid fa-thumbs-up mr-1"></i> {{ topic.likes }}</span>
                 </div>
             </div>
         </div>
@@ -59,9 +59,10 @@
         </div>
 
         <div class="px-6 py-4 bg-gray-50/50 flex items-center justify-end gap-3">
-            <button
-                class="px-4 py-2 bg-pink-100 text-pink-500 rounded-full text-sm font-bold hover:bg-pink-500 hover:text-white transition-all">
-                <i class="fa-regular fa-thumbs-up mr-1"></i> 点赞
+            <button id="like-btn" onclick="likeTopic({{ topic.pk }})"
+                class="px-4 py-2 {% if user_liked %}bg-pink-500 text-white{% else %}bg-pink-100 text-pink-500{% endif %} rounded-full text-sm font-bold hover:bg-pink-600 hover:text-white transition-all">
+                <i class="{% if user_liked %}fa-solid{% else %}fa-regular{% endif %} fa-thumbs-up mr-1"></i> 
+                <span id="like-text">{% if user_liked %}已点赞{% else %}点赞{% endif %}</span>
             </button>
             <button
                 class="px-4 py-2 bg-gray-100 text-gray-500 rounded-full text-sm font-bold hover:bg-gray-200 transition-all">
@@ -263,6 +264,41 @@
     </div>
 
     <script>
+        function likeTopic(topicId) {
+            const btn = document.getElementById('like-btn');
+            const icon = btn.querySelector('i');
+            const text = document.getElementById('like-text');
+            const countSpan = document.getElementById('topic-likes-count');
+
+            fetch(`/community/topics/${topicId}/like/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.likes !== undefined) {
+                    countSpan.innerHTML = `<i class="fa-solid fa-thumbs-up mr-1"></i> ${data.likes}`;
+                    if (data.liked) {
+                        btn.classList.remove('bg-pink-100', 'text-pink-500');
+                        btn.classList.add('bg-pink-500', 'text-white');
+                        icon.classList.remove('fa-regular');
+                        icon.classList.add('fa-solid');
+                        text.innerText = '已点赞';
+                    } else {
+                        btn.classList.remove('bg-pink-500', 'text-white');
+                        btn.classList.add('bg-pink-100', 'text-pink-500');
+                        icon.classList.remove('fa-solid');
+                        icon.classList.add('fa-regular');
+                        text.innerText = '点赞';
+                    }
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
         function toggleReplyForm(id) {
             const form = document.getElementById(id);
             if (form.classList.contains('hidden')) {

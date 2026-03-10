@@ -23,6 +23,7 @@ class Topic(models.Model):
     keywords = models.CharField(max_length=255, blank=True, verbose_name="关键词", help_text="用逗号或空格分隔")
     views = models.PositiveIntegerField(default=0, verbose_name="浏览量")
     likes = models.PositiveIntegerField(default=0, verbose_name="点赞数")
+    liked_by = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='liked_topics', blank=True, verbose_name="点赞用户")
     is_pinned = models.BooleanField(default=False, verbose_name="置顶")
     created_at = models.DateTimeField(default=timezone.now, verbose_name="发布时间")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="更新时间")
