@@ -241,36 +241,85 @@
             <div class="flex border-b border-gray-50 bg-white/30 text-[11px] font-bold" id="recommend-tabs">
                 <button onclick="switchTab('friends')" class="tab-btn flex-1 py-3 text-blue-600 border-b-2 border-blue-500 bg-white/50 transition-all" data-target="friends">好友</button>
                 <button onclick="switchTab('works')" class="tab-btn flex-1 py-3 text-gray-400 hover:text-blue-400 transition-all" data-target="works">作品</button>
-                <button onclick="switchTab('images')" class="tab-btn flex-1 py-3 text-gray-400 hover:text-blue-400 transition-all" data-target="images">插画</button>
             </div>
 
             <div class="flex-1 relative">
 
-                <div id="tab-friends" class="tab-content flex flex-col items-center justify-center p-8 h-full">
-                    <div class="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mb-4">
-                        <i class="fa-solid fa-user-plus text-2xl text-blue-200"></i>
+                <div id="tab-friends" class="tab-content flex flex-col p-4 h-full space-y-3">
+                    {% for pf in rec_friends %}
+                    <div class="flex items-center justify-between p-2 hover:bg-blue-50/50 rounded-xl transition-all group">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full overflow-hidden border border-blue-100">
+                                {% if pf.avatar %}
+                                    <img src="{{ pf.avatar.url }}" class="w-full h-full object-cover">
+                                {% else %}
+                                    <img src="{% static 'images/default_head.png' %}" class="w-full h-full object-cover">
+                                {% endif %}
+                            </div>
+                            <div>
+                                <h4 class="text-xs font-bold text-gray-700">{{ pf.username }}</h4>
+                                <p class="text-[10px] text-gray-400 line-clamp-1">{{ pf.bio|default:"这个居民很神秘..." }}</p>
+                            </div>
+                        </div>
+                        <button onclick="window.location.href='/authentication/user/{{ pf.id }}/'" class="px-3 py-1 bg-blue-50 text-blue-500 text-[10px] rounded-full hover:bg-blue-500 hover:text-white transition-all">
+                            查看
+                        </button>
                     </div>
-                    <h4 class="text-gray-700 font-bold text-sm mb-1">暂无好友推荐</h4>
-                    <p class="text-[10px] text-gray-400 text-center">空荡荡的波段...<br>快去社区中心结识志同道合的小伙伴吧</p>
-                    <a href="#" class="mt-6 px-5 py-1.5 bg-blue-500 text-white text-[10px] rounded-full shadow-md hover:bg-blue-600 transition-all">前往社区</a>
+                    {% empty %}
+                    <div class="flex flex-col items-center justify-center h-full py-8">
+                        <div class="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mb-3">
+                            <i class="fa-solid fa-user-plus text-xl text-blue-200"></i>
+                        </div>
+                        <h4 class="text-gray-700 font-bold text-xs">暂无合适推荐</h4>
+                        <p class="text-[9px] text-gray-400 text-center">多点亮一些兴趣标签试试喵~</p>
+                    </div>
+                    {% endfor %}
+                    <a href="{% url 'community_home' %}" class="block text-center text-[10px] text-blue-400 py-2 hover:text-blue-600">前往社区结识更多伙伴</a>
                 </div>
 
-                <div id="tab-works" class="tab-content hidden flex flex-col items-center justify-center p-8 h-full">
-                    <div class="w-16 h-16 bg-orange-50 rounded-full flex items-center justify-center mb-4">
-                        <i class="fa-solid fa-book text-2xl text-orange-200"></i>
+                <div id="tab-works" class="tab-content hidden flex flex-col p-4 h-full space-y-3">
+                    {% if featured_creator %}
+                    <!-- 每一栏都推荐至少一个用户：这里推荐作品创作达人 -->
+                    <div class="px-2 py-1 mb-1 border-b border-orange-50">
+                        <p class="text-[9px] text-orange-400 font-bold mb-2"><i class="fa-solid fa-star mr-1"></i> 推荐创作者</p>
+                        <div onclick="window.location.href='/authentication/user/{{ featured_creator.id }}/'" class="flex items-center gap-2 p-1 hover:bg-orange-50 rounded-lg cursor-pointer">
+                            <div class="w-8 h-8 rounded-full overflow-hidden border border-orange-100">
+                                {% if featured_creator.avatar %}
+                                    <img src="{{ featured_creator.avatar.url }}" class="w-full h-full object-cover">
+                                {% else %}
+                                    <img src="{% static 'images/default_head.png' %}" class="w-full h-full object-cover">
+                                {% endif %}
+                            </div>
+                            <span class="text-xs font-bold text-gray-700">{{ featured_creator.username }}</span>
+                            <span class="text-[9px] bg-orange-500 text-white px-1 rounded">达人</span>
+                        </div>
                     </div>
-                    <h4 class="text-gray-700 font-bold text-sm mb-1">作品库收集中</h4>
-                    <p class="text-[10px] text-gray-400 text-center">这里还是一片荒野...<br>点亮星星收藏你最爱的番剧或游戏</p>
-                    <a href="#" class="mt-6 px-5 py-1.5 bg-orange-400 text-white text-[10px] rounded-full shadow-md hover:bg-orange-500 transition-all">发现作品</a>
-                </div>
+                    {% endif %}
 
-                <div id="tab-images" class="tab-content hidden flex flex-col items-center justify-center p-8 h-full">
-                    <div class="w-16 h-16 bg-purple-50 rounded-full flex items-center justify-center mb-4">
-                        <i class="fa-solid fa-image text-2xl text-purple-200"></i>
+                    {% for work in rec_works %}
+                    <div onclick="window.location.href='{% url 'masterpieces:work_detail' work.id %}'" class="flex items-center gap-3 p-2 hover:bg-orange-50/50 rounded-xl transition-all cursor-pointer group">
+                        <div class="w-12 h-16 rounded-md overflow-hidden shadow-sm">
+                            <img src="{{ work.cover.url }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform">
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="text-xs font-bold text-gray-700 line-clamp-1">{{ work.title }}</h4>
+                            <div class="flex gap-1 mt-1">
+                                {% for tag in work.tags.all|slice:":2" %}
+                                <span class="text-[8px] bg-orange-100 text-orange-500 px-1.5 py-0.5 rounded">{{ tag.name }}</span>
+                                {% endfor %}
+                            </div>
+                            <p class="text-[9px] text-gray-400 mt-1">⭐ {{ work.hot_score }}分</p>
+                        </div>
                     </div>
-                    <h4 class="text-gray-700 font-bold text-sm mb-1">画师尚未投稿</h4>
-                    <p class="text-[10px] text-gray-400 text-center">大触们还在闭关修炼...<br>点击进入插画中心寻找灵感</p>
-                    <a href="#" class="mt-6 px-5 py-1.5 bg-purple-500 text-white text-[10px] rounded-full shadow-md hover:bg-purple-600 transition-all">进入图库</a>
+                    {% empty %}
+                    <div class="flex flex-col items-center justify-center h-full py-8">
+                        <div class="w-12 h-12 bg-orange-50 rounded-full flex items-center justify-center mb-3">
+                            <i class="fa-solid fa-book text-xl text-orange-200"></i>
+                        </div>
+                        <p class="text-[10px] text-gray-400">还没发现你喜欢的类型喵...</p>
+                    </div>
+                    {% endfor %}
+                    <a href="{% url 'masterpieces:works_center' %}" class="block text-center text-[10px] text-orange-400 py-2">进入作品中心发现更多</a>
                 </div>
 
             </div>
