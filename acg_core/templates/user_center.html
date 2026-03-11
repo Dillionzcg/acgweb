@@ -55,7 +55,7 @@
 
         <div class="lg:col-span-1">
             <div class="glass-card p-8 text-center relative border-2 border-pink-100">
-                <a href="javascript:history.back()" class="absolute top-5 left-5 w-10 h-10 flex items-center justify-center bg-pink-500 text-white rounded-full shadow-lg hover:bg-pink-600 hover:scale-110 transition-all z-10">
+                <a href="javascript:void(0)" onclick="handleBack()" class="absolute top-5 left-5 w-10 h-10 flex items-center justify-center bg-pink-500 text-white rounded-full shadow-lg hover:bg-pink-600 hover:scale-110 transition-all z-10">
                     <i class="fa-solid fa-arrow-left text-lg"></i>
                 </a>
 
@@ -495,5 +495,14 @@ function openPreferenceEdit() {
         switchGender(indexMap[currentGender] || 1, currentGender, false);
         setTimeout(() => safeAskXiaoYou('USER_CENTER'), 1200);
     });
+    function handleBack() {
+    // 如果有来源页面，且来源不是当前页自己
+    if (document.referrer && document.referrer !== window.location.href) {
+        window.location.href = document.referrer;
+    } else {
+        // 如果没有来源（比如直接输入URL进入），则返回首页或特定页面
+        window.location.href = '/';
+    }
+}
 </script>
 {% endblock %}

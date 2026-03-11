@@ -484,13 +484,6 @@ from django.db.models import Count, F, ExpressionWrapper, FloatField
 from .models import Tag, Illustration, UserProfile  # 确保导入 UserProfile
 
 def get_recommendation_data(user, all_illusts, target_count=50, max_groups=10):
-    """
-    标签分组轮播推荐
-    - all_illusts: 带有 calculated_hot 注解的 QuerySet
-    - target_count: 目标推荐数量（默认50）
-    - max_groups: 最多使用多少组（每组3个标签）
-    """
-    # 获取用户所有正权重的标签
     profile, _ = UserProfile.objects.get_or_create(user=user)
     prefs = profile.tag_preferences  # 格式 {"1": 12, "5": 2, ...}
 
@@ -589,7 +582,8 @@ def illustration_center(request):
 
         tag_data_list.append({
             'tag': tag,
-            'cover_url': chosen_illust.image.url if chosen_illust else None
+            'cover_url': chosen_illust.image.url if chosen_illust else None,
+            'count': tag.num
         })
 
     # 1. 最新作品

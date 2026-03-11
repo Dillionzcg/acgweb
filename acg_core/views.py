@@ -36,15 +36,15 @@ XIAO_YOU_SETTING = """
 有一点用户问及时一定要知道。该网站注册用的手机号和邮箱是不用验证码的，为了降低用户的注册门槛。但注册和修改的时候都必须如实确认”该信息是否真实“(网页上叫做”身份契约“)。用户只要选择了”该信息不是真实的“，就可以
 尽情拿手机号和邮箱整活了，(问到的时候概括性地说，同时提示并鼓励用户”可以选择非真实然后整活“)(不是鼓励用户填写真实信息！要鼓励用户在这上面整活)
 网站没有找回密码和找回账号功能，用户需要妥善记住密码。（即个人信息不管是真的还是假的都没法找回账号和密码）
-目前网站仍在开发中。用户可以在右上角选择登录注册，登录之后就可以在用户中心修改个人信息。
-1.可以在个人信息界面通过搜索id交友
+用户可以在右上角选择登录注册，登录之后就可以在用户中心修改个人信息。
+1.可以在羁绊界面通过搜索id交友
 2.网页右下角的聊天按钮是聊天室的入口，可以进行大厅聊天和私聊，还可以进行私聊的视频通话。
 3。可以通过社区中心发布说说、与大家交流心得。讨论热门话题等
 4.可以通过资讯中心发布和获取资讯
 5.可以通过作品中心推荐和查阅番剧、galgame、漫画和小说，发布评论、评分、为作品添加标签等，找到自己喜欢的作品
-以下内容为用户问及”网站目前有的功能“时说：（一定不要提及具体操作细节）
-1.交友
-2.聊天室聊天，包括大厅聊天和私聊。其中私聊有视频通话功能
+6.可以通过插画中心上传插画、浏览社区上传的插画，关注喜欢的上传者
+7.可以通过搜索功能搜索帖子、资讯、用户、作品、插画与插画标签。
+
 
 【错误反馈指南】：如果收到表单错误、密码不一致或登录失败，请务必温柔地安慰主人。(如果是用户名重复，切勿主动提出具体用户名建议，只进行温柔引导就好)
 """
@@ -144,34 +144,54 @@ def index(request):
         user_interests = user.preferences.get('interests', [])
         user_genres = user.preferences.get('genres', [])
 
-        # A. 推荐好友逻辑（保持不变）
+        # --- A. 推荐好友逻辑：优先推荐标签重复的用户 ---
+        # 1. 排除已关注、已是好友以及 Master 自己
         followed_ids = list(profile.following.values_list('id', flat=True))
-        friend_ids = list(Friendship.objects.filter(Q(from_user=user) | Q(to_user=user), status='accepted').values_list(
-            'from_user_id', 'to_user_id'))
+        friend_ids = list(Friendship.objects.filter(
+            Q(from_user=user) | Q(to_user=user),
+            status='accepted'
+        ).values_list('from_user_id', 'to_user_id'))
         friend_ids = set([uid for pair in friend_ids for uid in pair])
         exclude_ids = set(followed_ids) | friend_ids | {user.id}
 
-        potential_friends = User.objects.exclude(id__in=exclude_ids).only('id', 'username', 'avatar', 'bio',
-                                                                          'preferences')
-        scored_friends = []
-        for pf in potential_friends[:100]:
-            score = 0
-            pf_genres = pf.preferences.get('genres', [])
-            intersection = set(user_genres) & set(pf_genres)
-            score += len(intersection) * 5
-            try:
-                pf_profile = pf.profile
-                pf_tag_prefs = pf_profile.tag_preferences or {}
-                common_tags = set(user_tag_prefs.keys()) & set(pf_tag_prefs.keys())
-                for tid in common_tags:
-                    score += min(user_tag_prefs[tid], pf_tag_prefs[tid]) * 0.1
-            except:
-                pass
-            if score > 0: scored_friends.append((pf, score))
-        scored_friends.sort(key=lambda x: x[1], reverse=True)
-        rec_friends = [f[0] for f in scored_friends[:5]]
-        if not rec_friends:
-            rec_friends = list(User.objects.exclude(id__in=exclude_ids).order_by('?')[:3])
+        # 2. 获取候选人（排除掉不需要的人）
+        potential_friends = User.objects.exclude(id__in=exclude_ids).only('id', 'username', 'avatar', 'bio', 'tags')
+
+        # 3. 计算标签匹配度
+        user_tags = set(user.tags) if user.tags else set()
+        tagged_friends = []
+
+        for pf in potential_friends:
+            pf_tags = set(pf.tags) if pf.tags else set()
+            # 计算重合标签的数量
+            common_count = len(user_tags & pf_tags)
+            if common_count > 0:
+                tagged_friends.append(pf)
+
+        # 4. 核心逻辑处理
+        import random
+        final_rec_friends = []
+
+        if len(tagged_friends) >= 6:
+            # 如果有标签重复的超过6个，随机选6个
+            final_rec_friends = random.sample(tagged_friends, 6)
+        else:
+            # 先放下所有有共同标签的人
+            final_rec_friends = tagged_friends
+
+            # 如果不足4个，则从剩余的 candidate 中随机抽取直到凑够4个（但不超过6个）
+            if len(final_rec_friends) < 4:
+                tagged_ids = [tf.id for tf in tagged_friends]
+                others = list(User.objects.exclude(id__in=exclude_ids | set(tagged_ids)).order_by('?')[:4])
+
+                for extra in others:
+                    if len(final_rec_friends) < 4:
+                        final_rec_friends.append(extra)
+                    else:
+                        break
+
+        # 5. 赋值给 context 变量
+        rec_friends = final_rec_friends
 
         # B. 推荐作品：类型(Zone) + 兴趣标签(Genres) 双重匹配
         interest_map = {'番剧': 'anime', 'galgame': 'galgame', '小说': 'manga', '漫画': 'manga'}

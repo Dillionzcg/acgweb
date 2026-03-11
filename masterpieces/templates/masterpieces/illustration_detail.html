@@ -179,7 +179,7 @@
 }
 </style>
 
-<a href="javascript:history.back();" class="back-to-center group">
+<a href="javascript:void(0);" onclick="goBackAndRefresh()" class="back-to-center group">
     <i class="fa-solid fa-arrow-left group-hover:scale-120 transition-transform"></i>
 </a>
     <div id="favBtn"
@@ -613,6 +613,18 @@ function toggleFollow(userId) {
     .catch(error => {
         console.error('发生错误:', error);
     });
+}
+function goBackAndRefresh() {
+    // 获取来源页面的 URL
+    const prevUrl = document.referrer;
+
+    // 如果有来源页面，且来源页面不是当前页（防止死循环）
+    if (prevUrl && prevUrl !== window.location.href) {
+        window.location.href = prevUrl;
+    } else {
+        // 如果找不到来源（比如直接打开的详情页），则跳转到列表主页
+        window.location.href = "{% url 'masterpieces:illustration_center' %}";
+    }
 }
 // 现有的 toggleCommentLike 函数保持不变...
 </script>

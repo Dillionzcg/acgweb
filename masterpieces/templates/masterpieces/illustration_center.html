@@ -412,7 +412,7 @@
     if (!confirm('确定要取消关注该作者吗？')) return;
 
     // 这里使用你之前在 urls.py 定义的关注逻辑接口
-    const url = `/user/${userId}/follow/`;
+    let url = "{% url 'masterpieces:toggle_follow' 0 %}".replace('0', userId);
 
     fetch(url, {
         method: 'POST',
