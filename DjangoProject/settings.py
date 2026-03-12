@@ -3,6 +3,9 @@ Django settings for DjangoProject project.
 """
 import os
 from pathlib import Path
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -90,7 +93,8 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
-DEEPSEEK_API_KEY = "sk-e9d4ab9b51d24a0486baef6928eb7d5f"
+# 建议设置一个默认值（第二个参数），防止环境变量读取失败时报错
+DEEPSEEK_API_KEY = os.getenv('DEEPSEEK_API_KEY', 'default_value_if_not_found')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # --- 认证配置 ---

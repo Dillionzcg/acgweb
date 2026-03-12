@@ -108,11 +108,6 @@ def kanban_chat(request):
     return JsonResponse({'error': 'invalid request'}, status=400)
 
 
-# views.py
-
-# views.py
-
-
 def index(request):
     from masterpieces.models import Work, UserProfile
     from community.models import News
